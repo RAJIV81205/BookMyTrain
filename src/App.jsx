@@ -1,9 +1,9 @@
 import React from 'react'
-
+import Loader from './Components/Loader'
 const App = () => {
   return (
-    <main className='text-xl font-medium text-blue-700'>
-      App</main>
+        <Loader />
+ 
   )
 }
 
