@@ -73,7 +73,7 @@ const Header = () => {
                   isHovered ? "opacity-100" : "opacity-0"
                 }`} />
               </div>
-              <span className="text-white font-circular-web text-2xl tracking-tight">
+              <span className="text-black font-circular-web text-2xl tracking-tight">
                 Pengu<span className="text-yellow-300">Verse</span>
               </span>
             </div>
@@ -99,7 +99,7 @@ const Header = () => {
                   }
                 }}
               >
-                <span className="text-white/70 group-hover:text-white transition-colors duration-300 text-sm uppercase tracking-wider font-iansui">
+                <span className="text-gray-900/70 group-hover:text-gray-900 transition-colors duration-300 text-sm uppercase tracking-wider font-iansui">
                   {item}
                 </span>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-500" />
