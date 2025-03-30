@@ -4,3 +4,13 @@
 @theme{
     --font-loader: "Winky Sans", sans-serif;
 }
+
+::-webkit-scrollbar{
+    display: none;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+
+
+
+
