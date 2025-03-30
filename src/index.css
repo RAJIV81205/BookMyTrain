@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Iansui&display=swap');
 @import "tailwindcss";
 
 @theme{
     --font-loader: "Winky Sans", sans-serif;
+    --font-iansui: "Iansui", sans-serif;
 }
 
 ::-webkit-scrollbar{
