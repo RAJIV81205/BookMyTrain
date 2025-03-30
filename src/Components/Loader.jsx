@@ -1,11 +1,26 @@
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
-const Loader = () => {
+const Loader = ({ loading }) => {
   const textRef = useRef(null);
   const particlesRef = useRef([]);
 
   useEffect(() => {
+    if (!loading) {
+      // Fade out animation when loading is complete
+      gsap.to('.loader-container', {
+        opacity: 0,
+        duration: 1,
+        onComplete: () => {
+          const loader = document.querySelector('.loader-container');
+          if (loader) {
+            loader.style.display = 'none';
+          }
+        }
+      });
+      return;
+    }
+
     // Text background animation
     gsap.to(textRef.current, {
       backgroundPosition: "200% 200%",
@@ -57,39 +72,41 @@ const Loader = () => {
         delay: index * 0.05
       });
     });
-  }, []);
+  }, [loading]);
 
   return (
-    <div className="flex justify-center items-center h-screen w-full relative bg-black overflow-hidden">
+    <div className="loader-container fixed inset-0 z-50">
+      <div className="flex justify-center items-center h-screen w-full relative bg-black overflow-hidden">
         <div className="particles-container absolute inset-0 w-full h-full" />
         <div className="relative">
-            <h1 ref={textRef} className="text-[180px] font-bold pointer-events-none" style={{
-                backgroundImage: "url(https://images.unsplash.com/photo-1614853035986-b230d7d5679c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)",
-                backgroundSize: "200% 200%",
-                backgroundPosition: "center",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                textStroke: "2px white",
-                WebkitTextStroke: "2px white"
-            }}>
-                LOADING...
-            </h1>
+          <h1 ref={textRef} className="text-[180px] font-bold pointer-events-none" style={{
+            backgroundImage: "url(https://images.unsplash.com/photo-1614853035986-b230d7d5679c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)",
+            backgroundSize: "200% 200%",
+            backgroundPosition: "center",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            textStroke: "2px white",
+            WebkitTextStroke: "2px white"
+          }}>
+            LOADING...
+          </h1>
         </div>
 
         <style>{`
-            .particle {
-                position: absolute;
-                width: 4px;
-                height: 4px;
-                background: rgba(255, 255, 255, 0.8);
-                border-radius: 50%;
-                pointer-events: none;
-                box-shadow: 0 0 30px rgba(255, 255, 255, 0.5),
-                           0 0 60px rgba(255, 255, 255, 0.3);
-                filter: blur(1px);
-            }
+          .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5),
+                       0 0 60px rgba(255, 255, 255, 0.3);
+            filter: blur(1px);
+          }
         `}</style>
+      </div>
     </div>
   )
 }
