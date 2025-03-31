@@ -15,6 +15,12 @@
 
 *{
     scroll-behavior: smooth;
+
+   
+}
+
+#root{
+    background-color: #000;
 }
 
 

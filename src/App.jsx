@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import Page from './Components/Page'
 import Loader from './Components/Loader'
 import Spline from '@splinetool/react-spline';
@@ -29,12 +29,14 @@ const App = () => {
       <Loader loading={isLoading} />
       
       {/* Spline Container - Sticky position with full viewport height */}
-      <div className='sticky top-0 w-full h-screen'>
+      <div className='top-0 w-full h-full sticky z-10'>
+      <Suspense fallback={<div>Loading...</div>}> 
         <Spline 
           scene="https://prod.spline.design/0CjTKi3v6AEI-cUl/scene.splinecode" 
           className='w-full h-full' 
           onLoad={onSplineLoad}
         />
+        </Suspense>
       </div>
 
       {/* Content Container */}
