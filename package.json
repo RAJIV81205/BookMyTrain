@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "irctc-connect": "^1.2.5",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.526.0",
     "mongoose": "^8.17.0",
