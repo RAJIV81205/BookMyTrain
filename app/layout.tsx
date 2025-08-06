@@ -19,7 +19,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "TrainTix",
+  title: "BookMyTrain",
   description: "Book your train tickets with ease",
 };
 

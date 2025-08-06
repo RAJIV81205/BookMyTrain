@@ -21,7 +21,7 @@ const Header = () => {
               />
             </svg>
           </div>
-          <span className='text-lg font-semibold text-slate-800'>RailConnect</span>
+          <span className='text-lg font-semibold text-slate-800'>BookMyTrain</span>
         </div>
 
         {/* Get Started Button */}
