@@ -75,6 +75,7 @@ const Signup = () => {
                       type="text"
                       name="firstName"
                       value={formData.firstName}
+                      autoComplete='off'
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
                       placeholder="First name"
@@ -94,6 +95,7 @@ const Signup = () => {
                     <input
                       type="text"
                       name="lastName"
+                      autoComplete='off'
                       value={formData.lastName}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
@@ -116,6 +118,7 @@ const Signup = () => {
                   <input
                     type="email"
                     name="email"
+                    autoComplete='off'
                     value={formData.email}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
@@ -137,6 +140,7 @@ const Signup = () => {
                   <input
                     type="tel"
                     name="phone"
+                    autoComplete='off'
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
@@ -158,6 +162,7 @@ const Signup = () => {
                   <input
                     type="date"
                     name="dateOfBirth"
+                    autoComplete='off'
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
@@ -179,6 +184,7 @@ const Signup = () => {
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
+                    autoComplete='off'
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
                     placeholder="Create a password"
@@ -210,6 +216,7 @@ const Signup = () => {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
+                    autoComplete='off'
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
