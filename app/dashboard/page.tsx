@@ -1,8 +1,9 @@
 import React from 'react'
+import Search from '@/components/Dashboard/Search/Search'
 
 const page = () => {
   return (
-    <div>page</div>
+    <Search />
   )
 }
 
