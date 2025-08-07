@@ -1,34 +1,204 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, ChangeEvent } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import z from 'zod'
+import { z } from 'zod'
+import {
+  SignupFormData,
+  SignupFormErrors,
+  SignupApiRequest,
+  SignupApiResponse,
+  ApiErrorDetail
+} from '@/types/auth'
 
-const Signup = () => {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formData, setFormData] = useState({
+// Client-side validation schema to match the API
+const signupSchema = z.object({
+  name: z.string()
+    .min(1, "Name is required")
+    .max(100, "Name is too long")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+  email: z.string()
+    .email("Invalid email format")
+    .min(1, "Email is required"),
+  mobile: z.string()
+    .regex(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number starting with 6-9"),
+  dateOfBirth: z.string()
+    .min(1, "Date of birth is required")
+    .refine((date) => {
+      const selectedDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - selectedDate.getFullYear();
+      return age >= 13 && age <= 120;
+    }, "Age must be between 13 and 120 years"),
+  password: z.string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password is too long")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+const Signup: React.FC = () => {
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [errors, setErrors] = useState<SignupFormErrors>({})
+  const [formData, setFormData] = useState<SignupFormData>({
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
+    mobile: '',
     dateOfBirth: '',
     password: '',
     confirmPassword: ''
   })
 
-  const handleInputChange = (e:any) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = e.target;
 
-  const handleSubmit = () => {
-    console.log('Signup attempted with:', formData)
-  }
+    if (name === "mobile") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData({
+        ...formData,
+        [name]: numericValue,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof SignupFormErrors]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+  };
+
+  const validateForm = (): boolean => {
+    try {
+      // Combine first and last name for validation
+      const dataToValidate = {
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        email: formData.email,
+        mobile: formData.mobile,
+        dateOfBirth: formData.dateOfBirth,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+
+      signupSchema.parse(dataToValidate);
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMap: SignupFormErrors = {};
+        error.issues.forEach((issue) => {
+          const field = issue.path[0] as string;
+          // Map validation errors to form field names
+          if (field === 'name') {
+            if (!formData.firstName.trim()) {
+              errorMap['firstName'] = 'First name is required';
+            }
+            if (!formData.lastName.trim()) {
+              errorMap['lastName'] = 'Last name is required';
+            }
+            if (!errorMap['firstName'] && !errorMap['lastName']) {
+              errorMap['firstName'] = issue.message;
+            }
+          } else if (field === 'mobile') {
+            errorMap['mobile'] = issue.message;
+          } else {
+            errorMap[field as keyof SignupFormErrors] = issue.message;
+          }
+        });
+        setErrors(errorMap);
+      }
+      return false;
+    }
+  };
+
+  const handleSubmit = async (): Promise<void> => {
+    // Prevent double submission
+    if (isLoading) return;
+
+    // Validate form
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Prepare data for API (match the expected structure)
+      const apiData: SignupApiRequest = {
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        email: formData.email,
+        mobile: formData.mobile, // Send as string to match API expectation
+        dateOfBirth: formData.dateOfBirth,
+        password: formData.password
+      };
+
+      const response: Response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(apiData)
+      });
+
+      const data: SignupApiResponse = await response.json();
+
+      if (response.ok) {
+        toast.success('Account created successfully!');
+        // Reset form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          mobile: '',
+          dateOfBirth: '',
+          password: '',
+          confirmPassword: ''
+        });
+        setErrors({});
+        // Optionally redirect to login page
+        // router.push('/auth/login');
+      } else {
+        // Handle API errors
+        if (data.details && Array.isArray(data.details)) {
+          // Handle validation errors from API
+          const errorMap: SignupFormErrors = {};
+          data.details.forEach((detail: ApiErrorDetail) => {
+            if (detail.field === 'mobile') {
+              errorMap['mobile'] = detail.message;
+            } else if (detail.field === 'name') {
+              errorMap['firstName'] = detail.message;
+            } else {
+              errorMap[detail.field as keyof SignupFormErrors] = detail.message;
+            }
+          });
+          setErrors(errorMap);
+          toast.error('Please fix the form errors');
+        } else {
+          toast.error(data.message || data.error || 'Failed to create account');
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-white relative">
@@ -77,11 +247,18 @@ const Signup = () => {
                       value={formData.firstName}
                       autoComplete='off'
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                      className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                        errors.firstName 
+                          ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                          : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                      }`}
                       placeholder="First name"
                       required
                     />
                   </div>
+                  {errors.firstName && (
+                    <p className="mt-1 text-xs text-red-600">{errors.firstName}</p>
+                  )}
                 </div>
                 
                 <div>
@@ -98,11 +275,18 @@ const Signup = () => {
                       autoComplete='off'
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                      className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                        errors.lastName 
+                          ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                          : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                      }`}
                       placeholder="Last name"
                       required
                     />
                   </div>
+                  {errors.lastName && (
+                    <p className="mt-1 text-xs text-red-600">{errors.lastName}</p>
+                  )}
                 </div>
               </div>
 
@@ -121,17 +305,24 @@ const Signup = () => {
                     autoComplete='off'
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                    className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                      errors.email 
+                        ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                        : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                    }`}
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                )}
               </div>
 
-              {/* Phone Field */}
+              {/* Mobile Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
+                  Mobile Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -139,15 +330,22 @@ const Signup = () => {
                   </div>
                   <input
                     type="tel"
-                    name="phone"
+                    name="mobile"
                     autoComplete='off'
-                    value={formData.phone}
+                    value={formData.mobile}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
-                    placeholder="Enter your phone number"
+                    className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                      errors.mobile 
+                        ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                        : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                    }`}
+                    placeholder="Enter 10-digit mobile number"
                     required
                   />
                 </div>
+                {errors.mobile && (
+                  <p className="mt-1 text-xs text-red-600">{errors.mobile}</p>
+                )}
               </div>
 
               {/* Date of Birth Field */}
@@ -165,10 +363,19 @@ const Signup = () => {
                     autoComplete='off'
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split('T')[0]}
+                    className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                      errors.dateOfBirth 
+                        ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                        : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                    }`}
                     required
                   />
                 </div>
+                {errors.dateOfBirth && (
+                  <p className="mt-1 text-xs text-red-600">{errors.dateOfBirth}</p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -186,7 +393,11 @@ const Signup = () => {
                     value={formData.password}
                     autoComplete='off'
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                    className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                      errors.password 
+                        ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                        : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                    }`}
                     placeholder="Create a password"
                     required
                   />
@@ -202,6 +413,12 @@ const Signup = () => {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Must contain uppercase, lowercase, and number
+                </p>
               </div>
 
               {/* Confirm Password Field */}
@@ -219,7 +436,11 @@ const Signup = () => {
                     autoComplete='off'
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition-colors text-sm"
+                    className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-md focus:outline-none focus:ring-1 transition-colors text-sm ${
+                      errors.confirmPassword 
+                        ? 'border-red-300 focus:ring-red-300 focus:border-red-300' 
+                        : 'border-gray-200 focus:ring-gray-300 focus:border-gray-300'
+                    }`}
                     placeholder="Confirm your password"
                     required
                   />
@@ -235,6 +456,9 @@ const Signup = () => {
                     )}
                   </button>
                 </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+                )}
               </div>
 
               {/* Terms and Conditions */}
@@ -259,9 +483,14 @@ const Signup = () => {
               {/* Submit Button */}
               <button
                 onClick={handleSubmit}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-md transition-colors text-sm"
+                disabled={isLoading}
+                className={`w-full font-medium py-2.5 px-4 rounded-md transition-colors text-sm ${
+                  isLoading
+                    ? 'bg-gray-400 cursor-not-allowed text-white'
+                    : 'bg-gray-900 hover:bg-gray-800 text-white'
+                }`}
               >
-                Create Account
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </button>
             </div>
 

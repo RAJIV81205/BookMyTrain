@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "irctc-connect": "^1.2.5",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.526.0",

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
-import z from 'zod';
+import z, { date } from 'zod';
 import User from '@/lib/db/Schema/User';
 import connectDB from '@/lib/db/db';
 
@@ -8,14 +8,15 @@ import connectDB from '@/lib/db/db';
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(100),
+
 });
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password} = await request.json();
 
     // Validate input
-    const validation = loginSchema.safeParse({ email, password });
+    const validation = loginSchema.safeParse({ email, password});
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.issues }, { status: 400 });
     }
