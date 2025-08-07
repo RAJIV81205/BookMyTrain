@@ -1,40 +1,51 @@
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
-import z, { date } from 'zod';
 import User from '@/lib/db/Schema/User';
 import connectDB from '@/lib/db/db';
-
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6).max(100),
-
-});
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { email, password} = await request.json();
+    const { email, password } = await request.json();
 
     // Validate input
-    const validation = loginSchema.safeParse({ email, password});
-    if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    // Find user in the database
+    // Connect to database
     await connectDB();
+   
+    
+    // Find user in the database
     const user = await User.findOne({ email });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
     // Generate JWT token
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET || 'secret', {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { id: user._id, email: user.email }, 
+      process.env.JWT_SECRET || 'default', 
+      { expiresIn: '1h' }
+    );
 
-    return NextResponse.json({ token });
+    return NextResponse.json({ 
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+
+      }
+    });
+    
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

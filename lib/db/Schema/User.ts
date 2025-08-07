@@ -9,4 +9,4 @@ const User = new mongoose.Schema({
   createdAt: { type: String, default: new Date().toLocaleString("en-IN") }
 });
 
-export default mongoose.model("User", User);
+export default mongoose.models.User || mongoose.model("User", User);
