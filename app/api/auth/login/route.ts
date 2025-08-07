@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
-import User from '@/lib/db/Schema/User';
+import User from '@/lib/db/model/User';
 import connectDB from '@/lib/db/db';
 import bcrypt from 'bcryptjs';
 
@@ -15,14 +15,20 @@ export async function POST(request: Request) {
 
     // Connect to database
     await connectDB();
-   
-    
-    // Find user in the database
+
+
     const user = await User.findOne({ email });
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return NextResponse.json({ error: 'JWT Secret not found in environment variables.' }, { status: 500 });
+    }
+
+
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -32,20 +38,19 @@ export async function POST(request: Request) {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email }, 
-      process.env.JWT_SECRET || 'default', 
+      { id: user._id, email: user.email },
+      secret,
       { expiresIn: '1h' }
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-
+      user:{
+        name:user.name,
+        email:user.email
       }
     });
-    
+
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

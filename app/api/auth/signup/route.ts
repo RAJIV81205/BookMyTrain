@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import User from "@/lib/db/Schema/User";
+import User from "@/lib/db/model/User";
 import connectDB from "@/lib/db/db";
 
 // Input validation schema
