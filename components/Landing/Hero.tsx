@@ -23,10 +23,10 @@ const Hero = () => {
 
             {/* Hero Content */}
             <div className="relative z-10 flex items-center justify-center min-h-screen px-6 pt-20 font-poppins">
-                <div className="text-center max-w-2/3 mx-auto">
+                <div className="text-center  w-full sm:max-w-2/3 mx-auto">
                     {/* Main Heading */}
                     <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-slate-900 mb-8 leading-tight upper tracking-wide">
-                        Book<span className="text-teal-600">.</span>Travel<span className="text-teal-600">.</span>Enjoy
+                        Book<span className="text-teal-600 break-all ">.</span>Travel<span className="text-teal-600 break-all">.</span>Enjoy
                     </h1>
 
                     {/* Subtitle */}
