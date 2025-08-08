@@ -1,4 +1,4 @@
-import { User } from '@/types/dashboard';
+import { User } from '@/types/auth';
 
 interface DashboardHeaderProps {
   user: User | null;
