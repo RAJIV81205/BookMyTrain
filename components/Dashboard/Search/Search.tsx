@@ -1,66 +1,66 @@
 "use client"
 
-import React, { useState , useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { MapPin, Calendar, Search as SearchIcon } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
 import toast from 'react-hot-toast'
 
-
 const Search = () => {
   const [fromQuery, setFromQuery] = useState("")
   const [toQuery, setToQuery] = useState("")
   const [fromCode, setFromCode] = useState("")
   const [toCode, setToCode] = useState("")
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState("")
   const [results, setResults] = useState([])
+  const [activeField, setActiveField] = useState<"from" | "to" | null>(null)
 
-  const stations = stninfo.station || [];
-
+  const stations = stninfo.station || []
 
   useEffect(() => {
-  setDate(new Date().toISOString().split("T")[0])
+    const today = new Date().toISOString().split("T")[0]
+    setDate(today)
   }, [])
 
   const handleSelectFrom = (station: any) => {
     setFromQuery(station.stnName)
     setFromCode(station.stnCode)
+    setActiveField(null)
   }
 
   const handleSelectTo = (station: any) => {
     setToQuery(station.stnName)
     setToCode(station.stnCode)
+    setActiveField(null)
   }
 
-  // Common search filter for name, city, or code - limit to 5 results
-  const filterStations = (query: string) => {
+  const filterStations = (query: string, excludeCode?: string) => {
     return stations
       .filter(
         (s) =>
-          s.stnName.toLowerCase().includes(query.toLowerCase()) ||
-          s.stnCity.toLowerCase().includes(query.toLowerCase()) ||
-          s.stnCode.toLowerCase().includes(query.toLowerCase())
+          s.stnCode !== excludeCode && // exclude selected station
+          (s.stnName.toLowerCase().includes(query.toLowerCase()) ||
+            s.stnCity.toLowerCase().includes(query.toLowerCase()) ||
+            s.stnCode.toLowerCase().includes(query.toLowerCase()))
       )
-      .slice(0, 5) // Limit to 5 suggestions
+      .slice(0, 5)
   }
 
-  const searchTrain = async () =>{
-    if (!fromCode || !toCode ) return
-
+  const searchTrain = async () => {
+    if (!fromCode || !toCode) return
     try {
-      const results = await searchTrainBetweenStations(fromCode , toCode)
-      if (!results.success){
-        toast.error("Error Getting Results")
+      const results = await searchTrainBetweenStations(fromCode, toCode)
+      if (!results.success) {
+        return toast.error(results.data || "Error Getting Results")
       }
       console.log(results)
       setResults(results.data)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error searching trains:", error)
+      toast.error(error.message || "Error searching trains")
     }
   }
-
-
 
   return (
     <div className="min-h-screen flex flex-col items-center font-poppins bg-gray-50 p-4">
@@ -80,40 +80,45 @@ const Search = () => {
                 type="text"
                 placeholder="Enter departure station"
                 value={fromQuery}
+                onFocus={() => setActiveField("from")}
+                onBlur={() => setActiveField(null)}
                 onChange={(e) => {
                   setFromQuery(e.target.value)
                   setFromCode("")
+                  setActiveField("from")
                 }}
                 className="w-full bg-transparent outline-none text-gray-700"
               />
             </div>
-            {/* Animated Suggestions */}
-            {fromQuery && !fromCode && (
+
+            {/* From Field suggestions */}
+            {activeField === "from" && fromQuery.length > 0 && !fromCode && (
               <div className="absolute top-[72px] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto animate-in slide-in-from-top-2 duration-200 ease-out">
-                {filterStations(fromQuery).map((s) => (
+                {filterStations(fromQuery, toCode).map((s) => (
                   <div
                     key={s.stnCode}
                     onClick={() => handleSelectFrom(s)}
-                    className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
                   >
-                    <div className="font-medium text-gray-800">
-                      {s.stnName} ({s.stnCode})
-                    </div>
-                    <div className="text-sm text-gray-500 mt-0.5">
-                      {s.stnCity}
+                    <MapPin className="text-blue-500 w-5 h-5 flex-shrink-0" />
+                    <div className="truncate w-full flex flex-col">
+                      <span className="font-medium text-gray-800 truncate">
+                        {s.stnName} ({s.stnCode})
+                      </span>
+                      <span className="text-sm text-gray-500 truncate">
+                        {s.stnCity}
+                      </span>
                     </div>
                   </div>
                 ))}
-                {filterStations(fromQuery).length === 0 && (
+                {filterStations(fromQuery, toCode).length === 0 && (
                   <div className="px-4 py-3 text-gray-500 text-sm text-center">
                     No stations found
                   </div>
                 )}
               </div>
             )}
-            {fromCode && (
-              <p className="text-sm text-blue-600 mt-1">Station Code: {fromCode}</p>
-            )}
+
           </div>
 
           {/* To Field */}
@@ -125,37 +130,44 @@ const Search = () => {
                 type="text"
                 placeholder="Enter destination station"
                 value={toQuery}
+                onFocus={() => setActiveField("to")}
+                onBlur={() => setActiveField(null)}
                 onChange={(e) => {
                   setToQuery(e.target.value)
                   setToCode("")
+                  setActiveField("to")
                 }}
                 className="w-full bg-transparent outline-none text-gray-700"
               />
             </div>
-            {/* Animated Suggestions */}
-            {toQuery && !toCode && (
+
+            {activeField === "to" && toQuery.length > 0 && !toCode && (
               <div className="absolute top-[72px] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto animate-in slide-in-from-top-2 duration-200 ease-out">
-                {filterStations(toQuery).map((s) => (
+                {filterStations(toQuery, fromCode).map((s) => (
                   <div
                     key={s.stnCode}
                     onClick={() => handleSelectTo(s)}
-                    className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
                   >
-                    <div className="font-medium text-gray-800">
-                      {s.stnName} ({s.stnCode})
-                    </div>
-                    <div className="text-sm text-gray-500 mt-0.5">
-                      {s.stnCity}
+                    <MapPin className="text-blue-500 w-5 h-5 flex-shrink-0" />
+                    <div className="truncate w-full flex flex-col">
+                      <span className="font-medium text-gray-800 truncate">
+                        {s.stnName} ({s.stnCode})
+                      </span>
+                      <span className="text-sm text-gray-500 truncate">
+                        {s.stnCity}
+                      </span>
                     </div>
                   </div>
                 ))}
-                {filterStations(toQuery).length === 0 && (
+                {filterStations(toQuery, fromCode).length === 0 && (
                   <div className="px-4 py-3 text-gray-500 text-sm text-center">
                     No stations found
                   </div>
                 )}
               </div>
             )}
+
             {toCode && (
               <p className="text-sm text-blue-600 mt-1">Station Code: {toCode}</p>
             )}
@@ -168,6 +180,7 @@ const Search = () => {
               <Calendar className="text-gray-500 w-4 h-4" />
               <input
                 type="date"
+                min={new Date().toISOString().split("T")[0]}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-transparent outline-none text-gray-700"
@@ -177,8 +190,10 @@ const Search = () => {
         </div>
 
         {/* Search Button */}
-        <button className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition"
-        onClick={()=>searchTrain()}>
+        <button
+          className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition"
+          onClick={() => searchTrain()}
+        >
           <SearchIcon className="w-4 h-4" />
           Search Trains
         </button>
@@ -187,7 +202,7 @@ const Search = () => {
       {/* Results Section */}
       {results.length > 0 && (
         <div className="mt-6 w-full lg:w-2/3">
-          {results.map((trainInfo:any) => (
+          {results.map((trainInfo: any) => (
             <TrainCard key={trainInfo.train_no} trainInfo={trainInfo} />
           ))}
         </div>

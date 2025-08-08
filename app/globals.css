@@ -12,3 +12,8 @@ body{
 @theme{
   --font-poppins:var(--font-poppins, 'Poppins', sans-serif);
 }
+
+::-webkit-scrollbar{
+  display: none;
+  width: 0px;
+}
