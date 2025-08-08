@@ -3,6 +3,9 @@
 import React, { useState } from 'react'
 import { MapPin, Calendar, Search as SearchIcon } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
+import { searchTrainBetweenStations } from 'irctc-connect'
+
+
 
 const stations = stninfo.station || []
 
@@ -35,8 +38,21 @@ const Search = () => {
       .slice(0, 5) // Limit to 5 suggestions
   }
 
+  const searchTrain = async () =>{
+    if (!fromCode || !toCode ) return
+
+    try {
+      const results = await searchTrainBetweenStations(fromCode , toCode)
+      console.log(results)
+    } catch (error) {
+      console.error("Error searching trains:", error)
+    }
+  }
+
+
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center font-poppins bg-gray-50 p-4">
+    <div className="min-h-screen flex flex-col items-center font-poppins bg-gray-50 p-4">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 w-full max-w-5xl hover:shadow-xl transition-shadow duration-300">
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
           Search for Trains
@@ -150,7 +166,8 @@ const Search = () => {
         </div>
 
         {/* Search Button */}
-        <button className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition">
+        <button className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition"
+        onClick={()=>searchTrain()}>
           <SearchIcon className="w-4 h-4" />
           Search Trains
         </button>

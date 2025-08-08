@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -14,16 +15,15 @@ export default function DashboardLayout({
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token =
-        localStorage.getItem('token') ||
-        document.cookie.replace(
-          /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
-          '$1'
-        );
+      const token = localStorage.getItem('token') || document.cookie.replace(
+        /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
+        '$1'
+      );
 
       if (!token) {
         toast.error('No authentication token found. Please login.');
@@ -32,7 +32,6 @@ export default function DashboardLayout({
         return;
       }
 
-      // Create the verification promise
       const verificationPromise = fetch('/api/auth/verify', {
         method: 'POST',
         headers: {
@@ -48,7 +47,6 @@ export default function DashboardLayout({
         return response.json();
       });
 
-      // Use toast.promise for the verification process
       try {
         const data = await toast.promise(
           verificationPromise,
@@ -60,11 +58,9 @@ export default function DashboardLayout({
         );
 
         setIsVerified(true);
-        // Set user data if it's returned from the API
         if (data.user) {
           setUser(data.user);
         }
-
       } catch (error) {
         console.error('Token verification failed:', error);
         localStorage.removeItem('token');
@@ -79,22 +75,40 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
     );
   }
 
   if (!isVerified) return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 ml-68">
-        <DashboardHeader user={user} />
-        <div className="p-8">
+    <div className="flex h-screen bg-gray-50 font-poppins">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <DashboardHeader 
+          user={user} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
-

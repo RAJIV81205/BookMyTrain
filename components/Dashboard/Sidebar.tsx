@@ -1,8 +1,8 @@
-// Updated Sidebar Component
 'use client';
+
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, User, Activity } from 'lucide-react';
+import { Home, User, Activity, X } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home },
@@ -10,41 +10,110 @@ const navItems = [
   { label: 'Activity', path: '/dashboard/activity', icon: Activity },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    onClose(); // Close sidebar on mobile after navigation
+  };
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-68 bg-white border-r border-gray-300 flex flex-col py-6 px-4 font-poppins z-40">
-      
-      <div className="mb-12 mt-2">
-        <p className="text-2xl font-semibold">BookMyTrain</p>
-        <div className="text-xs text-gray-500 ml-1 mt-1 tracking-wide">Personal Account</div>
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
+          {/* Logo */}
+          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            <div className="mb-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                Personal Account
+              </p>
+            </div>
+            
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.path;
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => router.push(item.path)}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </div>
 
-      <nav className="flex flex-col gap-1 overflow-y-auto flex-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.path;
-
-          return (
+      {/* Mobile Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          {/* Header with Close Button */}
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
             <button
-              key={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold
-                ${isActive
-                  ? 'bg-blue-100 text-blue-900'
-                  : 'text-gray-700 hover:bg-blue-50'
-                }
-              `}
-              onClick={() => router.push(item.path)}
+              onClick={onClose}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
             >
-              <Icon size={18} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
-              <span className="tracking-wide">{item.label}</span>
+              <X className="h-5 w-5" />
             </button>
-          );
-        })}
-      </nav>
-     
-    </aside>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            <div className="mb-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                Personal Account
+              </p>
+            </div>
+            
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.path;
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Desktop Content Spacer */}
+      <div className="hidden lg:block lg:w-64 lg:flex-shrink-0" />
+    </>
   );
 }
