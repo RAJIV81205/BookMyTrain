@@ -1,20 +1,27 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState , useEffect } from 'react'
 import { MapPin, Calendar, Search as SearchIcon } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
+import TrainCard from './TrainCard'
+import toast from 'react-hot-toast'
 
-
-
-const stations = stninfo.station || []
 
 const Search = () => {
   const [fromQuery, setFromQuery] = useState("")
   const [toQuery, setToQuery] = useState("")
   const [fromCode, setFromCode] = useState("")
   const [toCode, setToCode] = useState("")
-  const [date, setDate] = useState("")
+  const [date, setDate] = useState("");
+  const [results, setResults] = useState([])
+
+  const stations = stninfo.station || [];
+
+
+  useEffect(() => {
+  setDate(new Date().toISOString().split("T")[0])
+  }, [])
 
   const handleSelectFrom = (station: any) => {
     setFromQuery(station.stnName)
@@ -43,7 +50,11 @@ const Search = () => {
 
     try {
       const results = await searchTrainBetweenStations(fromCode , toCode)
+      if (!results.success){
+        toast.error("Error Getting Results")
+      }
       console.log(results)
+      setResults(results.data)
     } catch (error) {
       console.error("Error searching trains:", error)
     }
@@ -53,7 +64,7 @@ const Search = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center font-poppins bg-gray-50 p-4">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 w-full max-w-5xl hover:shadow-xl transition-shadow duration-300">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-lg p-6 w-full max-w-5xl hover:shadow-xl transition-shadow duration-300">
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
           Search for Trains
         </h2>
@@ -172,6 +183,15 @@ const Search = () => {
           Search Trains
         </button>
       </div>
+
+      {/* Results Section */}
+      {results.length > 0 && (
+        <div className="mt-6 w-full lg:w-2/3">
+          {results.map((trainInfo:any) => (
+            <TrainCard key={trainInfo.train_no} trainInfo={trainInfo} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

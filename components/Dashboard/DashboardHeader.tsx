@@ -25,7 +25,7 @@ export default function DashboardHeader({ user, onMenuClick }: DashboardHeaderPr
   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
+    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3">
       <div className="flex items-center justify-between">
         {/* Left side - Mobile Menu Button + Greeting */}
         <div className="flex items-center space-x-4">
@@ -48,8 +48,8 @@ export default function DashboardHeader({ user, onMenuClick }: DashboardHeaderPr
         {/* Right side - Profile */}
         <div className="flex items-center space-x-3">
           {/* Profile Avatar */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="flex items-center space-x-3 lg:border lg:border-gray-200 lg:py-1 lg:px-2 lg:bg-gray-100 rounded-full ">
+            <div className="w-8 h-8 lg:w-8 lg:h-8 bg-gray-600 rounded-full flex items-center justify-center">
               <span className="text-xs lg:text-sm font-medium text-white">
                 {userInitials}
               </span>
