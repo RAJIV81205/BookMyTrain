@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader';
-import { User } from '@/types/dashboard';
+import { User } from '@/types/auth';
 
 export default function DashboardLayout({
   children,
