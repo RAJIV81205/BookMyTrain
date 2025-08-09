@@ -56,7 +56,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden w-full max-w-4xl mx-auto">
+    <div className="bg-blue-50 rounded-lg border border-blue-200 hover:shadow-md transition-shadow duration-200 overflow-hidden w-full max-w-4xl mx-auto">
       {/* Header with train info and running days - responsive */}
       <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
         <div className="flex items-center justify-between">

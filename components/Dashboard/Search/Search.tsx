@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect } from 'react'
-import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight, MapPinned } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
@@ -15,6 +15,8 @@ const Search = () => {
   const [results, setResults] = useState([])
   const [activeField, setActiveField] = useState<"from" | "to" | null>(null)
   const [loading, setLoading] = useState(false)
+  const resultsRef = React.useRef<HTMLDivElement | null>(null)
+
 
   const stations = stninfo.station || []
 
@@ -88,6 +90,13 @@ const Search = () => {
 
       setResults(filteredData)
 
+      if (filteredData.length > 0 && resultsRef.current) {
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth" })
+        }, 100) // small delay to ensure render
+      }
+
+
       if (filteredData.length === 0) {
         toast.error("No trains found for this route on the selected day")
       }
@@ -108,7 +117,7 @@ const Search = () => {
         </div>
 
         {/* Unified Search Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-2xl border shadow-sm border-gray-300 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:gap-4 gap-4">
             {/* From Station */}
             <div className="flex-1 dropdown-container">
@@ -139,13 +148,15 @@ const Search = () => {
                       <div
                         key={station.stnCode}
                         onClick={() => handleSelectFrom(station)}
-                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0  border-gray-200 transition-colors duration-150"
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
                           {station.stnCode} • {station.stnCity}
                         </div>
+
                       </div>
+
                     ))}
                   </div>
                 )}
@@ -193,7 +204,7 @@ const Search = () => {
                       <div
                         key={station.stnCode}
                         onClick={() => handleSelectTo(station)}
-                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors border-gray-200 duration-150"
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
@@ -241,26 +252,29 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Results */}
-        {results.length > 0 && (
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Available Trains ({results.length})
-              </h2>
-              <div className="text-sm text-gray-600 flex items-center">
-                <span className="font-medium">{fromQuery}</span>
-                <ArrowRight className="inline w-4 h-4 mx-2" />
-                <span className="font-medium">{toQuery}</span>
+
+        <div ref={resultsRef}>
+          {/* Results */}
+          {results.length > 0 && (
+            <div className='mt-10 bg-white rounded-xl border border-gray-300 p-5 shadow-sm' >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Available Trains ({results.length})
+                </h2>
+                <div className="text-sm text-gray-600 flex items-center">
+                  <span className="font-medium">{fromQuery}</span>
+                  <ArrowRight className="inline w-4 h-4 mx-2" />
+                  <span className="font-medium">{toQuery}</span>
+                </div>
+              </div>
+              <div className="grid gap-4">
+                {results.map((train: any, index: number) => (
+                  <TrainCard key={index} data={train} />
+                ))}
               </div>
             </div>
-            <div className="grid gap-4">
-              {results.map((train: any, index: number) => (
-                <TrainCard key={index} data={train} />
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

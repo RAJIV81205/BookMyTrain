@@ -6,8 +6,8 @@ import { Home, User, Activity, X } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home },
-  { label: 'Account', path: '/dashboard/account', icon: User },
-  { label: 'Activity', path: '/dashboard/activity', icon: Activity },
+  { label: 'PNR Status', path: '/dashboard/pnr', icon: User },
+  { label: 'Train Info', path: '/dashboard/train', icon: Activity },
 ];
 
 interface SidebarProps {
