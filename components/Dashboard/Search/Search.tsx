@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown } from 'lucide-react'
+import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown ,ArrowLeftRight  } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
@@ -15,7 +15,7 @@ const Search = () => {
   const [results, setResults] = useState([])
   const [activeField, setActiveField] = useState<"from" | "to" | null>(null)
   const [loading, setLoading] = useState(false)
-  
+
   const stations = stninfo.station || []
 
   useEffect(() => {
@@ -23,14 +23,12 @@ const Search = () => {
     setDate(today)
   }, [])
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (activeField && !(event.target as Element).closest('.dropdown-container')) {
         setActiveField(null)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [activeField])
@@ -73,7 +71,6 @@ const Search = () => {
       toast.error("Please select both departure and arrival stations")
       return
     }
-    
     setLoading(true)
     try {
       const results = await searchTrainBetweenStations(fromCode, toCode)
@@ -85,7 +82,6 @@ const Search = () => {
         toast.error("No trains found for this route")
       }
     } catch (error: any) {
-      console.error("Error searching trains:", error)
       toast.error(error.message || "Error searching trains")
     } finally {
       setLoading(false)
@@ -93,7 +89,7 @@ const Search = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+    <div className="min-h-screen  p-4 pt-10 lg:pt-0">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -101,10 +97,9 @@ const Search = () => {
           <p className="text-gray-600">Find trains between stations</p>
         </div>
 
-        {/* Search Form */}
+        {/* Unified Search Form */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          {/* Station Inputs Row */}
-          <div className="flex flex-col lg:flex-row gap-4 items-start mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-4 gap-4">
             {/* From Station */}
             <div className="flex-1 dropdown-container">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -128,8 +123,6 @@ const Search = () => {
                     Station Code: {fromCode}
                   </div>
                 )}
-                
-                {/* From Dropdown */}
                 {activeField === "from" && fromQuery && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {filterStations(fromQuery, toCode).map((station) => (
@@ -150,13 +143,14 @@ const Search = () => {
             </div>
 
             {/* Swap Button */}
-            <div className="flex lg:block justify-center lg:mt-8">
+            <div className="flex justify-center lg:mt-8">
               <button
                 onClick={swapStations}
                 className="p-3 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
                 title="Swap stations"
               >
-                <ArrowUpDown className="w-5 h-5 text-blue-600" />
+                <ArrowUpDown className="w-5 h-5 lg:hidden text-blue-600" />
+                <ArrowLeftRight className="w-5 h-5 hidden lg:block text-blue-600" />
               </button>
             </div>
 
@@ -183,8 +177,6 @@ const Search = () => {
                     Station Code: {toCode}
                   </div>
                 )}
-                
-                {/* To Dropdown */}
                 {activeField === "to" && toQuery && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {filterStations(toQuery, fromCode).map((station) => (
@@ -203,12 +195,9 @@ const Search = () => {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Date and Search Row */}
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
             {/* Date */}
-            <div className="flex-1 sm:max-w-xs">
+            <div className="flex-1 max-w-xs">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
                 Date
@@ -221,24 +210,24 @@ const Search = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               />
             </div>
+          </div>
 
-            {/* Search Button */}
-            <div className="flex-1 sm:flex-initial">
-              <button
-                onClick={searchTrain}
-                disabled={loading}
-                className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center min-w-[140px] shadow-lg hover:shadow-xl disabled:shadow-md"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <SearchIcon className="w-5 h-5 mr-2" />
-                    Search Trains
-                  </>
-                )}
-              </button>
-            </div>
+          {/* Search Button */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={searchTrain}
+              disabled={loading}
+              className="w-full lg:w-auto px-12 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center min-w-[200px] shadow-lg hover:shadow-xl disabled:shadow-md"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <SearchIcon className="w-5 h-5 mr-2" />
+                  Search Trains
+                </>
+              )}
+            </button>
           </div>
         </div>
 
