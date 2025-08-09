@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown ,ArrowLeftRight  } from 'lucide-react'
+import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import stninfo from '@/lib/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
@@ -73,13 +73,23 @@ const Search = () => {
     }
     setLoading(true)
     try {
-      const results = await searchTrainBetweenStations(fromCode, toCode)
-      if (!results.success) {
-        return toast.error(results.data || "Error Getting Results")
+      const res = await searchTrainBetweenStations(fromCode, toCode)
+      if (!res.success) {
+        return toast.error(res.data || "Error Getting Results")
       }
-      setResults(results.data)
-      if (results.data.length === 0) {
-        toast.error("No trains found for this route")
+
+      // API usually has Monday at index 0
+      const jsDay = new Date(date).getDay() // Sunday=0
+      const apiIndex = jsDay === 0 ? 6 : jsDay - 1 // shift so Monday=0
+
+      const filteredData = res.data.filter(
+        (train: any) => train.running_days && train.running_days[apiIndex] === '1'
+      )
+
+      setResults(filteredData)
+
+      if (filteredData.length === 0) {
+        toast.error("No trains found for this route on the selected day")
       }
     } catch (error: any) {
       toast.error(error.message || "Error searching trains")
