@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, ChangeEvent } from 'react'
-import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar, Shield, Building } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar, Shield } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { z } from 'zod'
@@ -13,8 +13,6 @@ interface AdminSignupFormData {
   email: string;
   mobile: string;
   dateOfBirth: string;
-  department: string;
-  employeeId: string;
   password: string;
   confirmPassword: string;
 }
@@ -25,8 +23,6 @@ interface AdminSignupFormErrors {
   email?: string;
   mobile?: string;
   dateOfBirth?: string;
-  department?: string;
-  employeeId?: string;
   password?: string;
   confirmPassword?: string;
 }
@@ -36,8 +32,6 @@ interface AdminSignupApiRequest {
   email: string;
   mobile: string;
   dateOfBirth: string;
-  department: string;
-  employeeId: string;
   password: string;
 }
 
@@ -69,13 +63,6 @@ const adminSignupSchema = z.object({
       const age = today.getFullYear() - selectedDate.getFullYear();
       return age >= 18 && age <= 65;
     }, "Age must be between 18 and 65 years for admin access"),
-  department: z.string()
-    .min(1, "Department is required")
-    .max(50, "Department name is too long"),
-  employeeId: z.string()
-    .min(3, "Employee ID must be at least 3 characters")
-    .max(20, "Employee ID is too long")
-    .regex(/^[A-Za-z0-9]+$/, "Employee ID can only contain letters and numbers"),
   password: z.string()
     .min(8, "Admin password must be at least 8 characters")
     .max(100, "Password is too long")
@@ -97,24 +84,11 @@ const AdminSignup: React.FC = () => {
     email: '',
     mobile: '',
     dateOfBirth: '',
-    department: '',
-    employeeId: '',
     password: '',
     confirmPassword: ''
   })
 
-  const departments = [
-    'IT & Technology',
-    'Human Resources',
-    'Finance & Accounting',
-    'Operations',
-    'Marketing',
-    'Customer Support',
-    'Security',
-    'Management'
-  ];
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
 
     if (name === "mobile") {
@@ -122,12 +96,6 @@ const AdminSignup: React.FC = () => {
       setFormData({
         ...formData,
         [name]: numericValue,
-      });
-    } else if (name === "employeeId") {
-      // Convert to uppercase for employee ID
-      setFormData({
-        ...formData,
-        [name]: value.toUpperCase(),
       });
     } else {
       setFormData({
@@ -153,8 +121,6 @@ const AdminSignup: React.FC = () => {
         email: formData.email,
         mobile: formData.mobile,
         dateOfBirth: formData.dateOfBirth,
-        department: formData.department,
-        employeeId: formData.employeeId,
         password: formData.password,
         confirmPassword: formData.confirmPassword
       };
@@ -209,12 +175,10 @@ const AdminSignup: React.FC = () => {
         email: formData.email,
         mobile: formData.mobile,
         dateOfBirth: formData.dateOfBirth,
-        department: formData.department,
-        employeeId: formData.employeeId,
         password: formData.password
       };
 
-      const response: Response = await fetch('/api/auth/admin/signup', {
+      const response: Response = await fetch('/api/admin/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -233,8 +197,6 @@ const AdminSignup: React.FC = () => {
           email: '',
           mobile: '',
           dateOfBirth: '',
-          department: '',
-          employeeId: '',
           password: '',
           confirmPassword: ''
         });
@@ -390,7 +352,7 @@ const AdminSignup: React.FC = () => {
                 )}
               </div>
 
-              {/* Mobile and Employee ID */}
+              {/* Mobile and Date of Birth */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -417,62 +379,6 @@ const AdminSignup: React.FC = () => {
                   </div>
                   {errors.mobile && (
                     <p className="mt-1 text-xs text-red-600">{errors.mobile}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Employee ID
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="employeeId"
-                      autoComplete='off'
-                      value={formData.employeeId}
-                      onChange={handleInputChange}
-                      className={`w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all text-sm placeholder-slate-400 ${
-                        errors.employeeId 
-                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                          : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
-                      }`}
-                      placeholder="e.g., EMP001"
-                      required
-                    />
-                  </div>
-                  {errors.employeeId && (
-                    <p className="mt-1 text-xs text-red-600">{errors.employeeId}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Department and Date of Birth */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all text-sm ${
-                      errors.department 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                    required
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                  {errors.department && (
-                    <p className="mt-1 text-xs text-red-600">{errors.department}</p>
                   )}
                 </div>
 
