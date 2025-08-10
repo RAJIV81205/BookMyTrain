@@ -1,3 +1,4 @@
+// Frontend Component (TrainSection.tsx)
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,10 +11,11 @@ interface TrainInfo {
 }
 
 interface SavedTrain {
-  id: number;
+  _id?: string;
+  id?: number;
   trainNo: string;
   trainName: string;
-  classes: string[];
+  classes: Record<string, number>; // Changed from string[] to object with seat counts
   addedDate: string;
 }
 
@@ -27,35 +29,45 @@ const defaultSeatCounts: Record<string, number> = {
 const classOptions = ['1AC', '2AC', '3AC', 'Sleeper'];
 
 const TrainSection = () => {
-  const [savedTrains, setSavedTrains] = useState<SavedTrain[]>([
-    {
-      id: 1,
-      trainNo: "22637",
-      trainName: "WEST COAST EXP",
-      classes: ["3AC", "2AC", "1AC", "Sleeper"],
-      addedDate: "2024-01-15"
-    },
-    {
-      id: 2,
-      trainNo: "22638",
-      trainName: "WEST COAST EXP",
-      classes: ["3AC", "2AC", "Sleeper"],
-      addedDate: "2024-01-16"
-    },
-    {
-      id: 3,
-      trainNo: "22639",
-      trainName: "ALLEPPEY SF EXP",
-      classes: ["3AC", "2AC", "1AC"],
-      addedDate: "2024-01-17"
-    }
-  ]);
-
+  const [savedTrains, setSavedTrains] = useState<SavedTrain[]>([]);
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTrain, setSelectedTrain] = useState<TrainInfo | null>(null);
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<TrainInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch trains from API
+  const fetchTrains = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('adminToken'); // Assuming token is stored in localStorage
+      
+      const response = await fetch('/api/admin/trains', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch trains');
+      }
+
+      const data = await response.json();
+      setSavedTrains(data.trains || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch trains');
+      console.error('Error fetching trains:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrains();
+  }, []);
 
   // Search functionality
   useEffect(() => {
@@ -65,7 +77,7 @@ const TrainSection = () => {
         train.trainNo.includes(term) ||
         train.trainName.toLowerCase().includes(term.toLowerCase())
       );
-      setSearchResults(results);
+      setSearchResults(results.slice(0, 10)); // Limit results
     } else {
       setSearchResults([]);
     }
@@ -102,28 +114,81 @@ const TrainSection = () => {
     });
   };
 
-  const handleSaveTrain = () => {
-    if (!selectedTrain || selectedClasses.length === 0) return;
-
-    // Prevent duplicate train numbers
-    if (savedTrains.some(t => t.trainNo === selectedTrain.trainNo)) {
-      alert("This train is already saved.");
+  const handleSaveTrain = async () => {
+    if (!selectedTrain || selectedClasses.length === 0) {
+      setError('Please select a train and at least one class');
       return;
     }
 
-    const newTrain: SavedTrain = {
-      id: Date.now(),
-      trainNo: selectedTrain.trainNo,
-      trainName: selectedTrain.trainName,
-      classes: selectedClasses,
-      addedDate: new Date().toISOString().split('T')[0]
-    };
-    setSavedTrains(prev => [...prev, newTrain]);
-    handleClosePopup();
+    // Check for duplicate train numbers
+    if (savedTrains.some(t => t.trainNo === selectedTrain.trainNo)) {
+      setError("This train is already saved.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      // Build classes object with fixed seat counts
+      const classesObject = selectedClasses.reduce((acc, className) => {
+        acc[className] = defaultSeatCounts[className];
+        return acc;
+      }, {} as Record<string, number>);
+
+      const trainData = {
+        trainNo: parseInt(selectedTrain.trainNo),
+        trainName: selectedTrain.trainName,
+        classes: classesObject
+      };
+
+      const response = await fetch('/api/admin/trains', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(trainData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save train');
+      }
+
+      // Refresh the trains list
+      await fetchTrains();
+      handleClosePopup();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save train');
+      console.error('Error saving train:', err);
+    }
   };
 
-  const handleDeleteTrain = (trainId: number) => {
-    setSavedTrains(prev => prev.filter(train => train.id !== trainId));
+  const handleDeleteTrain = async (trainId: string | number) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      const response = await fetch(`/api/admin/trains/${trainId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete train');
+      }
+
+      // Remove from local state
+      setSavedTrains(prev => prev.filter(train => 
+        (train._id || train.id) !== trainId
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete train');
+      console.error('Error deleting train:', err);
+    }
   };
 
   const getClassBadgeColor = (className: string) => {
@@ -146,6 +211,17 @@ const TrainSection = () => {
     return names[className] || className;
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Train className="w-16 h-16 text-gray-300 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">Loading trains...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -165,6 +241,19 @@ const TrainSection = () => {
           Add Train
         </button>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-800">{error}</p>
+          <button 
+            onClick={() => setError(null)}
+            className="text-red-600 underline text-sm mt-1"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Trains List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -188,7 +277,7 @@ const TrainSection = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {savedTrains.map((train) => (
-                <div key={train.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={train._id || train.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="font-semibold text-lg text-gray-900">{train.trainNo}</h3>
@@ -199,7 +288,7 @@ const TrainSection = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteTrain(train.id)}
+                        onClick={() => handleDeleteTrain(train._id || train.id!)}
                         className="text-gray-400 hover:text-red-600 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -209,12 +298,12 @@ const TrainSection = () => {
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 mb-2">Available Classes & Seats:</p>
                     <div className="space-y-2">
-                      {train.classes.map((className) => (
+                      {Object.entries(train.classes).map(([className, seatCount]) => (
                         <div key={className} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getClassBadgeColor(className)}`}>
                             {className}
                           </span>
-                          <span className="text-sm font-medium text-gray-700">{defaultSeatCounts[className]} seats</span>
+                          <span className="text-sm font-medium text-gray-700">{seatCount} seats</span>
                         </div>
                       ))}
                     </div>
@@ -289,7 +378,7 @@ const TrainSection = () => {
               {selectedTrain && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Select Available Classes (Default Seat Counts)
+                    Select Available Classes (Fixed Seat Configuration)
                   </label>
                   <div className="space-y-3">
                     {classOptions.map((className) => (
@@ -304,11 +393,13 @@ const TrainSection = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
-                              selectedClasses.includes(className)
-                                ? 'border-blue-500 bg-blue-500'
-                                : 'border-gray-300'
-                            }`}>
+                            <div
+                              className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                                selectedClasses.includes(className)
+                                  ? 'border-blue-500 bg-blue-500'
+                                  : 'border-gray-300'
+                              }`}
+                            >
                               {selectedClasses.includes(className) && (
                                 <div className="w-2 h-2 bg-white rounded-full"></div>
                               )}
@@ -320,13 +411,30 @@ const TrainSection = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="text-sm font-medium text-gray-600">
-                            {defaultSeatCounts[className]} seats
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-700">
+                              {defaultSeatCounts[className]} seats
+                            </div>
+                            <div className="text-xs text-gray-500">Fixed</div>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
+                  
+                  {selectedClasses.length > 0 && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-2">Selected Classes Summary:</p>
+                      <div className="space-y-1">
+                        {selectedClasses.map((className) => (
+                          <div key={className} className="flex justify-between text-sm">
+                            <span className="text-gray-700">{className}</span>
+                            <span className="font-medium">{defaultSeatCounts[className]} seats</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
