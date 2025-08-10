@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react'
 import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight, MapPinned } from 'lucide-react'
-import stninfo from '@/lib/stations.json'
+import stninfo from '@/lib/constants/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
 import toast from 'react-hot-toast'
