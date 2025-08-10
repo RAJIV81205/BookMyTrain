@@ -20,10 +20,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem('token') || document.cookie.replace(
-        /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
-        '$1'
-      );
+      const token = localStorage.getItem('token') 
 
       if (!token) {
         toast.error('No authentication token found. Please login.');
