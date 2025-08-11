@@ -22,7 +22,7 @@ const trainSchema = new mongoose.Schema({
     }
   },
   addedDate: { 
-    type: Date, 
+    type: String, 
     required: true, 
     default: new Date().toLocaleDateString("en-IN")
   }

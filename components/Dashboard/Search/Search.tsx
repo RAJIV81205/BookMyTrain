@@ -124,7 +124,7 @@ const Search = () => {
 
       if (!res.ok) throw new Error(data.error || "Failed to check availability");
 
-      console.log(data.train)
+      console.log(data.classes)
     } catch (err: any) {
       toast.error(err.message || "Error checking availability");
     }

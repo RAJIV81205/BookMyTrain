@@ -39,7 +39,7 @@ async function getAvailableSeats(trainNo: number, date: string) {
         if (!train) return NextResponse.json({ error: "Train not found" }, { status: 404 });
 
 
-        return NextResponse.json({ train}, { status: 200 });
+        return NextResponse.json({ classes: train.classes }, { status: 200 });
 
     } catch (error) {
         console.error("Error fetching available seats:", error);

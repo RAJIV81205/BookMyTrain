@@ -20,13 +20,13 @@ interface SavedTrain {
 }
 
 const defaultSeatCounts: Record<string, number> = {
-  '1AC': 18,
-  '2AC': 48,
-  '3AC': 64,
-  'Sleeper': 72
+  '1A': 18,
+  '2A': 48,
+  '3A': 64,
+  'SL': 72
 };
 
-const classOptions = ['1AC', '2AC', '3AC', 'Sleeper'];
+const classOptions = ['1A', '2A', '3A', 'SL'];
 
 const TrainSection = () => {
   const [savedTrains, setSavedTrains] = useState<SavedTrain[]>([]);
@@ -193,20 +193,20 @@ const TrainSection = () => {
 
   const getClassBadgeColor = (className: string) => {
     const colors: Record<string, string> = {
-      '1AC': 'bg-purple-100 text-purple-800',
-      '2AC': 'bg-blue-100 text-blue-800',
-      '3AC': 'bg-green-100 text-green-800',
-      'Sleeper': 'bg-orange-100 text-orange-800'
+      '1A': 'bg-purple-100 text-purple-800',
+      '2A': 'bg-blue-100 text-blue-800',
+      '3A': 'bg-green-100 text-green-800',
+      'SL': 'bg-orange-100 text-orange-800'
     };
     return colors[className] || 'bg-gray-100 text-gray-800';
   };
 
   const getClassFullName = (className: string) => {
     const names: Record<string, string> = {
-      '1AC': 'First AC',
-      '2AC': 'Second AC',
-      '3AC': 'Third AC',
-      'Sleeper': 'Sleeper Class'
+      '1A': 'First AC',
+      '2A': 'Second AC',
+      '3A': 'Third AC',
+      'SL': 'Sleeper Class'
     };
     return names[className] || className;
   };

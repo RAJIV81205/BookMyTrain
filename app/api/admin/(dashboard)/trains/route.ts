@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
   try {
     await connectDB();
-    const trains = await Train.find({}).sort({ addedDate: -1 });
+    const trains = await Train.find({});
     return NextResponse.json({ trains }, { status: 200 });
   } catch (error) {
     console.error("Error fetching trains:", error);
@@ -74,8 +74,7 @@ export async function POST(request: Request) {
     const trainData = {
       trainNo,
       trainName,
-      classes,
-      addedDate: new Date().toLocaleDateString("en-IN")
+      classes
     };
 
     const newTrain = new Train(trainData);
