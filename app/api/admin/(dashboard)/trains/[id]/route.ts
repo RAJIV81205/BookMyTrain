@@ -5,9 +5,9 @@ import verifyAdmin from "@/lib/db/middleware/verifyAdmin";
 
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = params;
 
   const headers = request.headers;
   const token = headers.get("Authorization")?.split(" ")[1];
