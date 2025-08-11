@@ -296,8 +296,10 @@ const Search = () => {
                     key={index}
                     data={train}
                     onCheckAvailability={handleCheckAvailability}
+                    date={date} // Add this line
                   />
                 ))}
+
               </div>
             </div>
           )}

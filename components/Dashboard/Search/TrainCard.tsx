@@ -1,132 +1,313 @@
-import React from 'react'
-import { Clock, MapPin, Calendar, Users, Banknote, Train } from 'lucide-react'
+import React, { useState } from 'react'
+import { Clock, MapPin, Calendar, Users, Banknote, Train, ChevronDown, ChevronUp } from 'lucide-react'
+
+interface SeatClass {
+  className: string
+  classCode: string
+  availability: string | number
+  waitingList?: string
+}
 
 interface TrainCardProps {
   data: {
-    distance:string
-    dstn_stn_code:string
-    dstn_stn_name:string
-    from_stn_code:string
-    from_stn_name:string
-    from_time:string
-    halts:number
-    running_days:string
-    source_stn_code:string
-    source_stn_name:string
-    to_stn_code:string
-    to_stn_name:string
-    to_time:string
-    train_name:string
-    train_no:string
-    travel_time:string
+    distance: string
+    dstn_stn_code: string
+    dstn_stn_name: string
+    from_stn_code: string
+    from_stn_name: string
+    from_time: string
+    halts: number
+    running_days: string
+    source_stn_code: string
+    source_stn_name: string
+    to_stn_code: string
+    to_stn_name: string
+    to_time: string
+    train_name: string
+    train_no: string
+    travel_time: string
   }
   onCheckAvailability?: (trainNo: string) => void
+  date?: string
 }
 
-const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability }) => {
+const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date }) => {
+  const [showAvailability, setShowAvailability] = useState(false)
+  const [availabilityData, setAvailabilityData] = useState<any>(null)
+  const [loadingAvailability, setLoadingAvailability] = useState(false)
+  const [faresData, setFaresData] = useState<any>(null)
+  const [loadingFares, setLoadingFares] = useState(false)
+
   const formatRunningDays = (days: string) => {
-    if (!days || days.length !== 7) return 'N/A';
-
-    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    if (!days || days.length !== 7) return 'N/A'
+    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
     const runningDays = dayNames.filter((_, index) => {
-      const dayChar = days[index];
-      return dayChar === 'Y' || dayChar === '1';
-    });
-
-    return runningDays.length > 0 ? runningDays.join(' ') : 'Not running';
-  };
+      const dayChar = days[index]
+      return dayChar === 'Y' || dayChar === '1'
+    })
+    return runningDays.length > 0 ? runningDays.join(' ') : 'Not running'
+  }
 
   const formatTime = (time: string) => {
     if (!time) return 'N/A'
     return time.length === 4 ? `${time.slice(0, 2)}:${time.slice(2)}` : time
   }
 
-  const getAvailabilityColor = (availability: string) => {
-    if (!availability || availability === 'N/A') return 'text-gray-500'
-    if (availability.toLowerCase().includes('available')) return 'text-green-600'
-    if (availability.toLowerCase().includes('waiting')) return 'text-orange-500'
-    if (availability.toLowerCase().includes('rac')) return 'text-blue-600'
-    return 'text-red-500'
-  }
-
-  const getBadgeStyle = (label: string) => {
-    if (label === 'Fastest') return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    if (label === 'Top Choice') return 'bg-orange-100 text-orange-800 border-orange-200'
-    return 'bg-gray-100 text-gray-600 border-gray-200'
-  }
-
-  const handleCheckAvailability = () => {
-    if (onCheckAvailability) {
-      onCheckAvailability(data.train_no);
+  const getClassFullName = (classCode: string) => {
+    const classNames: { [key: string]: string } = {
+      '1A': 'First AC',
+      '2A': 'Second AC',
+      '3A': 'Third AC',
+      'SL': 'Sleeper',
+      'CC': 'Chair Car',
+      '2S': 'Second Sitting',
+      'FC': 'First Class',
+      'EC': 'Executive Chair Car'
     }
-  };
+    return classNames[classCode] || classCode
+  }
+
+  const convertAvailabilityToArray = (data: any): SeatClass[] => {
+    if (!data) return []
+
+    if (data.classes && typeof data.classes === 'object') {
+      return Object.entries(data.classes).map(([classCode, availability]) => ({
+        className: getClassFullName(classCode),
+        classCode,
+        availability: availability as string | number, // ✅ force type
+        waitingList: undefined
+      }))
+    }
+
+    if (typeof data === 'object' && !Array.isArray(data)) {
+      return Object.entries(data).map(([classCode, availability]) => ({
+        className: getClassFullName(classCode),
+        classCode,
+        availability: availability as string | number, // ✅ force type
+        waitingList: undefined
+      }))
+    }
+
+    return []
+  }
+
+
+  const fetchFares = async () => {
+    setLoadingFares(true)
+    try {
+      const res = await fetch(`https://www.trainman.in/services/fare?origin=${data.from_stn_code}&dest=${data.to_stn_code}&tcode=${data.train_no}&key=012562ae-60a9-4fcd-84d6-f1354ee1ea48`)
+      const fareData = await res.json()
+      setFaresData(fareData)
+    } catch (error) {
+      console.error('Error fetching fares:', error)
+    } finally {
+      setLoadingFares(false)
+    }
+  }
+
+  const getFareForClass = (classCode: string) => {
+    if (!faresData?.fare) return null
+    return faresData.fare[classCode]?.GN || null
+  }
+
+  const getAvailabilityBoxColor = (availability: string | number) => {
+    if (!availability && availability !== 0) return 'border-gray-200 bg-gray-50'
+    const availStr = String(availability).toLowerCase()
+    if (!isNaN(Number(availability))) {
+      const numSeats = Number(availability)
+      if (numSeats > 0) return 'border-green-200 bg-green-50'
+      return 'border-red-200 bg-red-50'
+    }
+    if (availStr.includes('available') || availStr.includes('confirm')) return 'border-green-200 bg-green-50'
+    if (availStr.includes('waiting') || availStr.includes('wl')) return 'border-orange-200 bg-orange-50'
+    if (availStr.includes('rac')) return 'border-blue-200 bg-blue-50'
+    return 'border-red-200 bg-red-50'
+  }
+
+  const getAvailabilityBoxTextColor = (availability: string | number) => {
+    if (!availability && availability !== 0) return 'text-gray-600'
+    const availStr = String(availability).toLowerCase()
+    if (!isNaN(Number(availability))) {
+      const numSeats = Number(availability)
+      if (numSeats > 0) return 'text-green-700'
+      return 'text-red-700'
+    }
+    if (availStr.includes('available') || availStr.includes('confirm')) return 'text-green-700'
+    if (availStr.includes('waiting') || availStr.includes('wl')) return 'text-orange-700'
+    if (availStr.includes('rac')) return 'text-blue-700'
+    return 'text-red-700'
+  }
+
+  const handleCheckAvailability = async () => {
+    if (showAvailability && availabilityData) {
+      setShowAvailability(false)
+      return
+    }
+
+    setLoadingAvailability(true)
+    setShowAvailability(true)
+
+    try {
+      const res = await fetch("/api/getseat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          trainNo: data.train_no,
+          date,
+        })
+      })
+
+      const responseData = await res.json()
+      if (!res.ok) throw new Error(responseData.error || "Failed to check availability")
+
+      setAvailabilityData(responseData)
+      await fetchFares()
+    } catch (err: any) {
+      console.error('Error checking availability:', err)
+      setAvailabilityData(null)
+    } finally {
+      setLoadingAvailability(false)
+    }
+
+    if (onCheckAvailability) {
+      onCheckAvailability(data.train_no)
+    }
+  }
 
   return (
-    <div className="bg-blue-50 rounded-lg border border-blue-200 hover:shadow-md transition-shadow duration-200 overflow-hidden w-full max-w-4xl mx-auto">
-      {/* Header with train info and running days - responsive */}
-      <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base font-bold text-blue-600">{data.train_no}</span>
-            <span className="text-sm sm:text-base text-gray-900 font-semibold">{data.train_name}</span>
-          </div>
-          <div className="text-right text-xs sm:text-sm text-gray-500">
-            <span className="hidden sm:inline">Runs on: </span>
-            <span className="font-medium">{formatRunningDays(data.running_days)}</span>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 mb-4">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-xl font-bold text-gray-900">{data.train_no}</h3>
+              <span className="text-lg text-gray-700 font-medium">{data.train_name}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar className="w-4 h-4" />
+              <span>Runs on:</span>
+              <span className="font-medium">{formatRunningDays(data.running_days)}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main content - responsive layout */}
-      <div className="px-3 sm:px-6 py-4">
-        {/* Journey details - flex-row on all screen sizes */}
-        <div className="flex flex-row items-center justify-between gap-2 sm:gap-0">
-          {/* Departure */}
-          <div className="text-left w-1/4">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">{data.from_stn_code}</div>
-            <div className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">{formatTime(data.from_time)}</div>
-            <div className="text-xs text-gray-600 truncate">{data.from_stn_name}</div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-center flex-shrink-0">
+            <div className="text-xs text-gray-500 mb-1">{data.from_stn_code}</div>
+            <div className="text-xl font-bold text-gray-900 mb-1">{formatTime(data.from_time)}</div>
+            <div className="text-sm text-gray-600 max-w-20 sm:max-w-none truncate">{data.from_stn_name}</div>
           </div>
 
-          {/* Journey info - responsive */}
-          <div className="flex-1 px-2 sm:px-8 w-1/2">
+          <div className="flex-1 text-center px-2 sm:px-4">
+            <div className="text-sm font-medium text-gray-900 mb-1">{data.travel_time}</div>
             <div className="flex items-center justify-center mb-2">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mr-1" />
-              <span className="text-xs sm:text-sm font-medium text-gray-600">{data.travel_time}</span>
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <Train className="mx-2 w-4 h-4 text-blue-600" />
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
-
-            {/* Journey line - responsive */}
-            <div className="relative">
-              <div className="w-full h-px bg-gray-300 relative">
-                <div className="absolute left-0 top-0 w-2 h-2 sm:w-3 sm:h-3 bg-white border-2 border-gray-400 rounded-full transform -translate-y-1/2"></div>
-                <div className="absolute right-0 top-0 w-2 h-2 sm:w-3 sm:h-3 bg-white border-2 border-gray-400 rounded-full transform -translate-y-1/2"></div>
-              </div>
-            </div>
-
-            <div className="text-center text-xs sm:text-sm text-gray-500 mt-2">
-              {data.halts} halts | {data.distance} kms
-            </div>
+            <div className="text-xs text-gray-500">{data.halts} halts | {data.distance} kms</div>
           </div>
 
-          {/* Arrival */}
-          <div className="text-right w-1/4">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">{data.to_stn_code}</div>
-            <div className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">{formatTime(data.to_time)}</div>
-            <div className="text-xs text-gray-600 truncate">{data.to_stn_name}</div>
+          <div className="text-center flex-shrink-0">
+            <div className="text-xs text-gray-500 mb-1">{data.to_stn_code}</div>
+            <div className="text-xl font-bold text-gray-900 mb-1">{formatTime(data.to_time)}</div>
+            <div className="text-sm text-gray-600 max-w-20 sm:max-w-none truncate">{data.to_stn_name}</div>
           </div>
         </div>
 
-        {/* Check Availability Button - responsive */}
-        <div className="mt-4 sm:mt-6 text-center">
+        <div className="mt-6 flex justify-center">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-colors duration-200 inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center"
             onClick={handleCheckAvailability}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
           >
-            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-            Check Seat Availability
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Check Seat Availability</span>
+            <span className="sm:hidden">Check Availability</span>
+            {showAvailability ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
       </div>
+
+      {showAvailability && (
+        <div className="border-t border-gray-200 p-4 bg-gray-50">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Seat Availability & Fares</h3>
+            {(loadingAvailability || loadingFares) && (
+              <Clock className="w-4 h-4 animate-spin text-gray-500" />
+            )}
+          </div>
+
+          {loadingAvailability ? (
+            <div className="text-center py-8">
+              <Clock className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
+              <p className="text-gray-600">Checking seat availability...</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
+                  const fare = getFareForClass(seatClass.classCode)
+                  return (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{seatClass.className}</h4>
+                          <span className="text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded">{seatClass.classCode}</span>
+                        </div>
+                        <Train className="w-4 h-4 text-gray-400" />
+                      </div>
+
+                      <div className="mb-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Users className="w-3 h-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">Availability</span>
+                        </div>
+                        <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
+                          {!isNaN(Number(seatClass.availability))
+                            ? Number(seatClass.availability) > 0
+                              ? `${seatClass.availability} Available`
+                              : 'Not Available'
+                            : String(seatClass.availability)}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-gray-200">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Banknote className="w-3 h-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">Fare</span>
+                        </div>
+                        {loadingFares ? (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 animate-spin text-gray-400" />
+                            <span className="text-xs text-gray-500">Loading...</span>
+                          </div>
+                        ) : fare ? (
+                          <p className="text-lg font-bold text-green-700">₹{fare}</p>
+                        ) : (
+                          <p className="text-sm text-gray-500">Fare not available</p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {(!availabilityData || Object.keys(availabilityData).length === 0) && (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">No seat availability data found.</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
