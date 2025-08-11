@@ -17,7 +17,6 @@ const Search = () => {
   const [loading, setLoading] = useState(false)
   const resultsRef = React.useRef<HTMLDivElement | null>(null)
 
-
   const stations = stninfo.station || []
 
   useEffect(() => {
@@ -96,7 +95,6 @@ const Search = () => {
         }, 100) // small delay to ensure render
       }
 
-
       if (filteredData.length === 0) {
         toast.error("No trains found for this route on the selected day")
       }
@@ -106,6 +104,32 @@ const Search = () => {
       setLoading(false)
     }
   }
+
+  // Handler for checking seat availability
+  const handleCheckAvailability = async (trainNo: string) => {
+    try {
+      const res = await fetch("/api/getseat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          trainNo: trainNo,
+          date,
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to check availability");
+
+      console.log(data.train)
+    } catch (err: any) {
+      toast.error(err.message || "Error checking availability");
+    }
+  };
+
 
   return (
     <div className="min-h-screen  p-4 pt-10 lg:pt-0">
@@ -252,7 +276,6 @@ const Search = () => {
           </div>
         </div>
 
-
         <div ref={resultsRef}>
           {/* Results */}
           {results.length > 0 && (
@@ -269,7 +292,11 @@ const Search = () => {
               </div>
               <div className="grid gap-4">
                 {results.map((train: any, index: number) => (
-                  <TrainCard key={index} data={train} />
+                  <TrainCard
+                    key={index}
+                    data={train}
+                    onCheckAvailability={handleCheckAvailability}
+                  />
                 ))}
               </div>
             </div>

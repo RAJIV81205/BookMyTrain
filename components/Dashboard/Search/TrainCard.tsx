@@ -55,6 +55,12 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200'
   }
 
+  const handleCheckAvailability = () => {
+    if (onCheckAvailability) {
+      onCheckAvailability(data.train_no);
+    }
+  };
+
   return (
     <div className="bg-blue-50 rounded-lg border border-blue-200 hover:shadow-md transition-shadow duration-200 overflow-hidden w-full max-w-4xl mx-auto">
       {/* Header with train info and running days - responsive */}
@@ -114,13 +120,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability }) => {
         <div className="mt-4 sm:mt-6 text-center">
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-colors duration-200 inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center"
-            onClick={() => {
-              if (onCheckAvailability) {
-                onCheckAvailability(data.train_no)
-              } else {
-                console.log(`Fetching seat availability for train ${data.train_no}`)
-              }
-            }}
+            onClick={handleCheckAvailability}
           >
             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             Check Seat Availability
