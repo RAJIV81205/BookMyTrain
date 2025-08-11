@@ -3,12 +3,7 @@ import connectDB from "@/lib/db/db";
 import Train from "@/lib/db/model/Train";
 import verifyAdmin from "@/lib/db/middleware/verifyAdmin";
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-
+export async function DELETE(request: Request) {
   const headers = request.headers;
   const token = headers.get("Authorization")?.split(" ")[1];
 
@@ -25,8 +20,18 @@ export async function DELETE(
   }
 
   try {
+    const body = await request.json();
+    const { trainNo } = body;
+
+    if (!trainNo) {
+      return NextResponse.json(
+        { error: "Train number is required" },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
-    const deletedTrain = await Train.findByIdAndDelete(id);
+    const deletedTrain = await Train.findOneAndDelete({ trainNo });
 
     if (!deletedTrain) {
       return NextResponse.json(
@@ -36,7 +41,7 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { message: "Train deleted successfully" },
+      { message: "Train deleted successfully", deletedTrain },
       { status: 200 }
     );
   } catch (error) {

@@ -43,7 +43,7 @@ const TrainSection = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken'); // Assuming token is stored in localStorage
-      
+
       const response = await fetch('/api/admin/trains', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -128,7 +128,7 @@ const TrainSection = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      
+
       // Build classes object with fixed seat counts
       const classesObject = selectedClasses.reduce((acc, className) => {
         acc[className] = defaultSeatCounts[className];
@@ -165,26 +165,27 @@ const TrainSection = () => {
     }
   };
 
-  const handleDeleteTrain = async (trainId: string | number) => {
+  const handleDeleteTrain = async (trainNo: string) => {
     try {
       const token = localStorage.getItem('adminToken');
-      
-      const response = await fetch(`/api/admin/trains/${trainId}`, {
+
+      const response = await fetch('/api/admin/trains', {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ trainNo })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete train');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete train');
       }
 
       // Remove from local state
-      setSavedTrains(prev => prev.filter(train => 
-        (train._id || train.id) !== trainId
-      ));
+      setSavedTrains(prev => prev.filter(train => train.trainNo !== trainNo));
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete train');
       console.error('Error deleting train:', err);
@@ -246,7 +247,7 @@ const TrainSection = () => {
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-800">{error}</p>
-          <button 
+          <button
             onClick={() => setError(null)}
             className="text-red-600 underline text-sm mt-1"
           >
@@ -288,7 +289,7 @@ const TrainSection = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteTrain(train._id || train.id!)}
+                        onClick={() => handleDeleteTrain(train.trainNo)}
                         className="text-gray-400 hover:text-red-600 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -384,21 +385,19 @@ const TrainSection = () => {
                     {classOptions.map((className) => (
                       <div
                         key={className}
-                        className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                          selectedClasses.includes(className)
+                        className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${selectedClasses.includes(className)
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 bg-white hover:border-gray-300'
-                        }`}
+                          }`}
                         onClick={() => handleClassToggle(className)}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
-                                selectedClasses.includes(className)
+                              className={`w-5 h-5 border-2 rounded flex items-center justify-center ${selectedClasses.includes(className)
                                   ? 'border-blue-500 bg-blue-500'
                                   : 'border-gray-300'
-                              }`}
+                                }`}
                             >
                               {selectedClasses.includes(className) && (
                                 <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -421,7 +420,7 @@ const TrainSection = () => {
                       </div>
                     ))}
                   </div>
-                  
+
                   {selectedClasses.length > 0 && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                       <p className="text-sm text-gray-600 mb-2">Selected Classes Summary:</p>
