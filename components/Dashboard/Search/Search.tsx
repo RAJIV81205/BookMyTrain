@@ -335,12 +335,12 @@ const Search = () => {
         <div ref={resultsRef}>
           {/* Results */}
           {results.length > 0 && (
-            <div className='mt-10 bg-white rounded-xl border border-gray-300 p-5 shadow-sm' >
+            <div className='mt-15 lg:mt-10 lg:bg-white rounded-xl lg:border lg:border-gray-300 lg:p-5 lg:shadow-sm' >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-2xl font-bold text-center text-gray-800">
                   Available Trains ({results.length})
                 </h2>
-                <div className="text-sm text-gray-600 flex items-center">
+                <div className="text-sm text-gray-600 flex items-center justify-center">
                   <span className="font-medium">{fromQuery}</span>
                   <ArrowRight className="inline w-4 h-4 mx-2" />
                   <span className="font-medium">{toQuery}</span>
