@@ -248,7 +248,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date }
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
                   const fare = getFareForClass(seatClass.classCode)
                   return (
@@ -256,43 +256,36 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date }
                       key={index}
                       className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{seatClass.className}</h4>
-                          <span className="text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded">{seatClass.classCode}</span>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-3">
+                          <span className="text-sm font-bold text-gray-700 bg-white px-3 py-1 rounded-full shadow-sm">
+                            {seatClass.classCode}
+                          </span>
                         </div>
-                        <Train className="w-4 h-4 text-gray-400" />
-                      </div>
 
-                      <div className="mb-3">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Users className="w-3 h-3 text-gray-500" />
-                          <span className="text-xs text-gray-600">Availability</span>
+                        <div className="mb-3">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">{seatClass.className}</h4>
+                          <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
+                            {!isNaN(Number(seatClass.availability))
+                              ? Number(seatClass.availability) > 0
+                                ? `${seatClass.availability} seats`
+                                : 'Not Available'
+                              : String(seatClass.availability)}
+                          </p>
                         </div>
-                        <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
-                          {!isNaN(Number(seatClass.availability))
-                            ? Number(seatClass.availability) > 0
-                              ? `${seatClass.availability} Available`
-                              : 'Not Available'
-                            : String(seatClass.availability)}
-                        </p>
-                      </div>
 
-                      <div className="pt-3 border-t border-gray-200">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Banknote className="w-3 h-3 text-gray-500" />
-                          <span className="text-xs text-gray-600">Fare</span>
+                        <div className="pt-3 border-t border-gray-200">
+                          {loadingFares ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <Clock className="w-4 h-4 animate-spin text-gray-400" />
+                              <span className="text-xs text-gray-500">Loading...</span>
+                            </div>
+                          ) : fare ? (
+                            <p className="text-lg font-bold text-gray-900">₹{fare}</p>
+                          ) : (
+                            <p className="text-sm text-gray-500">Fare N/A</p>
+                          )}
                         </div>
-                        {loadingFares ? (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 animate-spin text-gray-400" />
-                            <span className="text-xs text-gray-500">Loading...</span>
-                          </div>
-                        ) : fare ? (
-                          <p className="text-lg font-bold text-green-700">₹{fare}</p>
-                        ) : (
-                          <p className="text-sm text-gray-500">Fare not available</p>
-                        )}
                       </div>
                     </div>
                   )
