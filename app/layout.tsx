@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import {Toaster} from "react-hot-toast";
+import { BookingProvider } from "@/context/BookingContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,7 @@ export default function RootLayout({
             },
           }}
         />
-        {children}
+        <BookingProvider>{children}</BookingProvider>
       </body>
     </html>
   );

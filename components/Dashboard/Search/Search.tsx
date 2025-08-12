@@ -5,8 +5,11 @@ import stninfo from '@/lib/constants/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
 import toast from 'react-hot-toast'
+import { useBooking } from "@/context/BookingContext";
+import { useRouter } from 'next/navigation'
 
 const Search = () => {
+  const router = useRouter()
   const [fromQuery, setFromQuery] = useState("")
   const [toQuery, setToQuery] = useState("")
   const [fromCode, setFromCode] = useState("")
@@ -15,6 +18,7 @@ const Search = () => {
   const [results, setResults] = useState([])
   const [activeField, setActiveField] = useState<"from" | "to" | null>(null)
   const [loading, setLoading] = useState(false)
+  const { setBookingData } = useBooking();
 
   // Reset mechanism state management
   const [resetTrigger, setResetTrigger] = useState(false)
@@ -155,7 +159,11 @@ const Search = () => {
       toast.error(error.message || "Error searching trains")
     } finally {
       setLoading(false)
-      // Reset completedResets counter after search execution
+      setBookingData({
+        fromCode: fromCode,
+        toCode: toCode,
+        date: date
+      });
       setCompletedResets(0)
       setResetTrigger(false)
     }
@@ -184,6 +192,18 @@ const Search = () => {
     } catch (err: any) {
       toast.error(err.message || "Error checking availability");
     }
+  };
+
+  // Handler for booking a ticket
+  const handleBookTicket = (trainNo: string, classCode: string, fare: string) => {
+    // Update booking context with selected train
+    setBookingData({
+      trainNo: trainNo,
+      classCode: classCode,
+      fare: fare
+    });
+    
+   router.push("/book")
   };
 
 
@@ -352,6 +372,7 @@ const Search = () => {
                     key={`${train.train_no}-${resetCount}`}
                     data={train}
                     onCheckAvailability={handleCheckAvailability}
+                    onBookTicket={handleBookTicket}
                     date={date}
                     resetAvailability={resetTrigger}
                     onResetComplete={handleResetComplete}
