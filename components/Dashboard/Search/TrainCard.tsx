@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Clock, MapPin, Calendar, Users, Banknote, Train, ChevronDown, ChevronUp } from 'lucide-react'
+import { Clock, MapPin, Calendar, Users, Banknote, Train, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react'
 
 interface SeatClass {
   className: string
@@ -28,12 +28,20 @@ interface TrainCardProps {
     travel_time: string
   }
   onCheckAvailability?: (trainNo: string) => void
+  onBookTicket?: (trainNo: string, classCode: string, fare: string) => void
   date?: string
   resetAvailability?: boolean
   onResetComplete?: () => void
 }
 
-const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, resetAvailability, onResetComplete }) => {
+const TrainCard: React.FC<TrainCardProps> = ({ 
+  data, 
+  onCheckAvailability, 
+  onBookTicket,
+  date, 
+  resetAvailability, 
+  onResetComplete 
+}) => {
   const [showAvailability, setShowAvailability] = useState(false)
   const [availabilityData, setAvailabilityData] = useState<any>(null)
   const [loadingAvailability, setLoadingAvailability] = useState(false)
@@ -93,7 +101,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
       return Object.entries(data.classes).map(([classCode, availability]) => ({
         className: getClassFullName(classCode),
         classCode,
-        availability: availability as string | number, // ✅ force type
+        availability: availability as string | number,
         waitingList: undefined
       }))
     }
@@ -102,14 +110,13 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
       return Object.entries(data).map(([classCode, availability]) => ({
         className: getClassFullName(classCode),
         classCode,
-        availability: availability as string | number, // ✅ force type
+        availability: availability as string | number,
         waitingList: undefined
       }))
     }
 
     return []
   }
-
 
   const fetchFares = async () => {
     setLoadingFares(true)
@@ -134,7 +141,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
     const availStr = String(availability).toLowerCase()
     if (!isNaN(Number(availability))) {
       const numSeats = Number(availability)
-      if (numSeats > 0) return 'border-green-200 bg-green-50'
+      if (numSeats > 0) return 'border-gray-200 bg-white'
       return 'border-red-200 bg-red-50'
     }
     if (availStr.includes('available') || availStr.includes('confirm')) return 'border-green-200 bg-green-50'
@@ -155,6 +162,22 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
     if (availStr.includes('waiting') || availStr.includes('wl')) return 'text-orange-700'
     if (availStr.includes('rac')) return 'text-blue-700'
     return 'text-red-700'
+  }
+
+  const isBookingAvailable = (availability: string | number) => {
+    if (!availability && availability !== 0) return false
+    const availStr = String(availability).toLowerCase()
+    if (!isNaN(Number(availability))) {
+      return Number(availability) > 0
+    }
+    return availStr.includes('available') || availStr.includes('confirm') || 
+           availStr.includes('waiting') || availStr.includes('wl') || availStr.includes('rac')
+  }
+
+  const handleBookNow = (classCode: string, fare: string) => {
+    if (onBookTicket) {
+      onBookTicket(data.train_no, classCode, fare)
+    }
   }
 
   const handleCheckAvailability = async () => {
@@ -270,6 +293,7 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
                   const fare = getFareForClass(seatClass.classCode)
+                  const canBook = isBookingAvailable(seatClass.availability)
                   return (
                     <div
                       key={index}
@@ -283,14 +307,16 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
                         </div>
 
                         <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-gray-900 mb-2">{seatClass.className}</h4>
-                          <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
-                            {!isNaN(Number(seatClass.availability))
-                              ? Number(seatClass.availability) > 0
-                                ? `${seatClass.availability} seats`
-                                : 'Not Available'
-                              : String(seatClass.availability)}
-                          </p>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-1">{seatClass.className}</h4>
+                          <div className="p-2 bg-blue-50 rounded-md border border-blue-200 mb-2">
+                            <p className={`text-lg font-bold ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
+                              {!isNaN(Number(seatClass.availability))
+                                ? Number(seatClass.availability) > 0
+                                  ? `AVL - ${seatClass.availability}`
+                                  : 'Not Available'
+                                : String(seatClass.availability)}
+                            </p>
+                          </div>
                         </div>
 
                         <div className="pt-3 border-t border-gray-200">
@@ -299,10 +325,18 @@ const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, 
                               <Clock className="w-4 h-4 animate-spin text-gray-400" />
                               <span className="text-xs text-gray-500">Loading...</span>
                             </div>
+                          ) : fare && canBook ? (
+                            <button
+                              onClick={() => handleBookNow(seatClass.classCode, fare)}
+                              className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
+                            >
+                              
+                               ₹ {fare}
+                            </button>
                           ) : fare ? (
-                            <p className="text-lg font-bold text-gray-900">₹{fare}</p>
+                            <p className="text-sm text-center text-gray-600 font-medium">₹{fare}</p>
                           ) : (
-                            <p className="text-sm text-gray-500">Fare N/A</p>
+                            <p className="text-sm text-gray-500 text-center">Fare N/A</p>
                           )}
                         </div>
                       </div>
