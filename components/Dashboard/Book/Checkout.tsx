@@ -1,7 +1,7 @@
 "use client";
 import { useBooking } from "@/context/BookingContext";
 
-export default function BookTicket() {
+export default function Checkout() {
   const { bookingData } = useBooking();
 
   return (

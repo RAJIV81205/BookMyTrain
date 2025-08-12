@@ -203,7 +203,7 @@ const Search = () => {
       fare: fare
     });
     
-   router.push("/book")
+   router.push("/checkout")
   };
 
 
