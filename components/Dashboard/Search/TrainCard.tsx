@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Clock, MapPin, Calendar, Users, Banknote, Train, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface SeatClass {
@@ -29,14 +29,33 @@ interface TrainCardProps {
   }
   onCheckAvailability?: (trainNo: string) => void
   date?: string
+  resetAvailability?: boolean
+  onResetComplete?: () => void
 }
 
-const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date }) => {
+const TrainCard: React.FC<TrainCardProps> = ({ data, onCheckAvailability, date, resetAvailability, onResetComplete }) => {
   const [showAvailability, setShowAvailability] = useState(false)
   const [availabilityData, setAvailabilityData] = useState<any>(null)
   const [loadingAvailability, setLoadingAvailability] = useState(false)
   const [faresData, setFaresData] = useState<any>(null)
   const [loadingFares, setLoadingFares] = useState(false)
+
+  const resetAvailabilityState = () => {
+    setShowAvailability(false)
+    setAvailabilityData(null)
+    setLoadingAvailability(false)
+    setFaresData(null)
+    setLoadingFares(false)
+  }
+
+  useEffect(() => {
+    if (resetAvailability) {
+      resetAvailabilityState()
+      if (onResetComplete) {
+        onResetComplete()
+      }
+    }
+  }, [resetAvailability, onResetComplete])
 
   const formatRunningDays = (days: string) => {
     if (!days || days.length !== 7) return 'N/A'

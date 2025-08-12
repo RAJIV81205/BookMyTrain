@@ -15,7 +15,13 @@ const Search = () => {
   const [results, setResults] = useState([])
   const [activeField, setActiveField] = useState<"from" | "to" | null>(null)
   const [loading, setLoading] = useState(false)
-  const resultsRef = React.useRef<HTMLDivElement | null>(null)
+
+  // Reset mechanism state management
+  const [resetTrigger, setResetTrigger] = useState(false)
+  const [resetCount, setResetCount] = useState(0)
+  const [completedResets, setCompletedResets] = useState(0)
+
+  const resultsRef = useRef<HTMLDivElement | null>(null)
 
   const stations = stninfo.station || []
 
@@ -56,7 +62,7 @@ const Search = () => {
   const filterStations = (query: string, excludeCode?: string) => {
     return stations
       .filter(
-        (s) =>
+        (s: any) =>
           s.stnCode !== excludeCode &&
           (
             s.stnCode.toLowerCase().includes(query.toLowerCase()) ||
@@ -67,11 +73,58 @@ const Search = () => {
       .slice(0, 5)
   }
 
+  // Handler for tracking individual TrainCard reset completion
+  const resetCompletionRef = useRef<{
+    totalCards: number
+    completedCount: number
+    resolveReset?: () => void
+  }>({ totalCards: 0, completedCount: 0 })
+
+  const handleResetComplete = () => {
+    resetCompletionRef.current.completedCount += 1
+
+    // Check if all resets are complete
+    if (resetCompletionRef.current.completedCount >= resetCompletionRef.current.totalCards &&
+      resetCompletionRef.current.resolveReset) {
+      resetCompletionRef.current.resolveReset()
+    }
+  }
+
   const searchTrain = async () => {
     if (!fromCode || !toCode) {
       toast.error("Please select both departure and arrival stations")
       return
     }
+
+    // Trigger reset before performing search
+    setResetCount(prev => prev + 1)
+    setResetTrigger(true)
+    setCompletedResets(0)
+
+    // Wait for all resets to complete or timeout after 1000ms
+    const totalCards = results.length
+    if (totalCards > 0) {
+      resetCompletionRef.current = { totalCards, completedCount: 0 }
+
+      try {
+        await Promise.race([
+          // Promise that resolves when all resets complete
+          new Promise<void>((resolve) => {
+            resetCompletionRef.current.resolveReset = resolve
+          }),
+          // Timeout promise that resolves after 1000ms
+          new Promise<void>((resolve) => {
+            setTimeout(() => {
+              console.warn(`Reset timeout: Only ${resetCompletionRef.current.completedCount}/${totalCards} cards completed reset within 1000ms`)
+              resolve()
+            }, 1000)
+          })
+        ])
+      } catch (error) {
+        console.error('Error during reset wait:', error)
+      }
+    }
+
     setLoading(true)
     try {
       const res = await searchTrainBetweenStations(fromCode, toCode)
@@ -102,6 +155,9 @@ const Search = () => {
       toast.error(error.message || "Error searching trains")
     } finally {
       setLoading(false)
+      // Reset completedResets counter after search execution
+      setCompletedResets(0)
+      setResetTrigger(false)
     }
   }
 
@@ -293,10 +349,12 @@ const Search = () => {
               <div className="grid gap-4">
                 {results.map((train: any, index: number) => (
                   <TrainCard
-                    key={index}
+                    key={`${train.train_no}-${resetCount}`}
                     data={train}
                     onCheckAvailability={handleCheckAvailability}
-                    date={date} // Add this line
+                    date={date}
+                    resetAvailability={resetTrigger}
+                    onResetComplete={handleResetComplete}
                   />
                 ))}
 
