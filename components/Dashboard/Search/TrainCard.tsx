@@ -223,15 +223,15 @@ const TrainCard: React.FC<TrainCardProps> = ({
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 mb-4">
       <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="lg:flex lg:flex-row lg:justify-between w-full flex-1">
+            <div className="flex items-center gap-2 mb-2 lg:mb-0">
               <h3 className="text-xl font-bold text-gray-900">{data.train_no}</h3>
-              <span className="text-lg text-gray-700 font-medium">{data.train_name}</span>
+              <span className="text-lg text-gray-700 font-medium truncate">{data.train_name}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 right-0">
               <Calendar className="w-4 h-4" />
               <span>Runs on:</span>
-              <span className="font-medium">{formatRunningDays(data.running_days)}</span>
+              <span className="font-medium ">{formatRunningDays(data.running_days)}</span>
             </div>
           </div>
         </div>
@@ -274,7 +274,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
       </div>
 
       {showAvailability && (
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
+        <div className="border-t border-gray-200 p-4 bg-gray-50 ">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">Seat Availability & Fares</h3>
@@ -290,14 +290,15 @@ const TrainCard: React.FC<TrainCardProps> = ({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Desktop: Horizontal scrollable cards */}
+              <div className="hidden lg:flex gap-4 overflow-x-auto pb-2">
                 {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
                   const fare = getFareForClass(seatClass.classCode)
                   const canBook = isBookingAvailable(seatClass.availability)
                   return (
                     <div
                       key={index}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
+                      className={`flex-shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-3">
@@ -345,11 +346,62 @@ const TrainCard: React.FC<TrainCardProps> = ({
                 })}
               </div>
 
+              {/* Mobile: Simple list view */}
+              <div className="lg:hidden space-y-3">
+                {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
+                  const fare = getFareForClass(seatClass.classCode)
+                  const canBook = isBookingAvailable(seatClass.availability)
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                            {seatClass.classCode}
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900">{seatClass.className}</h4>
+                            <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
+                              {!isNaN(Number(seatClass.availability))
+                                ? Number(seatClass.availability) > 0
+                                  ? `Available: ${seatClass.availability}`
+                                  : 'Not Available'
+                                : String(seatClass.availability)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {loadingFares ? (
+                          <Clock className="w-4 h-4 animate-spin text-gray-400" />
+                        ) : fare ? (
+                          <div className="text-right">
+                            {canBook && (
+                              <button
+                                onClick={() => handleBookNow(seatClass.classCode, fare)}
+                                className="w-full px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+                              >
+                                ₹ {fare}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">Fare N/A</p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
               {(!availabilityData || Object.keys(availabilityData).length === 0) && (
                 <div className="text-center py-8">
                   <p className="text-gray-600">No seat availability data found.</p>
                 </div>
-              )}
+                )}
             </>
           )}
         </div>

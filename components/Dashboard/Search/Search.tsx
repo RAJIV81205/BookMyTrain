@@ -346,7 +346,7 @@ const Search = () => {
                   <span className="font-medium">{toQuery}</span>
                 </div>
               </div>
-              <div className="grid gap-4">
+              <div className="grid gap-4 ">
                 {results.map((train: any, index: number) => (
                   <TrainCard
                     key={`${train.train_no}-${resetCount}`}
