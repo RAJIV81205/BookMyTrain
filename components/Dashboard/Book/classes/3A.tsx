@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { useBooking } from "@/context/BookingContext";
 
-const ThirdAC = () => {
+interface ThirdACProps {
+  onSeatsSelected?: (seats: number[]) => void;
+  onClose?: () => void;
+}
+
+const ThirdAC: React.FC<ThirdACProps> = ({ onSeatsSelected, onClose }) => {
     const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
     const bookedSeats = [8, 15, 24, 31, 42, 55]; // Pre-booked seats
-    const { setBookingData } = useBooking();
 
     
     const compartments = [
@@ -46,7 +49,9 @@ const ThirdAC = () => {
     };
 
     const startBooking = () => {
-
+        if (selectedSeats.length > 0 && onSeatsSelected) {
+            onSeatsSelected(selectedSeats);
+        }
     }
 
     return (

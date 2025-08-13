@@ -1,17 +1,73 @@
 "use client";
 
 import { useBooking } from "@/context/BookingContext";
-import ThirdAC from "./classes/3A";
+import { useState, useEffect } from "react";
+import SeatSelectionModal from "./SeatSelectionModal";
+import PassengerDetailsForm from "./PassengerDetailsForm";
 
 export default function Checkout() {
-    const { bookingData } = useBooking();
+    const { bookingData, setBookingData } = useBooking();
+    const [showSeatSelection, setShowSeatSelection] = useState(false);
+    const [showPassengerForm, setShowPassengerForm] = useState(false);
+    const [currentStep, setCurrentStep] = useState<"seats" | "passengers" | "complete">("seats");
+
+    // Show seat selection modal when component mounts and train is selected
+    useEffect(() => {
+        if (bookingData.trainNo && bookingData.classCode && bookingData.selectedSeats.length === 0) {
+            setShowSeatSelection(true);
+        }
+    }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length]);
+
+    const handleSeatsSelected = (seats: number[]) => {
+        setBookingData({ selectedSeats: seats });
+        setShowSeatSelection(false);
+        setCurrentStep("passengers");
+        setShowPassengerForm(true);
+    };
+
+    const handlePassengerDetailsComplete = () => {
+        setShowPassengerForm(false);
+        setCurrentStep("complete");
+    };
+
+    const handleChangeSeat = () => {
+        setBookingData({ selectedSeats: [], passengers: [] });
+        setShowSeatSelection(true);
+        setCurrentStep("seats");
+    };
 
     return (
-        <div className="min-h-screen p-4">
+        <div className="min-h-screen p-4 font-poppins">
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">Book Ticket</h1>
 
-                <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                {/* Progress Steps */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-center space-x-4">
+                        <div className={`flex items-center ${currentStep === "seats" ? "text-blue-600" : currentStep === "passengers" || currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "seats" ? "bg-blue-100 border-2 border-blue-600" : currentStep === "passengers" || currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
+                                1
+                            </div>
+                            <span className="ml-2 font-medium">Select Seats</span>
+                        </div>
+                        <div className={`w-8 h-0.5 ${currentStep === "passengers" || currentStep === "complete" ? "bg-green-600" : "bg-gray-300"}`}></div>
+                        <div className={`flex items-center ${currentStep === "passengers" ? "text-blue-600" : currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "passengers" ? "bg-blue-100 border-2 border-blue-600" : currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
+                                2
+                            </div>
+                            <span className="ml-2 font-medium">Passenger Details</span>
+                        </div>
+                        <div className={`w-8 h-0.5 ${currentStep === "complete" ? "bg-green-600" : "bg-gray-300"}`}></div>
+                        <div className={`flex items-center ${currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
+                                3
+                            </div>
+                            <span className="ml-2 font-medium">Complete</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm mb-6">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Booking Details</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -46,14 +102,89 @@ export default function Checkout() {
                         </div>
                     </div>
 
+                    {/* Selected Seats Display */}
+                    {bookingData.selectedSeats.length > 0 && (
+                        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="font-medium text-green-800 mb-2">Selected Seats</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {bookingData.selectedSeats.map((seat) => (
+                                            <span key={seat} className="px-2 py-1 bg-green-200 text-green-800 rounded text-sm">
+                                                Seat {seat}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleChangeSeat}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                    Change Seats
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {!bookingData.trainNo && (
                         <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                             <p className="text-yellow-800">Please select a train from the search results to proceed with booking.</p>
                         </div>
                     )}
                 </div>
+
+                {/* Passenger Details Form */}
+                {showPassengerForm && bookingData.selectedSeats.length > 0 && (
+                    <PassengerDetailsForm
+                        selectedSeats={bookingData.selectedSeats}
+                        onComplete={handlePassengerDetailsComplete}
+                    />
+                )}
+
+                {/* Booking Summary */}
+                {currentStep === "complete" && bookingData.passengers.length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">Booking Summary</h3>
+                        
+                        <div className="space-y-4">
+                            {bookingData.passengers.map((passenger, index) => (
+                                <div key={passenger.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                    <h4 className="font-medium text-gray-700 mb-2">
+                                        Passenger {index + 1} - Seat {passenger.seatNumber}
+                                    </h4>
+                                    <div className="grid grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-gray-600">Name:</span>
+                                            <p className="font-medium">{passenger.name}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Age:</span>
+                                            <p className="font-medium">{passenger.age}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Gender:</span>
+                                            <p className="font-medium">{passenger.gender}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200">
+                                Proceed to Payment
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
-            <ThirdAC />
+
+            {/* Seat Selection Modal */}
+            <SeatSelectionModal
+                isOpen={showSeatSelection}
+                onClose={() => setShowSeatSelection(false)}
+                onSeatsSelected={handleSeatsSelected}
+            />
         </div>
     );
 }
