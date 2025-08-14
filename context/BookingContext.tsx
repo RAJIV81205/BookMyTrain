@@ -13,8 +13,11 @@ interface PassengerDetails {
 interface BookingData {
   fromCode: string;
   toCode: string;
+  fromStnName: string;
+  toStnName: string;
   date: string;
   trainNo: string;
+  trainName:string;
   classCode: string;
   fare: string;
   fromTime: string,
@@ -38,8 +41,11 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [bookingData, setBookingDataState] = useState<BookingData>({
     fromCode: "",
     toCode: "",
+    fromStnName: "",
+    toStnName: "",
     date: "",
     trainNo: "",
+    trainName :"",
     classCode: "",
     fare: "",
     fromTime: "",

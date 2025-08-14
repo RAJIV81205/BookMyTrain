@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react'
-import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight, MapPinned } from 'lucide-react'
+import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import stninfo from '@/lib/constants/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
 import TrainCard from './TrainCard'
@@ -162,7 +162,9 @@ const Search = () => {
       setBookingData({
         fromCode: fromCode,
         toCode: toCode,
-        date: date
+        date: date,
+        fromStnName : fromQuery,
+        toStnName : toQuery
       });
       setCompletedResets(0)
       setResetTrigger(false)
@@ -195,17 +197,18 @@ const Search = () => {
   };
 
   // Handler for booking a ticket
-  const handleBookTicket = (trainNo: string, classCode: string, fare: string) => {
+  const handleBookTicket = (trainNo: string, trainName: string, classCode: string, fare: string) => {
     // Update booking context with selected train
     setBookingData({
       trainNo: trainNo,
+      trainName: trainName,
       classCode: classCode,
       fare: fare,
       selectedSeats: [],
-      passengers:[]
+      passengers: []
     });
     
-   router.push("/checkout")
+    router.push("/checkout")
   };
 
 

@@ -28,7 +28,7 @@ interface TrainCardProps {
     travel_time: string
   }
   onCheckAvailability?: (trainNo: string) => void
-  onBookTicket?: (trainNo: string, classCode: string, fare: string) => void
+  onBookTicket?: (trainNo: string, trainName:string , classCode: string, fare: string) => void
   date?: string
   resetAvailability?: boolean
   onResetComplete?: () => void
@@ -176,7 +176,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
 
   const handleBookNow = (classCode: string, fare: string) => {
     if (onBookTicket) {
-      onBookTicket(data.train_no, classCode, fare)
+      onBookTicket(data.train_no, data.train_name, classCode, fare)
     }
   }
 

@@ -6,11 +6,13 @@ import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
 
 
+
 export default function Checkout() {
     const { bookingData, setBookingData } = useBooking();
     const [showSeatSelection, setShowSeatSelection] = useState(false);
     const [showPassengerForm, setShowPassengerForm] = useState(false);
     const [currentStep, setCurrentStep] = useState<"seats" | "passengers" | "complete">("seats");
+
 
     // Show seat selection modal when component mounts and train is selected
     useEffect(() => {
@@ -50,6 +52,8 @@ export default function Checkout() {
             setCurrentStep("seats");
         }
     };
+
+
 
     return (
         <div className="font-poppins">
@@ -178,7 +182,7 @@ export default function Checkout() {
                 {currentStep === "complete" && bookingData.passengers.length > 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">Booking Summary</h3>
-                        
+
                         <div className="space-y-4">
                             {bookingData.passengers.map((passenger, index) => (
                                 <div key={passenger.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
