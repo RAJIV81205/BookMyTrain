@@ -2,8 +2,9 @@
 
 import { useBooking } from "@/context/BookingContext";
 import { useState, useEffect } from "react";
-import SeatSelectionModal from "./SeatSelectionModal";
+import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
+
 
 export default function Checkout() {
     const { bookingData, setBookingData } = useBooking();
@@ -15,11 +16,17 @@ export default function Checkout() {
     useEffect(() => {
         if (bookingData.trainNo && bookingData.classCode && bookingData.selectedSeats.length === 0) {
             setShowSeatSelection(true);
+            setCurrentStep("seats");
+        } else if (bookingData.selectedSeats.length > 0 && bookingData.passengers.length === 0) {
+            setCurrentStep("passengers");
+        } else if (bookingData.passengers.length > 0) {
+            setCurrentStep("complete");
         }
-    }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length]);
+    }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length, bookingData.passengers.length]);
 
     const handleSeatsSelected = (seats: number[]) => {
         setBookingData({ selectedSeats: seats });
+        console.log("seats selected", seats);
         setShowSeatSelection(false);
         setCurrentStep("passengers");
         setShowPassengerForm(true);
@@ -36,9 +43,17 @@ export default function Checkout() {
         setCurrentStep("seats");
     };
 
+    const handleModalClose = () => {
+        setShowSeatSelection(false);
+        // If no seats are selected and train is selected, keep current step as "seats"
+        if (bookingData.trainNo && bookingData.selectedSeats.length === 0) {
+            setCurrentStep("seats");
+        }
+    };
+
     return (
-        <div className="min-h-screen p-4 font-poppins">
-            <div className="max-w-4xl mx-auto">
+        <div className="font-poppins">
+            <div className="w-full">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">Book Ticket</h1>
 
                 {/* Progress Steps */}
@@ -131,6 +146,24 @@ export default function Checkout() {
                             <p className="text-yellow-800">Please select a train from the search results to proceed with booking.</p>
                         </div>
                     )}
+
+                    {/* Show seat selection button if train is selected but no seats selected */}
+                    {bookingData.trainNo && bookingData.classCode && bookingData.selectedSeats.length === 0 && !showSeatSelection && (
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-medium text-blue-800 mb-1">Select Your Seats</h3>
+                                    <p className="text-blue-600 text-sm">Choose your preferred seats to continue with booking</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowSeatSelection(true)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                                >
+                                    Select Seats
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Passenger Details Form */}
@@ -182,7 +215,7 @@ export default function Checkout() {
             {/* Seat Selection Modal */}
             <SeatSelectionModal
                 isOpen={showSeatSelection}
-                onClose={() => setShowSeatSelection(false)}
+                onClose={handleModalClose}
                 onSeatsSelected={handleSeatsSelected}
             />
         </div>

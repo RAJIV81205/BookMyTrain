@@ -200,7 +200,9 @@ const Search = () => {
     setBookingData({
       trainNo: trainNo,
       classCode: classCode,
-      fare: fare
+      fare: fare,
+      selectedSeats: [],
+      passengers:[]
     });
     
    router.push("/checkout")

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useBooking } from "@/context/BookingContext";
-import ThirdAC from "./classes/3A";
-import FirstAC from "./classes/1A";
-import SL from "./classes/SL";
-import SecondAC from "./classes/2A";
+import ThirdAC from "./3A";
+import FirstAC from "./1A";
+import SL from "./SL";
+import SecondAC from "./2A";
 
 interface SeatSelectionModalProps {
   isOpen: boolean;

@@ -17,8 +17,11 @@ interface BookingData {
   trainNo: string;
   classCode: string;
   fare: string;
+  fromTime: string,
+  toTime: string
   selectedSeats: number[];
   passengers: PassengerDetails[];
+
 }
 
 interface BookingContextType {
@@ -39,6 +42,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     trainNo: "",
     classCode: "",
     fare: "",
+    fromTime: "",
+    toTime: "",
     selectedSeats: [],
     passengers: [],
   });
