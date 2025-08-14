@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../model/User';
+import connectDB from '../db';
 
 export default function verifyToken(token: string): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -22,13 +23,15 @@ export default function verifyToken(token: string): Promise<any> {
             }
 
             try {
+                await connectDB(); // ✅ Ensure DB is connected
                 const user = await User.findById(decoded.id);
                 if (!user) {
                     return reject(new Error('User not found'));
                 }
 
-                resolve(user); // Return the user object instead of true
+                resolve(user);
             } catch (error) {
+                console.error("💥 Error in verifyToken DB query:", error);
                 reject(new Error('Database query failed'));
             }
         });
