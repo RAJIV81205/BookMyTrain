@@ -2,8 +2,10 @@
 
 import { useBooking } from "@/context/BookingContext";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
+import { Train, Clock, MapPin, ArrowRight, Users, Edit3, Calendar, CreditCard } from "lucide-react";
 
 
 
@@ -11,80 +13,57 @@ export default function Checkout() {
     const { bookingData, setBookingData } = useBooking();
     const [showSeatSelection, setShowSeatSelection] = useState(false);
     const [showPassengerForm, setShowPassengerForm] = useState(false);
-    const [currentStep, setCurrentStep] = useState<"seats" | "passengers" | "complete">("seats");
+    const router = useRouter();
 
 
-    // Show seat selection modal when component mounts and train is selected
+    // Check if booking data is present, redirect if not
     useEffect(() => {
+        if (!bookingData.trainNo || !bookingData.fromCode || !bookingData.toCode) {
+            router.push("/dashboard");
+            return;
+        }
+
+        // Show seat selection modal when component mounts and train is selected
         if (bookingData.trainNo && bookingData.classCode && bookingData.selectedSeats.length === 0) {
             setShowSeatSelection(true);
-            setCurrentStep("seats");
+            setBookingData({ currentStep: "seats" });
         } else if (bookingData.selectedSeats.length > 0 && bookingData.passengers.length === 0) {
-            setCurrentStep("passengers");
+            setBookingData({ currentStep: "passengers" });
         } else if (bookingData.passengers.length > 0) {
-            setCurrentStep("complete");
+            setBookingData({ currentStep: "payment" });
         }
-    }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length, bookingData.passengers.length]);
+    }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length, bookingData.passengers.length, bookingData.fromCode, bookingData.toCode, router]);
 
     const handleSeatsSelected = (seats: number[]) => {
-        setBookingData({ selectedSeats: seats });
+        setBookingData({ selectedSeats: seats, currentStep: "passengers" });
         console.log("seats selected", seats);
         setShowSeatSelection(false);
-        setCurrentStep("passengers");
         setShowPassengerForm(true);
     };
 
     const handlePassengerDetailsComplete = () => {
         setShowPassengerForm(false);
-        setCurrentStep("complete");
+        setBookingData({ currentStep: "payment" });
     };
 
     const handleChangeSeat = () => {
-        setBookingData({ selectedSeats: [], passengers: [] });
+        setBookingData({ selectedSeats: [], passengers: [], currentStep: "seats" });
         setShowSeatSelection(true);
-        setCurrentStep("seats");
     };
 
     const handleModalClose = () => {
         setShowSeatSelection(false);
         // If no seats are selected and train is selected, keep current step as "seats"
         if (bookingData.trainNo && bookingData.selectedSeats.length === 0) {
-            setCurrentStep("seats");
+            setBookingData({ currentStep: "seats" });
         }
     };
 
 
 
     return (
-        <div className="font-poppins">
+        <div>
             <div className="w-full">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6">Book Ticket</h1>
-
-                {/* Progress Steps */}
-                <div className="mb-6">
-                    <div className="flex items-center justify-center space-x-4">
-                        <div className={`flex items-center ${currentStep === "seats" ? "text-blue-600" : currentStep === "passengers" || currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "seats" ? "bg-blue-100 border-2 border-blue-600" : currentStep === "passengers" || currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
-                                1
-                            </div>
-                            <span className="ml-2 font-medium">Select Seats</span>
-                        </div>
-                        <div className={`w-8 h-0.5 ${currentStep === "passengers" || currentStep === "complete" ? "bg-green-600" : "bg-gray-300"}`}></div>
-                        <div className={`flex items-center ${currentStep === "passengers" ? "text-blue-600" : currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "passengers" ? "bg-blue-100 border-2 border-blue-600" : currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
-                                2
-                            </div>
-                            <span className="ml-2 font-medium">Passenger Details</span>
-                        </div>
-                        <div className={`w-8 h-0.5 ${currentStep === "complete" ? "bg-green-600" : "bg-gray-300"}`}></div>
-                        <div className={`flex items-center ${currentStep === "complete" ? "text-green-600" : "text-gray-400"}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "complete" ? "bg-green-100 border-2 border-green-600" : "bg-gray-100 border-2 border-gray-400"}`}>
-                                3
-                            </div>
-                            <span className="ml-2 font-medium">Complete</span>
-                        </div>
-                    </div>
-                </div>
 
                 <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm mb-6">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Booking Details</h2>
@@ -179,7 +158,7 @@ export default function Checkout() {
                 )}
 
                 {/* Booking Summary */}
-                {currentStep === "complete" && bookingData.passengers.length > 0 && (
+                {bookingData.currentStep === "payment" && bookingData.passengers.length > 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">Booking Summary</h3>
 
