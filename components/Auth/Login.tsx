@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import z from 'zod'
 import { useRouter } from 'next/navigation'
+import { signIn } from './Provider'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
