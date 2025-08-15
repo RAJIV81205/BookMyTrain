@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import z from 'zod'
 import { useRouter } from 'next/navigation'
-import { signIn ,useSession  } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 
 
 const loginSchema = z.object({
@@ -19,15 +19,15 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession()
 
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
     setIsLoading(true);
-    
+
     try {
       // Validate input using zod schema
       const validatedData = loginSchema.parse({ email, password });
@@ -48,13 +48,13 @@ const Login = () => {
 
       // Store token in localStorage
       localStorage.setItem("token", data.token);
-      
+
       toast.success("Login successful!");
       router.push("/dashboard");
 
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      
+
       if (error instanceof z.ZodError) {
         // Handle validation errors
         const firstError = error.issues[0];
@@ -74,6 +74,10 @@ const Login = () => {
       handleSubmit();
     }
   };
+
+  
+
+ 
 
 
   return (
@@ -215,10 +219,13 @@ const Login = () => {
 
             {/* Social Login */}
             <div className="grid grid-cols-2 gap-3">
-              <button 
+              <button
                 className="flex items-center justify-center px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                 disabled={isLoading}
-                onClick={() => signIn("google")}
+                onClick={() => {
+                  setIsLoading(true);
+                  signIn("google")
+                }}
               >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -229,7 +236,7 @@ const Login = () => {
                 Google
               </button>
 
-              <button 
+              <button
                 className="flex items-center justify-center px-4 py-2.5 border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                 disabled={isLoading}
               >
