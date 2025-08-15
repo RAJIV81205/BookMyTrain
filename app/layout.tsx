@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Poppins, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { BookingProvider } from "@/context/BookingContext";
-import { SessionProvider } from "next-auth/react";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,9 +52,9 @@ export default function RootLayout({
             },
           }}
         />
-        <SessionProvider>
-          <BookingProvider>{children}</BookingProvider>
-        </SessionProvider>
+
+        <BookingProvider>{children}</BookingProvider>
+
       </body>
     </html>
   );
