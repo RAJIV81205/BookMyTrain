@@ -83,7 +83,7 @@ export default function checkoutLayout({
             <div className="max-w-7xl mx-auto p-4">
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Book Ticket</h1>
+
 
                     {/* Progress Steps */}
                     <div className="mb-6">

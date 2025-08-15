@@ -163,8 +163,8 @@ const Search = () => {
         fromCode: fromCode,
         toCode: toCode,
         date: date,
-        fromStnName : fromQuery,
-        toStnName : toQuery
+        fromStnName: fromQuery,
+        toStnName: toQuery
       });
       setCompletedResets(0)
       setResetTrigger(false)
@@ -197,17 +197,19 @@ const Search = () => {
   };
 
   // Handler for booking a ticket
-  const handleBookTicket = (trainNo: string, trainName: string, classCode: string, fare: string) => {
+  const handleBookTicket = (trainNo: string, trainName: string, fromTime: string, toTime: string, classCode: string, fare: string) => {
     // Update booking context with selected train
     setBookingData({
       trainNo: trainNo,
       trainName: trainName,
+      fromTime: fromTime,
+      toTime: toTime,
       classCode: classCode,
       fare: fare,
       selectedSeats: [],
       passengers: []
     });
-    
+
     router.push("/checkout")
   };
 
