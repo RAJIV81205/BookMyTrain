@@ -45,9 +45,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       token,
-      user:{
-        name:user.name,
-        email:user.email
+      user: {
+        name: user.name,
+        email: user.email
       }
     });
 

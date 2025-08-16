@@ -20,7 +20,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signInWithGoogle, loading: firebaseLoading } = useFirebaseAuth();
+  const { signInWithGoogleAndBackend, loading: firebaseLoading } = useFirebaseAuth();
 
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -71,34 +71,18 @@ const Login = () => {
 
   const handleFirebaseGoogleSignIn = async () => {
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogleAndBackend();
       if (result) {
-        // Print detailed user data to console
-        console.log('=== Firebase Google Sign-In Success ===');
-        console.log('Full Result:', result);
-        console.log('User Object:', result.user);
-        console.log('User Details:', {
-          uid: result.user.uid,
-          displayName: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-          emailVerified: result.user.emailVerified,
-          phoneNumber: result.user.phoneNumber,
-          providerId: result.user.providerId,
-          metadata: {
-            creationTime: result.user.metadata.creationTime,
-            lastSignInTime: result.user.metadata.lastSignInTime
-          }
-        });
-        console.log('ID Token:', result.idToken);
-        console.log('=======================================');
-
-        // Redirect to dashboard after successful Firebase authentication
+        console.log('=== Complete Google Authentication Success ===');
+        console.log('User:', result.user.displayName, result.user.email);
+        console.log('JWT Token received and stored');
+        
+        // Redirect to dashboard
         router.push('/dashboard');
       }
-    } catch (error) {
-      // Error is already handled in the hook
+    } catch (error: any) {
       console.error('Google sign-in failed:', error);
+      // Error messages are already handled in the hook
     }
   };
 
