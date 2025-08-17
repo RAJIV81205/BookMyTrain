@@ -12,30 +12,24 @@ const Header = () => {
 
   useGSAP(() => {
     // Animate header on mount - slide in from top
-    gsap.fromTo(headerRef.current,
-      {
-        y: 100,
-        opacity: 0
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out"
-      }
-    )
-  })
+    gsap.to(headerRef.current, {
+      y: 0,
+      opacity: 1,
+      duration: 1,
+      ease: "power2.out"
+    });
+  }, { scope: headerRef });
 
-   
-    
+
+
 
 
 
   return (
     <div className='absolute top-0 p-6 w-full z-10 bg-transparent'>
-      <header ref={headerRef} className='max-w-6xl mx-auto flex items-center justify-between font-poppins'>
+      <header ref={headerRef} className='max-w-6xl mx-auto flex items-center justify-between font-poppins opacity-0 -translate-y-24'>
         {/* Logo Section */}
-        <div  className='flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200'>
+        <div className='flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200'>
           <div className='w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center hover:bg-blue-700 transition-colors duration-200'>
             <svg
               className='w-5 h-5 text-white'

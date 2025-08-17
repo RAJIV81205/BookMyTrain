@@ -97,7 +97,7 @@ const Login = () => {
       y: 100,
       duration: 1,
       ease: "power3.out",
-      stagger: 0.2,
+
     });
   })
 

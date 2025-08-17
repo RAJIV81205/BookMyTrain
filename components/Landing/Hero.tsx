@@ -17,12 +17,6 @@ const Hero = () => {
     gsap.registerPlugin(useGSAP);
 
     useGSAP(() => {
-        // Set initial states
-        gsap.set([headingRef.current, subtitleRef.current, button1Ref.current, button2Ref.current], {
-            y: 60,
-            opacity: 0
-        });
-
         // Create staggered animation timeline
         const tl = gsap.timeline({ delay: 0.5 });
 
@@ -70,25 +64,25 @@ const Hero = () => {
             <div className="relative z-10 flex items-center justify-center min-h-screen px-6 pt-20 font-poppins">
                 <div className="text-center  w-full sm:max-w-2/3 mx-auto">
                     {/* Main Heading */}
-                    <h1 ref={headingRef} className="text-6xl md:text-7xl lg:text-8xl font-bold text-slate-900 mb-8 leading-tight upper tracking-wide">
+                    <h1 ref={headingRef} className="text-6xl md:text-7xl lg:text-8xl font-bold text-slate-900 mb-8 leading-tight upper tracking-wide opacity-0 translate-y-16">
                         Book<span className="text-teal-600 break-all ">.</span>Travel<span className="text-teal-600 break-all">.</span>Enjoy
                     </h1>
 
                     {/* Subtitle */}
-                    <p ref={subtitleRef} className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
+                    <p ref={subtitleRef} className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed text-pretty opacity-0 translate-y-16">
                         Experience seamless railway journeys with our smart booking platform.Your adventure begins with a single click.
                     </p>
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
                         <Link href="/auth/login">
-                            <button ref={button1Ref} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group cursor-pointer">
+                            <button ref={button1Ref} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group cursor-pointer opacity-0 translate-y-16">
                                 Start Your Journey
                                 <ArrowUpRight className="w-5 h-5 lg:opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
                             </button>
                         </Link>
                         <Link href="/explore">
-                            <button ref={button2Ref} className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 bg-white/50 backdrop-blur-sm hover:scale-105 flex items-center gap-2 group cursor-pointer">
+                            <button ref={button2Ref} className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 bg-white/50 backdrop-blur-sm hover:scale-105 flex items-center gap-2 group cursor-pointer opacity-0 translate-y-16">
                                 Explore Routes
                                 <ArrowUpRight className="w-5 h-5 lg:opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
                             </button>
