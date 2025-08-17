@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "bcryptjs": "^3.0.2",
     "firebase": "^12.1.0",
     "gsap": "^3.13.0",

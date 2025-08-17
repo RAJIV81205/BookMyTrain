@@ -1,10 +1,55 @@
-import React from 'react';
+"use client"
+
+import React, { useRef } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import gsap from "gsap";
+import { useGSAP } from '@gsap/react';
+
 
 const Hero = () => {
+    const heroRef = useRef<HTMLDivElement>(null);
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const subtitleRef = useRef<HTMLParagraphElement>(null);
+    const button1Ref = useRef<HTMLButtonElement>(null);
+    const button2Ref = useRef<HTMLButtonElement>(null);
+
+    gsap.registerPlugin(useGSAP);
+
+    useGSAP(() => {
+        // Set initial states
+        gsap.set([headingRef.current, subtitleRef.current, button1Ref.current, button2Ref.current], {
+            y: 60,
+            opacity: 0
+        });
+
+        // Create staggered animation timeline
+        const tl = gsap.timeline({ delay: 0.5 });
+
+        tl.to(headingRef.current, {
+            y: 0,
+            opacity: 1,
+            duration: 1.2,
+            ease: "power3.out"
+        })
+            .to(subtitleRef.current, {
+                y: 0,
+                opacity: 1,
+                duration: 1,
+                ease: "power3.out"
+            }, "-=0.8") // Start 0.8s before previous animation ends
+            .to([button1Ref.current, button2Ref.current], {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: "power3.out"
+            }, "-=0.6"); // Start 0.6s before previous animation ends
+
+    }, { scope: heroRef });
+
     return (
-        <div className="min-h-screen w-full relative bg-white">
+        <div ref={heroRef} className="min-h-screen w-full relative bg-white">
             {/* Teal Glow Top */}
             <div
                 className="absolute inset-0 z-0"
@@ -25,28 +70,27 @@ const Hero = () => {
             <div className="relative z-10 flex items-center justify-center min-h-screen px-6 pt-20 font-poppins">
                 <div className="text-center  w-full sm:max-w-2/3 mx-auto">
                     {/* Main Heading */}
-                    <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-slate-900 mb-8 leading-tight upper tracking-wide">
+                    <h1 ref={headingRef} className="text-6xl md:text-7xl lg:text-8xl font-bold text-slate-900 mb-8 leading-tight upper tracking-wide">
                         Book<span className="text-teal-600 break-all ">.</span>Travel<span className="text-teal-600 break-all">.</span>Enjoy
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-                        Experience seamless railway journeys with our smart booking platform.
-                        Your adventure begins with a single click.
+                    <p ref={subtitleRef} className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
+                        Experience seamless railway journeys with our smart booking platform.Your adventure begins with a single click.
                     </p>
 
                     {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
                         <Link href="/auth/login">
-                            <button className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 group cursor-pointer">
+                            <button ref={button1Ref} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group cursor-pointer">
                                 Start Your Journey
-                                <ArrowUpRight className="w-5 h-5 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
+                                <ArrowUpRight className="w-5 h-5 lg:opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
                             </button>
                         </Link>
                         <Link href="/explore">
-                            <button className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 bg-white/50 backdrop-blur-sm flex items-center gap-2 group cursor-pointer">
+                            <button ref={button2Ref} className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 bg-white/50 backdrop-blur-sm hover:scale-105 flex items-center gap-2 group cursor-pointer">
                                 Explore Routes
-                                <ArrowUpRight className="w-5 h-5 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
+                                <ArrowUpRight className="w-5 h-5 lg:opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
                             </button>
                         </Link>
                     </div>
