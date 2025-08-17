@@ -1,12 +1,14 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import z from 'zod'
 import { useRouter } from 'next/navigation'
 import { useFirebaseAuth } from '../../lib/hooks/useFirebaseAuth'
+import gsap from "gsap";
+import { useGSAP } from '@gsap/react'
 
 
 const loginSchema = z.object({
@@ -21,6 +23,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signInWithGoogleAndBackend, loading: firebaseLoading } = useFirebaseAuth();
+  const container = useRef<HTMLDivElement>(null);
 
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -76,7 +79,7 @@ const Login = () => {
         console.log('=== Complete Google Authentication Success ===');
         console.log('User:', result.user.displayName, result.user.email);
         console.log('JWT Token received and stored');
-        
+
         // Redirect to dashboard
         router.push('/dashboard');
       }
@@ -85,6 +88,18 @@ const Login = () => {
       // Error messages are already handled in the hook
     }
   };
+
+  gsap.registerPlugin(useGSAP);
+
+  useGSAP (()=>{
+    gsap.from(container.current, {
+      opacity: 0,
+      y: 100,
+      duration: 1,
+      ease: "power3.out",
+      stagger: 0.2,
+    });
+  })
 
 
 
@@ -109,9 +124,9 @@ const Login = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4 font-poppins">
-        <div className="w-full max-w-md">
+        <div ref={container} className="w-full max-w-md">
           {/* Login Card */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -251,7 +266,7 @@ const Login = () => {
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    Google 
+                    Google
                   </>
                 )}
               </button>

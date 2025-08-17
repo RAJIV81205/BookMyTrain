@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent, useRef } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -8,8 +8,10 @@ import { z } from 'zod'
 import {
   SignupFormData, SignupFormErrors, SignupApiRequest, SignupApiResponse, ApiErrorDetail
 } from '@/types/auth'
-import { useFirebaseAuth } from '../../lib/hooks/useFirebaseAuth'
-import { useRouter } from 'next/navigation'
+import { useFirebaseAuth } from '../../lib/hooks/useFirebaseAuth';
+import {useRouter} from "next/navigation"
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 
 // Client-side validation schema to match the API
 const signupSchema = z.object({
@@ -56,6 +58,7 @@ const Signup: React.FC = () => {
   })
   const { signInWithGoogleAndBackend, loading: firebaseLoading } = useFirebaseAuth();
   const router = useRouter();
+  const container = useRef<HTMLDivElement>(null)
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -200,6 +203,18 @@ const Signup: React.FC = () => {
     }
   };
 
+  gsap.registerPlugin(useGSAP);
+
+  useGSAP (()=>{
+    gsap.from(container.current, {
+      opacity: 0,
+      y: 100,
+      duration: 1,
+      ease: "power3.out",
+      stagger: 0.2,
+    });
+  })
+
 
   const handleFirebaseGoogleSignIn = async () => {
     try {
@@ -236,9 +251,9 @@ const Signup: React.FC = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4 font-poppins">
-        <div className="w-full max-w-md">
+        <div ref={container} className="w-full max-w-md">
           {/* Signup Card */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 p-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">
