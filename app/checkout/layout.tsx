@@ -1,6 +1,6 @@
 "use client"
 
-import Fare from "@/components/Dashboard/Book/Fare"
+import Fare from "@/components/Book/Fare"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
@@ -68,7 +68,7 @@ export default function checkoutLayout({
                         <div className="flex-1">
                             <div className="h-96 bg-gray-200 animate-pulse"></div>
                         </div>
-                        <div className="lg:w-80 lg:mt-28">
+                        <div className="lg:w-80">
                             <div className="h-96 bg-gray-200 animate-pulse"></div>
                         </div>
                     </div>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Clock, MapPin, Calendar, Users, Banknote, Train, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Clock, Calendar, Users, Train, ChevronDown, ChevronUp } from 'lucide-react'
+import { gsap } from 'gsap'
 
 interface SeatClass {
   className: string
@@ -28,25 +29,28 @@ interface TrainCardProps {
     travel_time: string
   }
   onCheckAvailability?: (trainNo: string) => void
-  onBookTicket?: (trainNo: string, trainName:string , fromTime:string , toTime:string, classCode: string, fare: string) => void
+  onBookTicket?: (trainNo: string, trainName: string, fromTime: string, toTime: string, classCode: string, fare: string) => void
   date?: string
   resetAvailability?: boolean
   onResetComplete?: () => void
 }
 
-const TrainCard: React.FC<TrainCardProps> = ({ 
-  data, 
-  onCheckAvailability, 
+const TrainCard: React.FC<TrainCardProps> = ({
+  data,
+  onCheckAvailability,
   onBookTicket,
-  date, 
-  resetAvailability, 
-  onResetComplete 
+  date,
+  resetAvailability,
+  onResetComplete
 }) => {
   const [showAvailability, setShowAvailability] = useState(false)
   const [availabilityData, setAvailabilityData] = useState<any>(null)
   const [loadingAvailability, setLoadingAvailability] = useState(false)
   const [faresData, setFaresData] = useState<any>(null)
   const [loadingFares, setLoadingFares] = useState(false)
+
+  const cardRef = useRef<HTMLDivElement>(null)
+  const availabilityRef = useRef<HTMLDivElement>(null)
 
   const resetAvailabilityState = () => {
     setShowAvailability(false)
@@ -170,19 +174,30 @@ const TrainCard: React.FC<TrainCardProps> = ({
     if (!isNaN(Number(availability))) {
       return Number(availability) > 0
     }
-    return availStr.includes('available') || availStr.includes('confirm') || 
-           availStr.includes('waiting') || availStr.includes('wl') || availStr.includes('rac')
+    return availStr.includes('available') || availStr.includes('confirm') ||
+      availStr.includes('waiting') || availStr.includes('wl') || availStr.includes('rac')
   }
 
   const handleBookNow = (classCode: string, fare: string) => {
     if (onBookTicket) {
-      onBookTicket(data.train_no, data.train_name, data.from_time , data.to_time, classCode, fare)
+      onBookTicket(data.train_no, data.train_name, data.from_time, data.to_time, classCode, fare)
     }
   }
 
   const handleCheckAvailability = async () => {
     if (showAvailability && availabilityData) {
-      setShowAvailability(false)
+      // Animate out availability section
+      if (availabilityRef.current) {
+        gsap.to(availabilityRef.current, {
+          height: 0,
+          opacity: 0,
+          duration: 0.4,
+          ease: "power2.inOut",
+          onComplete: () => setShowAvailability(false)
+        })
+      } else {
+        setShowAvailability(false)
+      }
       return
     }
 
@@ -207,6 +222,35 @@ const TrainCard: React.FC<TrainCardProps> = ({
 
       setAvailabilityData(responseData)
       await fetchFares()
+
+      // Animate in availability section
+      setTimeout(() => {
+        if (availabilityRef.current) {
+          gsap.fromTo(availabilityRef.current,
+            { height: 0, opacity: 0 },
+            {
+              height: "auto",
+              opacity: 1,
+              duration: 0.4,
+              ease: "power2.out"
+            }
+          )
+
+          // Animate availability cards with stagger
+          const cards = availabilityRef.current.querySelectorAll('.availability-card')
+          gsap.fromTo(cards,
+            { opacity: 0, y: 15 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.3,
+              stagger: 0.06,
+              ease: "power2.out",
+              delay: 0.15
+            }
+          )
+        }
+      }, 50)
     } catch (err: any) {
       console.error('Error checking availability:', err)
       setAvailabilityData(null)
@@ -220,7 +264,10 @@ const TrainCard: React.FC<TrainCardProps> = ({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 mb-4">
+    <div
+      ref={cardRef}
+      className="bg-white border border-gray-200 rounded-xl shadow-sm transition-all duration-300 mb-4"
+    >
       <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
           <div className="lg:flex lg:flex-row lg:justify-between w-full flex-1">
@@ -262,8 +309,18 @@ const TrainCard: React.FC<TrainCardProps> = ({
 
         <div className="mt-6 flex justify-center">
           <button
-            onClick={handleCheckAvailability}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+            onClick={(e) => {
+              // Add click animation
+              gsap.to(e.target, {
+                scale: 0.95,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1,
+                ease: "power2.out"
+              })
+              handleCheckAvailability()
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-lg"
           >
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Check Seat Availability</span>
@@ -274,7 +331,10 @@ const TrainCard: React.FC<TrainCardProps> = ({
       </div>
 
       {showAvailability && (
-        <div className="border-t border-gray-200 p-4 bg-gray-50 ">
+        <div
+          ref={availabilityRef}
+          className="border-t border-gray-200 p-4 bg-gray-50 overflow-hidden"
+        >
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">Seat Availability & Fares</h3>
@@ -285,8 +345,13 @@ const TrainCard: React.FC<TrainCardProps> = ({
 
           {loadingAvailability ? (
             <div className="text-center py-8">
-              <Clock className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
-              <p className="text-gray-600">Checking seat availability...</p>
+              <div className="relative">
+                <Clock className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
+                <div className="absolute inset-0 w-6 h-6 mx-auto animate-pulse-custom">
+                  <div className="w-full h-full bg-blue-200 rounded-full opacity-75"></div>
+                </div>
+              </div>
+              <p className="text-gray-600 animate-pulse-custom">Checking seat availability...</p>
             </div>
           ) : (
             <>
@@ -298,7 +363,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                   return (
                     <div
                       key={index}
-                      className={`flex-shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
+                      className={`availability-card flex-shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-3">
@@ -328,11 +393,20 @@ const TrainCard: React.FC<TrainCardProps> = ({
                             </div>
                           ) : fare && canBook ? (
                             <button
-                              onClick={() => handleBookNow(seatClass.classCode, fare)}
-                              className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
+                              onClick={(e) => {
+                                gsap.to(e.target, {
+                                  scale: 0.9,
+                                  duration: 0.1,
+                                  yoyo: true,
+                                  repeat: 1,
+                                  ease: "power2.out"
+                                })
+                                handleBookNow(seatClass.classCode, fare)
+                              }}
+                              className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
                             >
-                              
-                               ₹ {fare}
+
+                              ₹ {fare}
                             </button>
                           ) : fare ? (
                             <p className="text-sm text-center text-gray-600 font-medium">₹{fare}</p>
@@ -354,7 +428,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                   return (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+                      className="availability-card flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-all duration-200"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -373,7 +447,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         {loadingFares ? (
                           <Clock className="w-4 h-4 animate-spin text-gray-400" />
@@ -381,8 +455,17 @@ const TrainCard: React.FC<TrainCardProps> = ({
                           <div className="text-right">
                             {canBook && (
                               <button
-                                onClick={() => handleBookNow(seatClass.classCode, fare)}
-                                className="w-full px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+                                onClick={(e) => {
+                                  gsap.to(e.target, {
+                                    scale: 0.9,
+                                    duration: 0.1,
+                                    yoyo: true,
+                                    repeat: 1,
+                                    ease: "power2.out"
+                                  })
+                                  handleBookNow(seatClass.classCode, fare)
+                                }}
+                                className="w-full px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-all duration-200"
                               >
                                 ₹ {fare}
                               </button>
@@ -401,7 +484,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                 <div className="text-center py-8">
                   <p className="text-gray-600">No seat availability data found.</p>
                 </div>
-                )}
+              )}
             </>
           )}
         </div>

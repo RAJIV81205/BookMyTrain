@@ -174,7 +174,7 @@ const Signup: React.FC = () => {
         });
         setErrors({});
         // Optionally redirect to login page
-        // router.push('/auth/login');
+        router.push('/auth/login');
       } else {
         // Handle API errors
         if (data.details && Array.isArray(data.details)) {

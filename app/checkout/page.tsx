@@ -1,5 +1,5 @@
 import React from 'react'
-import Checkout from '@/components/Dashboard/Book/Checkout'
+import Checkout from '@/components/Book/Checkout'
 
 const page = () => {
   return (

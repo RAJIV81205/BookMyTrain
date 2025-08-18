@@ -7,6 +7,12 @@ import TrainCard from './TrainCard'
 import toast from 'react-hot-toast'
 import { useBooking } from "@/context/BookingContext";
 import { useRouter } from 'next/navigation'
+import TrainStatsBoxes from './Stats'
+import t from "@/lib/constants/trains.json"
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const Search = () => {
   const router = useRouter()
@@ -23,15 +29,59 @@ const Search = () => {
   // Reset mechanism state management
   const [resetTrigger, setResetTrigger] = useState(false)
   const [resetCount, setResetCount] = useState(0)
-  const [completedResets, setCompletedResets] = useState(0)
 
   const resultsRef = useRef<HTMLDivElement | null>(null)
+  const searchFormRef = useRef<HTMLDivElement | null>(null)
+  const statsRef = useRef<HTMLDivElement | null>(null)
+  const trainCardsRef = useRef<HTMLDivElement[]>([])
 
   const stations = stninfo.station || []
+
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
     setDate(today)
+  }, [])
+
+  // Initial animations on component mount
+  useEffect(() => {
+    const tl = gsap.timeline()
+
+    // Animate search form entrance
+    if (searchFormRef.current) {
+      gsap.set(searchFormRef.current, { opacity: 0, y: 50 })
+      tl.to(searchFormRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power2.out"
+      })
+    }
+
+    // Animate stats boxes if they exist
+    if (statsRef.current) {
+      gsap.set(statsRef.current, { opacity: 0, y: 30 })
+      tl.to(statsRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out"
+      }, "-=0.4")
+    }
+
+    // Cleanup function for scroll triggers
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+    }
+  }, [])
+
+ 
+
+  // Cleanup scroll triggers when component unmounts
+  useEffect(() => {
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+    }
   }, [])
 
   useEffect(() => {
@@ -74,7 +124,7 @@ const Search = () => {
             s.stnCity.toLowerCase().includes(query.toLowerCase())
           )
       )
-      .slice(0, 5)
+      .slice(0, 3)
   }
 
   // Handler for tracking individual TrainCard reset completion
@@ -103,7 +153,6 @@ const Search = () => {
     // Trigger reset before performing search
     setResetCount(prev => prev + 1)
     setResetTrigger(true)
-    setCompletedResets(0)
 
     // Wait for all resets to complete or timeout after 1000ms
     const totalCards = results.length
@@ -149,7 +198,44 @@ const Search = () => {
       if (filteredData.length > 0 && resultsRef.current) {
         setTimeout(() => {
           resultsRef.current?.scrollIntoView({ behavior: "smooth" })
-        }, 100) // small delay to ensure render
+
+          // Animate results section entrance
+          gsap.fromTo(resultsRef.current,
+            { opacity: 0, y: 30 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out"
+            }
+          )
+
+          // Stagger animate train cards with better timing
+          setTimeout(() => {
+            trainCardsRef.current.forEach((card, index) => {
+              if (card) {
+                gsap.fromTo(card,
+                  { opacity: 0, y: 20 },
+                  {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    delay: index * 0.08,
+                    onComplete: () => {
+                      // Refresh ScrollTrigger after all animations complete
+                      if (index === trainCardsRef.current.length - 1) {
+                        setTimeout(() => {
+                          ScrollTrigger.refresh()
+                        }, 100)
+                      }
+                    }
+                  }
+                )
+              }
+            })
+          }, 200)
+        }, 100)
       }
 
       if (filteredData.length === 0) {
@@ -166,7 +252,6 @@ const Search = () => {
         fromStnName: fromQuery,
         toStnName: toQuery
       });
-      setCompletedResets(0)
       setResetTrigger(false)
     }
   }
@@ -215,16 +300,19 @@ const Search = () => {
 
 
   return (
-    <div className="min-h-screen  p-4 pt-10 lg:pt-0">
+    <div className="min-h-screen  p-4 pt-10 lg:pt-5">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Train Search</h1>
-          <p className="text-gray-600">Find trains between stations</p>
-        </div>
+        {!results.length && <div ref={statsRef}><TrainStatsBoxes station={stations.length} train={t.length} /></div>}
+
+
 
         {/* Unified Search Form */}
-        <div className="bg-white rounded-2xl border shadow-sm border-gray-300 p-6 mb-8">
+        <div ref={searchFormRef} className="bg-white rounded-2xl border border-gray-500 p-6 mb-8 shadow-lg">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Train Search</h1>
+            <p className="text-gray-600">Find trains between stations</p>
+          </div>
           <div className="flex flex-col lg:flex-row lg:items-start lg:gap-4 gap-4">
             {/* From Station */}
             <div className="flex-1 dropdown-container">
@@ -240,9 +328,23 @@ const Search = () => {
                     setFromQuery(e.target.value)
                     setActiveField("from")
                   }}
-                  onFocus={() => setActiveField("from")}
+                  onFocus={(e) => {
+                    setActiveField("from")
+                    gsap.to(e.target, {
+                      scale: 1.02,
+                      duration: 0.2,
+                      ease: "power2.out"
+                    })
+                  }}
+                  onBlur={(e) => {
+                    gsap.to(e.target, {
+                      scale: 1,
+                      duration: 0.2,
+                      ease: "power2.out"
+                    })
+                  }}
                   placeholder="Enter departure station"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-400"
                 />
                 {fromCode && (
                   <div className="text-xs text-gray-500 mt-1">
@@ -251,11 +353,28 @@ const Search = () => {
                 )}
                 {activeField === "from" && fromQuery && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {filterStations(fromQuery, toCode).map((station) => (
+                    {filterStations(fromQuery, toCode).map((station, index) => (
                       <div
                         key={station.stnCode}
                         onClick={() => handleSelectFrom(station)}
+                        onMouseEnter={(e) => {
+                          gsap.to(e.target, {
+                            x: 5,
+                            duration: 0.2,
+                            ease: "power2.out"
+                          })
+                        }}
+                        onMouseLeave={(e) => {
+                          gsap.to(e.target, {
+                            x: 0,
+                            duration: 0.2,
+                            ease: "power2.out"
+                          })
+                        }}
                         className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0  border-gray-200 transition-colors duration-150"
+                        style={{
+                          animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
+                        }}
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
@@ -273,8 +392,19 @@ const Search = () => {
             {/* Swap Button */}
             <div className="flex justify-center lg:mt-8">
               <button
-                onClick={swapStations}
-                className="p-3 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
+                onClick={() => {
+                  // Add rotation animation on click
+                  const button = document.querySelector('.swap-button')
+                  if (button) {
+                    gsap.to(button, {
+                      rotation: 180,
+                      duration: 0.4,
+                      ease: "power2.out"
+                    })
+                  }
+                  swapStations()
+                }}
+                className="swap-button p-3 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors duration-200 shadow-sm hover:shadow-md hover:scale-110 active:scale-95"
                 title="Swap stations"
               >
                 <ArrowUpDown className="w-5 h-5 lg:hidden text-blue-600" />
@@ -296,9 +426,23 @@ const Search = () => {
                     setToQuery(e.target.value)
                     setActiveField("to")
                   }}
-                  onFocus={() => setActiveField("to")}
+                  onFocus={(e) => {
+                    setActiveField("to")
+                    gsap.to(e.target, {
+                      scale: 1.02,
+                      duration: 0.2,
+                      ease: "power2.out"
+                    })
+                  }}
+                  onBlur={(e) => {
+                    gsap.to(e.target, {
+                      scale: 1,
+                      duration: 0.2,
+                      ease: "power2.out"
+                    })
+                  }}
                   placeholder="Enter arrival station"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-400"
                 />
                 {toCode && (
                   <div className="text-xs text-gray-500 mt-1">
@@ -307,11 +451,28 @@ const Search = () => {
                 )}
                 {activeField === "to" && toQuery && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {filterStations(toQuery, fromCode).map((station) => (
+                    {filterStations(toQuery, fromCode).map((station, index) => (
                       <div
                         key={station.stnCode}
                         onClick={() => handleSelectTo(station)}
+                        onMouseEnter={(e) => {
+                          gsap.to(e.target, {
+                            x: 5,
+                            duration: 0.2,
+                            ease: "power2.out"
+                          })
+                        }}
+                        onMouseLeave={(e) => {
+                          gsap.to(e.target, {
+                            x: 0,
+                            duration: 0.2,
+                            ease: "power2.out"
+                          })
+                        }}
                         className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors border-gray-200 duration-150"
+                        style={{
+                          animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
+                        }}
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
@@ -334,8 +495,22 @@ const Search = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                onFocus={(e) => {
+                  gsap.to(e.target, {
+                    scale: 1.02,
+                    duration: 0.2,
+                    ease: "power2.out"
+                  })
+                }}
+                onBlur={(e) => {
+                  gsap.to(e.target, {
+                    scale: 1,
+                    duration: 0.2,
+                    ease: "power2.out"
+                  })
+                }}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-400"
               />
             </div>
           </div>
@@ -343,9 +518,22 @@ const Search = () => {
           {/* Search Button */}
           <div className="flex justify-center mt-4">
             <button
-              onClick={searchTrain}
+              onClick={() => {
+                // Add pulse animation on click
+                const button = document.querySelector('.search-button')
+                if (button && !loading) {
+                  gsap.to(button, {
+                    scale: 0.95,
+                    duration: 0.1,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: "power2.out"
+                  })
+                }
+                searchTrain()
+              }}
               disabled={loading}
-              className="w-full lg:w-auto px-12 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center min-w-[200px] shadow-lg hover:shadow-xl disabled:shadow-md"
+              className="search-button w-full lg:w-auto px-12 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center min-w-[200px] shadow-lg hover:shadow-xl disabled:shadow-md hover:scale-105 active:scale-95"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -375,15 +563,16 @@ const Search = () => {
               </div>
               <div className="grid gap-4 ">
                 {results.map((train: any, index: number) => (
-                  <TrainCard
-                    key={`${train.train_no}-${resetCount}`}
-                    data={train}
-                    onCheckAvailability={handleCheckAvailability}
-                    onBookTicket={handleBookTicket}
-                    date={date}
-                    resetAvailability={resetTrigger}
-                    onResetComplete={handleResetComplete}
-                  />
+                  
+                    <TrainCard
+                      data={train}
+                      onCheckAvailability={handleCheckAvailability}
+                      onBookTicket={handleBookTicket}
+                      date={date}
+                      resetAvailability={resetTrigger}
+                      onResetComplete={handleResetComplete}
+                    />
+                
                 ))}
 
               </div>
