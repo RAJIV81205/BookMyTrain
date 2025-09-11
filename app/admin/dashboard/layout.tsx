@@ -55,7 +55,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           verificationPromise,
           {
             loading: 'Verifying your session...',
-            success: 'Welcome back! Session verified successfully.',
+            success: 'Welcome back!',
             error: (err) => `${err.message}. Please login again.`,
           }
         );

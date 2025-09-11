@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, User, Activity, X } from 'lucide-react';
+import { Home, Tickets , Info , X } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home },
-  { label: 'PNR Status', path: '/dashboard/pnr', icon: User },
-  { label: 'Train Info', path: '/dashboard/train', icon: Activity },
+  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets  },
+  { label: 'Train Info', path: '/dashboard/train', icon: Info  },
 ];
 
 interface SidebarProps {
@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={() => router.push(item.path)}
                   className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-700/50'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-700'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >

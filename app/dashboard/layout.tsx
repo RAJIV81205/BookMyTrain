@@ -49,7 +49,7 @@ export default function DashboardLayout({
           verificationPromise,
           {
             loading: 'Verifying your session...',
-            success: 'Welcome back! Session verified successfully.',
+            success: 'Welcome back!',
             error: (err) => `${err.message}. Please login again.`,
           }
         );

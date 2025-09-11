@@ -43,7 +43,7 @@ export default function RootLayout({
           toastOptions={{
             className: "bg-white text-gray-900 shadow-lg",
             style: {
-              fontFamily: "var(--font-geist-sans)",
+              fontFamily: "var(--font-poppins)",
               fontSize: "14px",
             },
           }}
