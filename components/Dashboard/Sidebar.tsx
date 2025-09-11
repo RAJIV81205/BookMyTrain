@@ -36,11 +36,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-3">
-            <div className="mb-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Personal Account
-              </p>
-            </div>
+            
             
             {navItems.map((item) => {
               const Icon = item.icon;

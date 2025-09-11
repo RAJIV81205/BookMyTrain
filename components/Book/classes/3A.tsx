@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 
 interface ThirdACProps {
-  onSeatsSelected?: (seats: number[]) => void;
-  onClose?: () => void;
+    onSeatsSelected?: (seats: number[]) => void;
+    onClose?: () => void;
 }
 
 const ThirdAC: React.FC<ThirdACProps> = ({ onSeatsSelected, onClose }) => {
     const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
     const bookedSeats = [8, 15, 24, 31, 42, 55]; // Pre-booked seats
 
-    
+
     const compartments = [
         { id: 1, lower: [1, 4], middle: [2, 5], upper: [3, 6], side: [7, 8] },
         { id: 2, lower: [9, 12], middle: [10, 13], upper: [11, 14], side: [15, 16] },

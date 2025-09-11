@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Poppins, Source_Sans_3 } from "next/font/google";
+import {  Poppins, Source_Sans_3 , Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { BookingProvider } from "@/context/BookingContext";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -24,6 +14,12 @@ const poppins = Poppins({
 const sans3 = Source_Sans_3({
   variable: "--font-sans3",
   weight: ["200", "300", "400", "600", "700", "800", "900"],
+  subsets: ["latin"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -40,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${sans3.variable} antialiased`}
+        className={`${poppins.variable} ${sans3.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <Toaster
           position="top-right"

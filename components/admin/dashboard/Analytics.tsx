@@ -17,6 +17,7 @@ const Analytics = () => {
             });
             const data = await response.json();
             setAnalytics(data);
+            
         };
         fetchAnalytics();
     }, []);

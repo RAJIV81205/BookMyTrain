@@ -10,15 +10,16 @@ const SL: React.FC<SLProps> = ({ onSeatsSelected, onClose }) => {
   const bookedSeats = [12, 25, 38, 51, 64]; // Pre-booked seats
 
   const compartments = [
-    { id: 1, lower: [1, 4, 7], middle: [2, 5, 8], upper: [3, 6, 9], side: [10, 11] },
-    { id: 2, lower: [12, 15, 18], middle: [13, 16, 19], upper: [14, 17, 20], side: [21, 22] },
-    { id: 3, lower: [23, 26, 29], middle: [24, 27, 30], upper: [25, 28, 31], side: [32, 33] },
-    { id: 4, lower: [34, 37, 40], middle: [35, 38, 41], upper: [36, 39, 42], side: [43, 44] },
-    { id: 5, lower: [45, 48, 51], middle: [46, 49, 52], upper: [47, 50, 53], side: [54, 55] },
-    { id: 6, lower: [56, 59, 62], middle: [57, 60, 63], upper: [58, 61, 64], side: [65, 66] },
-    { id: 7, lower: [67, 70, 73], middle: [68, 71, 74], upper: [69, 72, 75], side: [76, 77] },
-    { id: 8, lower: [78, 81, 84], middle: [79, 82, 85], upper: [80, 83, 86], side: [87, 88] }
-  ];
+    { id: 1, lower: [1, 4], middle: [2, 5], upper: [3, 6], side: [7, 8] },
+    { id: 2, lower: [9, 12], middle: [10, 13], upper: [11, 14], side: [15, 16] },
+    { id: 3, lower: [17, 20], middle: [18, 21], upper: [19, 22], side: [23, 24] },
+    { id: 4, lower: [25, 28], middle: [26, 29], upper: [27, 30], side: [31, 32] },
+    { id: 5, lower: [33, 36], middle: [34, 37], upper: [35, 38], side: [39, 40] },
+    { id: 6, lower: [41, 44], middle: [42, 45], upper: [43, 46], side: [47, 48] },
+    { id: 7, lower: [49, 52], middle: [50, 53], upper: [51, 54], side: [55, 56] },
+    { id: 8, lower: [57, 60], middle: [58, 61], upper: [59, 62], side: [63, 64] },
+    { id: 9, lower: [65, 68], middle: [66, 69], upper: [67, 70], side: [71, 72] }
+];
 
   const getSeatClass = (num: number): string => {
     if (bookedSeats.includes(num)) return "bg-red-400 text-white cursor-not-allowed border-red-500";
@@ -52,7 +53,7 @@ const SL: React.FC<SLProps> = ({ onSeatsSelected, onClose }) => {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+          <div className="grid grid-cols-4 md:grid-cols-9 gap-3">
             {compartments.map((comp) => (
               <div key={comp.id} className="space-y-3">
                 <div className="text-xs font-semibold text-gray-600 text-center">
@@ -60,7 +61,7 @@ const SL: React.FC<SLProps> = ({ onSeatsSelected, onClose }) => {
                 </div>
 
                 {/* Side berths */}
-                <div className="bg-orange-100 rounded-lg p-2 border-2 border-orange-200 flex flex-col space-y-1">
+                <div className="bg-orange-100 rounded-lg p-2 border-2 border-orange-200 flex flex-row justify-between  space-y-1">
                   {comp.side.map((num, idx) => (
                     <div key={num} className="text-center">
                       <div
