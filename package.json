@@ -16,6 +16,7 @@
     "irctc-connect": "^1.2.6",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.526.0",
+    "mapbox-gl": "^3.15.0",
     "mongoose": "^8.17.0",
     "motion": "^12.23.9",
     "next": "15.4.4",
