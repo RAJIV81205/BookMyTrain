@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
+import { RefreshCw, RefreshCwOff , LocateFixed } from "lucide-react"
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -45,12 +46,14 @@ const Livemap = () => {
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
 
-    // Filter trains based on search
-    const filteredTrains = trains.filter(train =>
-        searchQuery === '' ||
-        train.train_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        train.train_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter trains based on search - only filter if search query is exactly 5 digits
+    const filteredTrains = trains.filter(train => {
+        // Only filter if search query is exactly 5 digits (train number)
+        if (searchQuery === '' || searchQuery.length !== 5 || !/^\d{5}$/.test(searchQuery)) {
+            return false; // Don't show any filtered results for incomplete searches
+        }
+        return train.train_number === searchQuery;
+    });
 
     // Initialize map
     useEffect(() => {
@@ -69,10 +72,9 @@ const Livemap = () => {
                 container: mapContainer.current,
                 style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite imagery with labels
                 center: [78.9629, 20.5937], // Center of India
-                zoom: 5
+                zoom: 4
             });
 
-            map.current.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
             map.current.on('load', () => {
                 console.log('Map loaded successfully');
@@ -173,12 +175,12 @@ const Livemap = () => {
         }
 
         // Choose colors based on highlighting
-        const fillColor = isHighlighted ? '#FFD700' : 'white'; // Gold for highlighted, white for normal
-        const strokeColor = isHighlighted ? '#FF4500' : 'black'; // Orange-red for highlighted, black for normal
-        const strokeWidth = isHighlighted ? '15' : '10'; // Thicker stroke for highlighted
+        const fillColor = isHighlighted && searchQuery.length == 5 ? '#FFD700' : 'white'; // Gold for highlighted, white for normal
+        const strokeColor = isHighlighted && searchQuery.length == 5 ? '#FF4500' : 'black'; // Orange-red for highlighted, black for normal
+        const strokeWidth = isHighlighted && searchQuery.length == 5 ? '15' : '10'; // Thicker stroke for highlighted
 
         // Apply highlighting effects
-        if (isHighlighted) {
+        if (isHighlighted && searchQuery.length == 5) {
             el.style.zIndex = '1000';
             el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
             el.style.transform = 'scale(1.3)'; // Make highlighted trains bigger
@@ -329,7 +331,36 @@ const Livemap = () => {
     return (
         <div className="relative w-full h-screen">
             {/* Map container */}
-            <div ref={mapContainer} className="w-full h-full" />
+            <div ref={mapContainer} className="w-full h-screen" />
+
+            <div className="absolute top-4 left-4 z-10 gap-4 flex flex-col">
+                <button
+                    onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
+                    disabled={backgroundLoading}
+                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer"
+                    title= "Refresh Data"
+                >
+                    {backgroundLoading ? <RefreshCwOff /> : <RefreshCw />}
+                </button>
+
+                <button
+                    onClick={() => {
+                        if (map.current) {
+                            map.current.flyTo({
+                                center: [78.9629, 20.5937], // Center of India
+                                zoom: 4,
+                                duration: 1500
+                            });
+                        }
+                    }}
+                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer"
+                    title="Reset map view"
+                >
+                    <LocateFixed />
+                </button>
+
+
+            </div>
 
             {/* Search panel */}
             <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 w-80 z-10">
@@ -341,43 +372,34 @@ const Livemap = () => {
                 </div>
                 <input
                     type="text"
-                    placeholder="Search trains..."
+                    placeholder="Enter 5-digit train number..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow digits and limit to 5 characters
+                        if (/^\d{0,5}$/.test(value)) {
+                            setSearchQuery(value);
+                        }
+                    }}
+                    maxLength={5}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="mt-2 text-sm text-gray-600">
-                    Showing {filteredTrains.length} of {trains.length} trains
+                    {searchQuery.length === 5 ?
+                        `Found ${filteredTrains.length} train(s) for ${searchQuery}` :
+                        searchQuery.length > 0 ?
+                            `Enter ${5 - searchQuery.length} more digit(s)` :
+                            `Total ${trains.length} trains loaded`
+                    }
                 </div>
                 <div className="flex gap-2 mt-2">
-                    <button
-                        onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
-                        disabled={backgroundLoading}
-                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
-                    >
-                        {backgroundLoading ? 'Refreshing...' : 'Refresh'}
-                    </button>
-                    <button
-                        onClick={() => {
-                            if (map.current) {
-                                map.current.flyTo({
-                                    center: [78.9629, 20.5937], // Center of India
-                                    zoom: 5,
-                                    duration: 1500
-                                });
-                            }
-                        }}
-                        className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
-                        title="Reset map view"
-                    >
-                        🏠
-                    </button>
+
                 </div>
             </div>
 
             {/* Loading indicator - only show on initial load */}
             {loading && isInitialLoad.current && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
                     <div className="bg-white p-4 rounded-lg">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                         <div className="mt-2 text-sm">Loading trains...</div>
