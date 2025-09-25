@@ -25,6 +25,7 @@ const Livemap = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [backgroundLoading, setBackgroundLoading] = useState(false);
+    const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
 
     // Filter trains based on search
@@ -116,27 +117,34 @@ const Livemap = () => {
     };
 
     // Create marker element
-    const createMarkerElement = (train : TrainData) => {
+    const createMarkerElement = (train: TrainData) => {
         const el = document.createElement('div');
-        el.style.cssText = `
-        width: 20px;
-        height: 20px;
-        background-color: #3b82f6;
-        border: 2px solid white;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    `;
+        el.style.width = '32px';
+        el.style.height = '32px';
+        el.style.cursor = 'pointer';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.background = 'none'; // Remove background if using SVG
 
+        // Insert your SVG directly
+        el.innerHTML = `
+     
+                <svg height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	            viewBox="0 0 511.998 511.998" xml:space="preserve">
+                <g>
+	            <path style="fill:#2cb9e8;" d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
+		        L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
+                </g>
+                </svg>
+    `;
         // Create the popup instance outside the event handlers so it can be reused
         const popup = new mapboxgl.Popup({
             closeButton: false,
-            closeOnClick: false
+            closeOnClick: true
         }).setHTML(`
-        <div style="padding: 8px;">
-            <strong>${train.train_number}</strong><br>
-            ${train.train_name}<br>
-            <small>${train.type}</small>
+        <div style="padding: 4px; ">
+            <strong>${train.train_number} - ${train.train_name}</strong>
         </div>
     `);
 
@@ -152,7 +160,7 @@ const Livemap = () => {
 
         // Optional: still show popup on click if you want
         el.addEventListener('click', () => {
-            popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+            setCurrentTrain(train);
         });
 
         return el;
