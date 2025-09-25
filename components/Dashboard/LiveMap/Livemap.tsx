@@ -147,7 +147,7 @@ const Livemap = () => {
     };
 
     // Create marker element
-    const createMarkerElement = (train: TrainData) => {
+    const createMarkerElement = (train: TrainData, isHighlighted: boolean = false) => {
         const el = document.createElement('div');
         el.style.width = '20px';
         el.style.height = '20px';
@@ -172,14 +172,26 @@ const Livemap = () => {
             rotation = bearing;
         }
 
-        // Insert your SVG with rotation
+        // Choose colors based on highlighting
+        const fillColor = isHighlighted ? '#FFD700' : 'white'; // Gold for highlighted, white for normal
+        const strokeColor = isHighlighted ? '#FF4500' : 'black'; // Orange-red for highlighted, black for normal
+        const strokeWidth = isHighlighted ? '15' : '10'; // Thicker stroke for highlighted
+
+        // Apply highlighting effects
+        if (isHighlighted) {
+            el.style.zIndex = '1000';
+            el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
+            el.style.transform = 'scale(1.3)'; // Make highlighted trains bigger
+        }
+
+        // Insert your SVG with rotation and highlighting
         el.innerHTML = `
                       <svg height="32px" width="32px" version="1.1" id="Layer_1" 
-                   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/    xlink" 
+                   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                viewBox="0 0 511.998 511.998" xml:space="preserve" 
-              style="transform: rotate(${rotation}deg); transition: transform 0.3s ease;">
+              style="transform: rotate(${rotation}deg); transition: all 0.3s ease;">
                   <g>
-               <path fill="white" stroke="black" stroke-width="10"
+               <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"
                     d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
              L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
                 </g>
@@ -224,8 +236,8 @@ const Livemap = () => {
             markers.current.forEach(marker => marker.remove());
             markers.current = [];
 
-            // Add markers for filtered trains
-            filteredTrains.forEach(train => {
+            // Add markers for ALL trains (not just filtered ones)
+            trains.forEach(train => {
                 if (train.current_lat && train.current_lng &&
                     typeof train.current_lat === 'number' &&
                     typeof train.current_lng === 'number' &&
@@ -233,7 +245,13 @@ const Livemap = () => {
                     !isNaN(train.current_lng)) {
 
                     try {
-                        const el = createMarkerElement(train);
+                        // Check if this train should be highlighted
+                        const isHighlighted = filteredTrains.some(filteredTrain =>
+                            filteredTrain.train_number === train.train_number
+                        ) && searchQuery.trim() !== '';
+
+                        const el = createMarkerElement(train, isHighlighted);
+
                         const marker = new mapboxgl.Marker(el)
                             .setLngLat([train.current_lng, train.current_lat])
                             .addTo(map.current!);
@@ -244,6 +262,48 @@ const Livemap = () => {
                     }
                 }
             });
+
+            // Handle different numbers of filtered results
+            if (filteredTrains.length >= 1 && filteredTrains.length <= 10 && searchQuery.trim() !== '') {
+                const validTrains = filteredTrains.filter(train =>
+                    train.current_lat && train.current_lng &&
+                    typeof train.current_lat === 'number' &&
+                    typeof train.current_lng === 'number' &&
+                    !isNaN(train.current_lat) &&
+                    !isNaN(train.current_lng)
+                );
+
+                if (validTrains.length === 1) {
+                    // Single train: center and zoom to it
+                    const train = validTrains[0];
+                    map.current!.flyTo({
+                        center: [train.current_lng, train.current_lat],
+                        zoom: 12,
+                        duration: 1500
+                    });
+                } else if (validTrains.length > 1) {
+                    // Multiple trains: fit all in frame
+                    const coordinates = validTrains.map(train => [train.current_lng, train.current_lat]);
+
+                    // Calculate bounds
+                    const lngs = coordinates.map(coord => coord[0]);
+                    const lats = coordinates.map(coord => coord[1]);
+
+                    const minLng = Math.min(...lngs);
+                    const maxLng = Math.max(...lngs);
+                    const minLat = Math.min(...lats);
+                    const maxLat = Math.max(...lats);
+
+                    // Create bounds with some padding
+                    const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
+
+                    map.current!.fitBounds(bounds, {
+                        padding: { top: 50, bottom: 50, left: 50, right: 400 }, // Extra padding on right for search panel
+                        duration: 1500,
+                        maxZoom: 15 // Prevent zooming too close when trains are very close together
+                    });
+                }
+            }
         };
 
         if (map.current.isStyleLoaded()) {
@@ -251,7 +311,7 @@ const Livemap = () => {
         } else {
             map.current.on('load', updateMarkers);
         }
-    }, [filteredTrains]);
+    }, [filteredTrains, trains, searchQuery]);
 
     // Fetch data on mount and set up auto-refresh
     useEffect(() => {
@@ -289,13 +349,30 @@ const Livemap = () => {
                 <div className="mt-2 text-sm text-gray-600">
                     Showing {filteredTrains.length} of {trains.length} trains
                 </div>
-                <button
-                    onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
-                    disabled={backgroundLoading}
-                    className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
-                >
-                    {backgroundLoading ? 'Refreshing...' : 'Refresh'}
-                </button>
+                <div className="flex gap-2 mt-2">
+                    <button
+                        onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
+                        disabled={backgroundLoading}
+                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+                    >
+                        {backgroundLoading ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (map.current) {
+                                map.current.flyTo({
+                                    center: [78.9629, 20.5937], // Center of India
+                                    zoom: 5,
+                                    duration: 1500
+                                });
+                            }
+                        }}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
+                        title="Reset map view"
+                    >
+                        🏠
+                    </button>
+                </div>
             </div>
 
             {/* Loading indicator - only show on initial load */}
