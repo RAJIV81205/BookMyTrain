@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Tickets , Info , X } from 'lucide-react';
+import { Home, Tickets, Info, X , Map } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home },
-  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets  },
-  { label: 'Train Info', path: '/dashboard/train', icon: Info  },
+  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets },
+  { label: 'Train Info', path: '/dashboard/train', icon: Info },
+  { label: "Train Map", path: '/dashboard/livemap', icon: Map }
 ];
 
 interface SidebarProps {
@@ -36,21 +37,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-3">
-            
-            
+
+
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
-              
+
               return (
                 <button
                   key={item.path}
                   onClick={() => router.push(item.path)}
-                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
-                    isActive
+                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${isActive
                       ? 'bg-blue-50 text-blue-700 border border-blue-700/50'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <Icon className="mr-3 h-6 w-6" />
                   {item.label}
@@ -62,9 +62,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* Mobile Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
         <div className="flex flex-col h-full">
           {/* Header with Close Button */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
@@ -84,20 +83,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 Personal Account
               </p>
             </div>
-            
+
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
-              
+
               return (
                 <button
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
-                    isActive
+                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${isActive
                       ? 'bg-blue-50 text-blue-700 border-2 border-blue-700'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <Icon className="mr-3 h-6 w-6" />
                   {item.label}
