@@ -6,26 +6,26 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 interface TrainData {
-  current_day: number;
-  current_lat: number;
-  current_lng: number;
-  current_station: string;
-  current_station_name: string;
-  days_ago: number;
-  departure_minutes: number;
-  distance_from_source_km: number;
-  halt_mins: number;
-  mins_since_dep: number;
-  next_arrival_minutes: number;
-  next_day: number;
-  next_distance: number;
-  next_lat: number;
-  next_lng: number;
-  next_station: string;
-  next_station_name: string;
-  train_name: string;
-  train_number: string;
-  type: string;
+    current_day: number;
+    current_lat: number;
+    current_lng: number;
+    current_station: string;
+    current_station_name: string;
+    days_ago: number;
+    departure_minutes: number;
+    distance_from_source_km: number;
+    halt_mins: number;
+    mins_since_dep: number;
+    next_arrival_minutes: number;
+    next_day: number;
+    next_distance: number;
+    next_lat: number;
+    next_lng: number;
+    next_station: string;
+    next_station_name: string;
+    train_name: string;
+    train_number: string;
+    type: string;
 }
 
 
@@ -67,7 +67,7 @@ const Livemap = () => {
         try {
             map.current = new mapboxgl.Map({
                 container: mapContainer.current,
-                style: 'mapbox://styles/mapbox/light-v11',
+                style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite imagery with labels
                 center: [78.9629, 20.5937], // Center of India
                 zoom: 5
             });
@@ -110,7 +110,7 @@ const Livemap = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': "rri_eyJleHAiOjE3NTg3Nzk5NzY4NzksImlhdCI6MTc1ODY5MzU3Njg3OSwidHlwZSI6ImludGVybmFsIiwicm5kIjoiQmh6NDltenFFbk9TIn0=_OTI5YTllZGI3NzVhMjU0NDQxMWVmOThmMGQ5Yjc4MmQzOGRlNTI3MDZjMGE4ZWIzYTYwMzQyMTgxODAzM2JlOA==",
+                    'X-Api-Key': "             rri_eyJleHAiOjE3NTg4NjY3OTI5MDgsImlhdCI6MTc1ODc4MDM5MjkwOCwidHlwZSI6ImludGVybmFsIiwicm5kIjoiNW1kV3FRWThORkp5In0=_NWUxOGIzN2VhZGY4MWRiZjU0NTAwNDRiZjA0NGU3YzkwOGU4ZWY2MDVmYTA3MzM3MjQwYjJhZTM3OTEzM2YxMA ==",
                     "Referer": "https://railradar.in/",
                 }
             });
@@ -133,27 +133,58 @@ const Livemap = () => {
         }
     };
 
+    // Calculate bearing between two coordinates
+    const calculateBearing = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const lat1Rad = lat1 * Math.PI / 180;
+        const lat2Rad = lat2 * Math.PI / 180;
+
+        const y = Math.sin(dLng) * Math.cos(lat2Rad);
+        const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+
+        const bearing = Math.atan2(y, x) * 180 / Math.PI;
+        return (bearing + 360) % 360; // Normalize to 0-360 degrees
+    };
+
     // Create marker element
     const createMarkerElement = (train: TrainData) => {
         const el = document.createElement('div');
-        el.style.width = '32px';
-        el.style.height = '32px';
+        el.style.width = '20px';
+        el.style.height = '20px';
         el.style.cursor = 'pointer';
         el.style.display = 'flex';
         el.style.alignItems = 'center';
         el.style.justifyContent = 'center';
         el.style.background = 'none'; // Remove background if using SVG
 
-        // Insert your SVG directly
+        // Calculate rotation based on train direction
+        let rotation = 0;
+        if (train.next_lat && train.next_lng &&
+            typeof train.next_lat === 'number' && typeof train.next_lng === 'number' &&
+            !isNaN(train.next_lat) && !isNaN(train.next_lng)) {
+
+            const bearing = calculateBearing(
+                train.current_lat,
+                train.current_lng,
+                train.next_lat,
+                train.next_lng
+            );
+            rotation = bearing;
+        }
+
+        // Insert your SVG with rotation
         el.innerHTML = `
-     
-                <svg height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	            viewBox="0 0 511.998 511.998" xml:space="preserve">
-                <g>
-	            <path style="fill:#2cb9e8;" d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
-		        L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
+                      <svg height="32px" width="32px" version="1.1" id="Layer_1" 
+                   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/    xlink" 
+               viewBox="0 0 511.998 511.998" xml:space="preserve" 
+              style="transform: rotate(${rotation}deg); transition: transform 0.3s ease;">
+                  <g>
+               <path fill="white" stroke="black" stroke-width="10"
+                    d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
+             L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
                 </g>
-                </svg>
+            </svg>
+
     `;
         // Create the popup instance outside the event handlers so it can be reused
         const popup = new mapboxgl.Popup({
