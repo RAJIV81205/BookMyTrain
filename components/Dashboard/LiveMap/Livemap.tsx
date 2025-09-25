@@ -4,13 +4,30 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+
 interface TrainData {
-    train_number: string;
-    train_name: string;
-    current_lat: number;
-    current_lng: number;
-    type: string;
+  current_day: number;
+  current_lat: number;
+  current_lng: number;
+  current_station: string;
+  current_station_name: string;
+  days_ago: number;
+  departure_minutes: number;
+  distance_from_source_km: number;
+  halt_mins: number;
+  mins_since_dep: number;
+  next_arrival_minutes: number;
+  next_day: number;
+  next_distance: number;
+  next_lat: number;
+  next_lng: number;
+  next_station: string;
+  next_station_name: string;
+  train_name: string;
+  train_number: string;
+  type: string;
 }
+
 
 interface ApiResponse {
     success: boolean;
