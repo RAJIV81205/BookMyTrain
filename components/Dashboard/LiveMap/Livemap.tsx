@@ -181,7 +181,7 @@ const Livemap = () => {
 
         // Apply highlighting effects
         if (isHighlighted && searchQuery.length == 5) {
-            el.style.zIndex = '1000';
+           
             el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
             el.style.transform = 'scale(1.3)'; // Make highlighted trains bigger
         }
