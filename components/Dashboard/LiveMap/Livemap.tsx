@@ -176,7 +176,7 @@ const Livemap = () => {
 
         // Choose colors based on highlighting
         const fillColor = isHighlighted && searchQuery.length == 5 ? '#FFD700' : '#7ce4f2'; // Gold for highlighted, white for normal
-        const strokeColor = isHighlighted && searchQuery.length == 5 ? '#FF4500' : 'black'; // Orange-red for highlighted, black for normal
+        const strokeColor = isHighlighted && searchQuery.length == 5 ? '#FF4500' : '#002459'; // Orange-red for highlighted, black for normal
         const strokeWidth = isHighlighted && searchQuery.length == 5 ? '15' : '10'; // Thicker stroke for highlighted
 
         // Apply highlighting effects
