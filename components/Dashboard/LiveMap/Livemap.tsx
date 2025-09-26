@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw, RefreshCwOff , LocateFixed } from "lucide-react"
+import { RefreshCw, RefreshCwOff, LocateFixed } from "lucide-react"
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -70,7 +70,7 @@ const Livemap = () => {
         try {
             map.current = new mapboxgl.Map({
                 container: mapContainer.current,
-                style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite imagery with labels
+                style: 'mapbox://styles/mapbox/streets-v12', // Satellite imagery with labels
                 center: [78.9629, 20.5937], // Center of India
                 zoom: 4
             });
@@ -112,8 +112,8 @@ const Livemap = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': "             rri_eyJleHAiOjE3NTg4NjY3OTI5MDgsImlhdCI6MTc1ODc4MDM5MjkwOCwidHlwZSI6ImludGVybmFsIiwicm5kIjoiNW1kV3FRWThORkp5In0=_NWUxOGIzN2VhZGY4MWRiZjU0NTAwNDRiZjA0NGU3YzkwOGU4ZWY2MDVmYTA3MzM3MjQwYjJhZTM3OTEzM2YxMA ==",
-                    "Referer": "https://railradar.in/",
+                    'X-Api-Key': "             rri_eyJleHAiOjE3NTg5NTc0MzEwNjcsImlhdCI6MTc1ODg3MTAzMTA2NywidHlwZSI6ImludGVybmFsIiwicm5kIjoiVWRIbjFXekJvTlFhIn0=_YjYzMjQ5OWUzZDEwN2M0ZjRhYjA2NzY2ZjE4YzkyMTZiNmM5YWU0YTZkN2Y0NDRjOWYyNGU1MTc1YWVhZWQyYQ==",
+
                 }
             });
 
@@ -151,8 +151,8 @@ const Livemap = () => {
     // Create marker element
     const createMarkerElement = (train: TrainData, isHighlighted: boolean = false) => {
         const el = document.createElement('div');
-        el.style.width = '20px';
-        el.style.height = '20px';
+        el.style.width = '10px';
+        el.style.height = '10px';
         el.style.cursor = 'pointer';
         el.style.display = 'flex';
         el.style.alignItems = 'center';
@@ -175,7 +175,7 @@ const Livemap = () => {
         }
 
         // Choose colors based on highlighting
-        const fillColor = isHighlighted && searchQuery.length == 5 ? '#FFD700' : 'white'; // Gold for highlighted, white for normal
+        const fillColor = isHighlighted && searchQuery.length == 5 ? '#FFD700' : '#7ce4f2'; // Gold for highlighted, white for normal
         const strokeColor = isHighlighted && searchQuery.length == 5 ? '#FF4500' : 'black'; // Orange-red for highlighted, black for normal
         const strokeWidth = isHighlighted && searchQuery.length == 5 ? '15' : '10'; // Thicker stroke for highlighted
 
@@ -338,9 +338,11 @@ const Livemap = () => {
                     onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
                     disabled={backgroundLoading}
                     className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer"
-                    title= "Refresh Data"
+                    title="Refresh Data"
                 >
-                    {backgroundLoading ? <RefreshCwOff /> : <RefreshCw />}
+                    <RefreshCw
+                        className={backgroundLoading ? "animate-spin" : ""}
+                    />
                 </button>
 
                 <button
