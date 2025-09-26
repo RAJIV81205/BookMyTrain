@@ -113,6 +113,8 @@ const Livemap = () => {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Api-Key': "             rri_eyJleHAiOjE3NTg5NTc0MzEwNjcsImlhdCI6MTc1ODg3MTAzMTA2NywidHlwZSI6ImludGVybmFsIiwicm5kIjoiVWRIbjFXekJvTlFhIn0=_YjYzMjQ5OWUzZDEwN2M0ZjRhYjA2NzY2ZjE4YzkyMTZiNmM5YWU0YTZkN2Y0NDRjOWYyNGU1MTc1YWVhZWQyYQ==",
+                    "Referer": "https://railradar.in/",
+
 
                 }
             });
@@ -174,14 +176,48 @@ const Livemap = () => {
             rotation = bearing;
         }
 
-        // Choose colors based on highlighting
-        const fillColor = isHighlighted && searchQuery.length == 5 ? '#FFD700' : '#7ce4f2'; // Gold for highlighted, white for normal
-        const strokeColor = isHighlighted && searchQuery.length == 5 ? '#FF4500' : '#002459'; // Orange-red for highlighted, black for normal
-        const strokeWidth = isHighlighted && searchQuery.length == 5 ? '15' : '10'; // Thicker stroke for highlighted
+        // Define premium trains
+        const premiumTrains = [
+            "Vande Bharat",
+            "Rajdhani",
+            "Tejas",
+            "Shatabdi",
+            "Jan Shatabdi",
+            "Duronto",
+            "Humsafar",
+            "Garib Rath",
+            "Sampark Kranti",
+            "Double Decker",
+            "Amrit Bharat"
+        ];
+
+        let fillColor: string;
+        let strokeColor: string;
+        let strokeWidth: string;
+
+        // Special case: MEMU trains -> gray
+        if (train.type === "MEMU") {
+            fillColor = "#A9A9A9";   // Gray fill
+            strokeColor = "#696969"; // Dark gray border
+            strokeWidth = "10";
+
+            // Premium trains -> red
+        } else if (premiumTrains.includes(train.type)) {
+            fillColor = "#FF0000";   // Red fill
+            strokeColor = "#8B0000"; // Darker red border
+            strokeWidth = "12";
+
+            // Default highlighting logic
+        } else {
+            fillColor = isHighlighted && searchQuery.length == 5 ? "#FFD700" : "#7ce4f2";
+            strokeColor = isHighlighted && searchQuery.length == 5 ? "#FF4500" : "#002459";
+            strokeWidth = isHighlighted && searchQuery.length == 5 ? "15" : "10";
+        }
+
 
         // Apply highlighting effects
         if (isHighlighted && searchQuery.length == 5) {
-           
+
             el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
             el.style.transform = 'scale(1.3)'; // Make highlighted trains bigger
         }
@@ -317,16 +353,25 @@ const Livemap = () => {
 
     // Fetch data on mount and set up auto-refresh
     useEffect(() => {
+        let interval: any;
         const timer = setTimeout(() => {
             if (map.current) {
-                fetchTrainData(); // Initial load
-                const interval = setInterval(() => fetchTrainData(true), 30000); // Background refresh every 30 seconds
-                return () => clearInterval(interval);
+                // Initial load
+                fetchTrainData();
+
+                // Background refresh every 30 seconds
+                interval = setInterval(() => {
+                    fetchTrainData(true);
+                }, 30000);
             }
         }, 100); // Small delay to ensure map is ready
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            if (interval) clearInterval(interval);
+        };
     }, []);
+
 
     return (
         <div className="relative w-full h-screen">
