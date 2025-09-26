@@ -241,8 +241,8 @@ const Livemap = () => {
             closeButton: false,
             closeOnClick: true
         }).setHTML(`
-        <div style="padding: 4px; ">
-            <strong>${train.train_number} - ${train.train_name}</strong>
+        <div>
+            <p>${train.train_number} - ${train.train_name}</p>
         </div>
     `);
 

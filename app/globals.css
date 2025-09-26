@@ -71,3 +71,13 @@ body{
 .animate-pulse-custom {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+.mapboxgl-popup,
+.mapboxgl-popup-content {
+  font-family: 'Poppins', sans-serif !important;
+  padding: 2px !important;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  border-radius: 5px !important ;
+  max-width: fit-content !important;
+}
