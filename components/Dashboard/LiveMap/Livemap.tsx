@@ -336,7 +336,7 @@ const Livemap = () => {
                     const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
 
                     map.current!.fitBounds(bounds, {
-                        padding: { top: 50, bottom: 50, left: 50, right: 400 }, // Extra padding on right for search panel
+                        padding: { top: 50, bottom: 200, left: 100, right: 400 }, // Extra padding on right for search panel
                         duration: 1500,
                         maxZoom: 15 // Prevent zooming too close when trains are very close together
                     });
