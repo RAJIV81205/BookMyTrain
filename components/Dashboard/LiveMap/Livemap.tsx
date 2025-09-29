@@ -215,11 +215,11 @@ const Livemap = () => {
         }
 
 
-        // Apply highlighting effects
-        if (isHighlighted && searchQuery.length == 5) {
+        // Build the SVG style with rotation and highlighting effects
+        let svgStyle = `transform: rotate(${rotation}deg); transition: all 0.3s ease;`;
 
-            el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
-            el.style.transform = 'scale(1.9)'; // Make highlighted trains bigger
+        if (isHighlighted && searchQuery.length == 5) {
+            svgStyle += ` filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6)); transform: rotate(${rotation}deg) scale(2);`;
         }
 
         // Insert your SVG with rotation and highlighting
@@ -227,7 +227,7 @@ const Livemap = () => {
                       <svg height="32px" width="32px" version="1.1" id="Layer_1" 
                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                viewBox="0 0 511.998 511.998" xml:space="preserve" 
-              style="transform: rotate(${rotation}deg); transition: all 0.3s ease;">
+              style="${svgStyle}">
                   <g>
                <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"
                     d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
@@ -251,15 +251,21 @@ const Livemap = () => {
             popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
         });
 
-        // Hide popup when not hovering
+        // Hide popup when not hovering (only if not highlighted)
         el.addEventListener('mouseleave', () => {
-            popup.remove();
+            if (!isHighlighted || searchQuery.length !== 5) {
+                popup.remove();
+            }
         });
 
         // Optional: still show popup on click if you want
         el.addEventListener('click', () => {
             setCurrentTrain(train);
         });
+
+        // Store popup reference on element for later access
+        (el as any).popup = popup;
+        (el as any).isHighlighted = isHighlighted;
 
         return el;
     };
@@ -293,6 +299,13 @@ const Livemap = () => {
                         const marker = new mapboxgl.Marker(el)
                             .setLngLat([train.current_lng, train.current_lat])
                             .addTo(map.current!);
+
+                        // Auto-show popup for highlighted trains
+                        if (isHighlighted && searchQuery.length === 5) {
+                            setTimeout(() => {
+                                (el as any).popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+                            }, 500); // Delay to ensure marker is fully added to map
+                        }
 
                         markers.current.push(marker);
                     } catch (error) {
