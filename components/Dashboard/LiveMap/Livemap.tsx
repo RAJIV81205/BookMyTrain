@@ -112,7 +112,7 @@ const Livemap = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': "             rri_eyJleHAiOjE3NTg5NTc0MzEwNjcsImlhdCI6MTc1ODg3MTAzMTA2NywidHlwZSI6ImludGVybmFsIiwicm5kIjoiVWRIbjFXekJvTlFhIn0=_YjYzMjQ5OWUzZDEwN2M0ZjRhYjA2NzY2ZjE4YzkyMTZiNmM5YWU0YTZkN2Y0NDRjOWYyNGU1MTc1YWVhZWQyYQ==",
+                    'X-Api-Key': "             rri_eyJleHAiOjE3NTkyMTI0MjM2NDMsImlhdCI6MTc1OTEyNjAyMzY0MywidHlwZSI6ImludGVybmFsIiwicm5kIjoic0JMU2xyYzlqRWJ0In0=_YjkwYTQ0M2Q2ZDBjOTEzNmU5N2YzZmZlNDU3MzNlMDg3NmY5ZmVkOTNkMjkxODYyM2FjNDljMTQ4OTg2YmFlZg==",
                     "Referer": "https://railradar.in/",
 
 
@@ -219,7 +219,7 @@ const Livemap = () => {
         if (isHighlighted && searchQuery.length == 5) {
 
             el.style.filter = 'drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6))';
-            el.style.transform = 'scale(1.3)'; // Make highlighted trains bigger
+            el.style.transform = 'scale(1.9)'; // Make highlighted trains bigger
         }
 
         // Insert your SVG with rotation and highlighting
