@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Tickets, Info, X, Map, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Tickets, Info, X, Map , PanelLeftOpen ,PanelRightOpen   } from 'lucide-react';
 
 const navItems = [
-  { label: 'Home', path: '/dashboard', icon: Home },
-  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets },
-  { label: 'Train Info', path: '/dashboard/train', icon: Info },
-  { label: "Train Map", path: '/dashboard/livemap', icon: Map }
+  { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
+  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
+  { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
+  { label: "Train Map", path: '/dashboard/livemap', icon: Map, title: "Train Map" }
 ];
 
 interface SidebarProps {
@@ -65,9 +65,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
             >
               {desktopOpen ? (
-                <ChevronLeft className="h-5 w-5" />
+                <PanelRightOpen />
               ) : (
-                <ChevronRight className="h-5 w-5" />
+                <PanelLeftOpen /> 
               )}
             </button>
           </div>
@@ -82,6 +82,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <button
                   key={item.path}
                   onClick={() => router.push(item.path)}
+                  title={item.title}
                   className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors
                   ${isActive
                       ? 'bg-blue-50 text-blue-700 border border-blue-700/50'
@@ -129,8 +130,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${isActive
-                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-blue-50 text-blue-700 border-2 border-blue-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                 >
                   <Icon className="mr-3 h-6 w-6" />
