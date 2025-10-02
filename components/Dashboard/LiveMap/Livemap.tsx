@@ -45,6 +45,7 @@ const Livemap = () => {
     const [backgroundLoading, setBackgroundLoading] = useState(false);
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
+    const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Filter trains based on search - only filter if search query is exactly 5 digits
     const filteredTrains = trains.filter(train => {
@@ -112,7 +113,7 @@ const Livemap = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': "             rri_eyJleHAiOjE3NTkyMTI0MjM2NDMsImlhdCI6MTc1OTEyNjAyMzY0MywidHlwZSI6ImludGVybmFsIiwicm5kIjoic0JMU2xyYzlqRWJ0In0=_YjkwYTQ0M2Q2ZDBjOTEzNmU5N2YzZmZlNDU3MzNlMDg3NmY5ZmVkOTNkMjkxODYyM2FjNDljMTQ4OTg2YmFlZg==",
+                    'X-Api-Key': "             rri_eyJleHAiOjE3NTk1MDkwNjk5OTYsImlhdCI6MTc1OTQyMjY2OTk5NiwidHlwZSI6ImludGVybmFsIiwicm5kIjoiQjZrSmhGNFVDQ2lQIn0=_MTJjNjg2NzY4MjNkMTlhZDhiZWE0NWQzNzI2OTkwZjRmNzM1Mzk1OWFkMDA1NzZiNWU2ZDhjZjA2NjI1MjcyMw==",
                     "Referer": "https://railradar.in/",
 
 
@@ -364,6 +365,39 @@ const Livemap = () => {
         }
     }, [filteredTrains, trains, searchQuery]);
 
+    // Handle map resize when sidebar changes
+    useEffect(() => {
+        const handleResize = () => {
+            if (map.current) {
+                // Clear any existing timeout
+                if (resizeTimeoutRef.current) {
+                    clearTimeout(resizeTimeoutRef.current);
+                }
+
+                // Debounce the resize to avoid excessive calls
+                resizeTimeoutRef.current = setTimeout(() => {
+                    map.current?.resize();
+                }, 150);
+            }
+        };
+
+        // Listen for window resize events (which includes sidebar changes)
+        window.addEventListener('resize', handleResize);
+
+        // Also trigger resize after delays to handle initial sidebar state and transitions
+        const initialResizeTimer = setTimeout(handleResize, 200);
+        const secondaryResizeTimer = setTimeout(handleResize, 500);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(initialResizeTimer);
+            clearTimeout(secondaryResizeTimer);
+            if (resizeTimeoutRef.current) {
+                clearTimeout(resizeTimeoutRef.current);
+            }
+        };
+    }, []);
+
     // Fetch data on mount and set up auto-refresh
     useEffect(() => {
         let interval: any;
@@ -389,7 +423,7 @@ const Livemap = () => {
     return (
         <div className="relative w-full h-screen">
             {/* Map container */}
-            <div ref={mapContainer} className="w-full h-screen" />
+            <div ref={mapContainer} className=" h-full" />
 
             <div className="absolute top-4 left-4 z-10 gap-4 flex flex-col">
                 <button
