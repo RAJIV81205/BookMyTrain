@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw, LocateFixed, Search } from "lucide-react"
+import { RefreshCw, LocateFixed, Search, X, Train, MapPin, Clock, Route } from "lucide-react"
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -40,8 +40,8 @@ const Livemap = () => {
     const map = useRef<mapboxgl.Map | null>(null);
     const markers = useRef<mapboxgl.Marker[]>([]);
     const [trains, setTrains] = useState<TrainData[]>([]);
-    const [inputValue, setInputValue] = useState("");   
-    const [searchQuery, setSearchQuery] = useState(""); 
+    const [inputValue, setInputValue] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [backgroundLoading, setBackgroundLoading] = useState(false);
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
@@ -488,7 +488,7 @@ const Livemap = () => {
                         <Search />
                     </button>
                 </div>
-                <div className="mt-2 text-sm text-gray-600"> 
+                <div className="mt-2 text-sm text-gray-600">
                     {searchQuery.length === 5 ?
                         `Found ${filteredTrains.length} train(s) for ${searchQuery}` :
                         searchQuery.length > 0 ?
@@ -497,6 +497,78 @@ const Livemap = () => {
                     }
                 </div>
             </div>
+
+            {/* Train Info Panel */}
+            {currentTrain && (
+                <div className="absolute top-48 right-4 bg-white rounded-lg shadow-lg p-4 w-80 z-10 border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Train className="w-5 h-5 text-blue-600" />
+                            <h3 className="font-semibold text-gray-800">Train Details</h3>
+                        </div>
+                        <button
+                            onClick={() => setCurrentTrain(null)}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Close train details"
+                        >
+                            <X className="w-4 h-4 text-gray-500" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {/* Train Name & Number */}
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                            <div className="font-semibold text-blue-800">{currentTrain.train_name}</div>
+                            <div className="text-sm text-blue-600">#{currentTrain.train_number}</div>
+                            <div className="text-xs text-blue-500 mt-1">{currentTrain.type}</div>
+                        </div>
+
+                        {/* Current Location */}
+                        <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-800">Current Location</div>
+                                <div className="text-sm text-gray-600">{currentTrain.current_station_name}</div>
+                                <div className="text-xs text-gray-500">Station: {currentTrain.current_station}</div>
+                            </div>
+                        </div>
+
+                        {/* Next Station */}
+                        <div className="flex items-start gap-2">
+                            <Route className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-800">Next Station</div>
+                                <div className="text-sm text-gray-600">{currentTrain.next_station_name}</div>
+                                <div className="text-xs text-gray-500">Station: {currentTrain.next_station}</div>
+                            </div>
+                        </div>
+
+                        {/* Timing Info */}
+                        <div className="flex items-start gap-2">
+                            <Clock className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-800">Timing</div>
+                                <div className="text-xs text-gray-600 space-y-1">
+                                    <div>Departed: {currentTrain.mins_since_dep} mins ago</div>
+                                    <div>Next arrival: {currentTrain.next_arrival_minutes} mins</div>
+                                    {currentTrain.halt_mins > 0 && (
+                                        <div>Halt duration: {currentTrain.halt_mins} mins</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Distance Info */}
+                        <div className="bg-gray-50 p-2 rounded-lg">
+                            <div className="text-xs text-gray-600 space-y-1">
+                                <div>Distance from source: {currentTrain.distance_from_source_km.toFixed(1)} km</div>
+                                <div>Distance to next: {currentTrain.next_distance.toFixed(1)} km</div>
+                                <div>Journey day: {currentTrain.current_day}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Loading indicator - only show on initial load */}
             {loading && isInitialLoad.current && (
