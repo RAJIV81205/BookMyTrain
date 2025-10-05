@@ -581,9 +581,7 @@ const Livemap = () => {
                                         <div className="text-sm font-semibold text-gray-900">{currentTrain.next_station_name}</div>
                                         <div className="text-xs text-gray-600 font-mono">{currentTrain.next_station}</div>
                                         <div className="mt-1 flex items-center gap-3 text-xs">
-                                            <div className="text-orange-700">
-                                                ETA: <span className="font-semibold">{currentTrain.next_arrival_minutes} mins</span>
-                                            </div>
+                                            
                                             <div className="text-gray-600">
                                                 Distance: <span className="font-semibold">{(currentTrain.next_distance - currentTrain.distance_from_source_km).toFixed(1)} km</span>
                                             </div>
