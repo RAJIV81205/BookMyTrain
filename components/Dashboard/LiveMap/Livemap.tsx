@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw, RefreshCwOff, LocateFixed } from "lucide-react"
+import { RefreshCw, LocateFixed, Search } from "lucide-react"
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -40,7 +40,8 @@ const Livemap = () => {
     const map = useRef<mapboxgl.Map | null>(null);
     const markers = useRef<mapboxgl.Marker[]>([]);
     const [trains, setTrains] = useState<TrainData[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [inputValue, setInputValue] = useState("");   
+    const [searchQuery, setSearchQuery] = useState(""); 
     const [loading, setLoading] = useState(true);
     const [backgroundLoading, setBackgroundLoading] = useState(false);
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
@@ -464,30 +465,36 @@ const Livemap = () => {
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                     )}
                 </div>
-                <input
-                    type="text"
-                    placeholder="Enter 5-digit train number..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        // Only allow digits and limit to 5 characters
-                        if (/^\d{0,5}$/.test(value)) {
-                            setSearchQuery(value);
-                        }
-                    }}
-                    maxLength={5}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <div className="mt-2 text-sm text-gray-600">
+                <div className="flex flex-row justify-center items-center gap-2">
+                    <input
+                        type="text"
+                        placeholder="Enter 5-digit train number..."
+                        value={inputValue}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            // Only allow digits and limit to 5 characters
+                            if (/^\d{0,5}$/.test(value)) {
+                                setInputValue(value);
+                            }
+                        }}
+                        maxLength={5}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <button
+                        className="p-2 bg-blue-400 text-white rounded-lg cursor-pointer transition duration-300 ease-in-out hover:bg-blue-600 "
+                        onClick={() => setSearchQuery(inputValue)} // update only on button click
+                    >
+                        <Search />
+                    </button>
+                </div>
+                <div className="mt-2 text-sm text-gray-600"> 
                     {searchQuery.length === 5 ?
                         `Found ${filteredTrains.length} train(s) for ${searchQuery}` :
                         searchQuery.length > 0 ?
                             `Enter ${5 - searchQuery.length} more digit(s)` :
                             `Total ${trains.length} trains loaded`
                     }
-                </div>
-                <div className="flex gap-2 mt-2">
-
                 </div>
             </div>
 
