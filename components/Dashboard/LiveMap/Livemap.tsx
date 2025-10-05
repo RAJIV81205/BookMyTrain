@@ -302,7 +302,6 @@ const Livemap = () => {
         // Optional: still show popup on click if you want
         el.addEventListener('click', () => {
             setCurrentTrain(train);
-            console.log(train)
         });
 
         // Store popup reference on element for later access
