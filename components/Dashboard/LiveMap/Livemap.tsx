@@ -14,7 +14,7 @@ interface TrainData {
     current_station_name: string;
     days_ago: number;
     departure_minutes: number;
-    distance_from_source_km: number;
+    curr_distance: number; // updated field name from API
     halt_mins: number;
     mins_since_dep: number;
     next_arrival_minutes: number;
@@ -114,7 +114,7 @@ const Livemap = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': "             rri_eyJleHAiOjE3NTk3MzAxMTQ2ODUsImlhdCI6MTc1OTY0MzcxNDY4NSwidHlwZSI6ImludGVybmFsIiwicm5kIjoiY2RVS3FUOXZkanVtIn0=_MzY0OWFlZjFlNDA2ODg2NDkxMTQzZTFlMzlmZTM3OTIwYjhhOGE3NWNjMTZiZDc4Zjk1YTNhY2RkNThmYzE1NA==",
+                    'X-Api-Key': "         rri_eyJleHAiOjE3NTk3NTkxODY5ODEsImlhdCI6MTc1OTY3Mjc4Njk4MSwidHlwZSI6ImludGVybmFsIiwicm5kIjoidjlIRUsxS2FLTlBkIn0=_MWRlMmNlNjYwZjljYjY3YTBmMDZkZmEwZmYzYjJmYWZhZjQ4NjBiNjg5NWY2NDFkNzZmZTgxNmQxZGJjMmE4Yg==",
                     "Referer": "https://railradar.in/",
 
 
@@ -137,6 +137,45 @@ const Livemap = () => {
             setBackgroundLoading(false);
             isInitialLoad.current = false;
         }
+    };
+
+    // Safe number formatting helpers to avoid runtime errors when API fields are missing
+    const formatNumber = (value: unknown, fractionDigits: number = 1): string => {
+        if (typeof value === 'number' && isFinite(value)) {
+            return value.toFixed(fractionDigits);
+        }
+        const parsed = typeof value === 'string' ? Number(value) : NaN;
+        return isFinite(parsed) ? parsed.toFixed(fractionDigits) : '—';
+    };
+
+    const getMinutesElapsedLabel = (minutes: unknown): string => {
+        if (typeof minutes === 'number' && isFinite(minutes)) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}h ${mins}m`;
+        }
+        return 'N/A';
+    };
+
+    const getDistanceToNextKm = (train: TrainData): string => {
+        const next = train.next_distance;
+        const from = train.curr_distance;
+        if (typeof next === 'number' && isFinite(next) && typeof from === 'number' && isFinite(from)) {
+            return (next - from).toFixed(1);
+        }
+        return '—';
+    };
+
+    // Convert minutes since midnight to HH:MM (24h) clock label
+    const formatMinutesAsClock = (minutes: unknown): string => {
+        const mins = typeof minutes === 'number' ? minutes : Number(minutes);
+        if (!isFinite(mins)) return 'N/A';
+        const normalized = ((mins % 1440) + 1440) % 1440; // wrap around
+        const hours = Math.floor(normalized / 60);
+        const remainder = Math.floor(normalized % 60);
+        const hh = String(hours).padStart(2, '0');
+        const mm = String(remainder).padStart(2, '0');
+        return `${hh}:${mm}`;
     };
 
     // Calculate bearing between two coordinates
@@ -263,6 +302,7 @@ const Livemap = () => {
         // Optional: still show popup on click if you want
         el.addEventListener('click', () => {
             setCurrentTrain(train);
+            console.log(train)
         });
 
         // Store popup reference on element for later access
@@ -537,33 +577,34 @@ const Livemap = () => {
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div className="bg-white/60 p-2 rounded">
                                         <div className="text-purple-600 font-medium">Distance</div>
-                                        <div className="text-purple-900 font-semibold">{currentTrain.distance_from_source_km.toFixed(1)} km</div>
+                                        <div className="text-purple-900 font-semibold">{formatNumber(currentTrain.curr_distance, 1)} km</div>
                                     </div>
                                     <div className="bg-white/60 p-2 rounded">
                                         <div className="text-purple-600 font-medium">Time Elapsed</div>
-                                        <div className="text-purple-900 font-semibold">
-                                            {Math.floor(currentTrain.mins_since_dep / 60)}h {currentTrain.mins_since_dep % 60}m
-                                        </div>
+                                        <div className="text-purple-900 font-semibold">{getMinutesElapsedLabel(currentTrain.mins_since_dep)}</div>
 
                                     </div>
                                 </div>
                                 <div className="mt-2 text-xs text-purple-700">
-                                    Journey Day: <span className="font-semibold">{currentTrain.current_day}</span>
+                                    Journey Day: <span className="font-semibold">{typeof currentTrain.current_day === 'number' ? currentTrain.current_day : '—'}</span>
                                 </div>
                             </div>
 
                             {/* Current & Next Station */}
                             <div className="bg-gradient-to-r from-green-50 to-orange-50 p-3 rounded-lg border border-gray-200">
-                                {/* Current Station */}
+                                {/* Crossed Station (previous) */}
                                 <div className="mb-3 pb-3 border-b border-gray-200">
                                     <div className="flex items-center gap-2 mb-1">
                                         <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                        <div className="text-xs font-semibold text-green-700">CURRENT STATION</div>
+                                        <div className="text-xs font-semibold text-green-700">CROSSED STATION</div>
                                     </div>
                                     <div className="ml-6">
                                         <div className="text-sm font-semibold text-gray-900">{currentTrain.current_station_name}</div>
                                         <div className="text-xs text-gray-600 font-mono">{currentTrain.current_station}</div>
-                                        {currentTrain.halt_mins > 0 && (
+                                        <div className="mt-1 text-xs text-green-700">
+                                            Crossed at: <span className="font-semibold">{formatMinutesAsClock(currentTrain.departure_minutes)}</span>
+                                        </div>
+                                        {typeof currentTrain.halt_mins === 'number' && currentTrain.halt_mins > 0 && (
                                             <div className="mt-1 text-xs text-green-700">
                                                 Halt: <span className="font-semibold">{currentTrain.halt_mins} mins</span>
                                             </div>
@@ -581,9 +622,12 @@ const Livemap = () => {
                                         <div className="text-sm font-semibold text-gray-900">{currentTrain.next_station_name}</div>
                                         <div className="text-xs text-gray-600 font-mono">{currentTrain.next_station}</div>
                                         <div className="mt-1 flex items-center gap-3 text-xs">
-                                            
+
                                             <div className="text-gray-600">
-                                                Distance: <span className="font-semibold">{(currentTrain.next_distance - currentTrain.distance_from_source_km).toFixed(1)} km</span>
+                                                Distance: <span className="font-semibold">{getDistanceToNextKm(currentTrain)} km</span>
+                                            </div>
+                                            <div className="text-gray-600">
+                                                ETA: <span className="font-semibold">{formatMinutesAsClock(currentTrain.next_arrival_minutes)}</span>
                                             </div>
                                         </div>
                                     </div>
