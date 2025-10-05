@@ -499,8 +499,7 @@ const Livemap = () => {
 
                 {/* Train Info Panel */}
                 {currentTrain && (
-                    <div>
-                        <span className="w-full h-2 bg-black my-4"></span>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                                 <Train className="w-5 h-5 text-blue-600" />
@@ -516,54 +515,80 @@ const Livemap = () => {
                         </div>
 
                         <div className="space-y-3">
-                            {/* Train Name & Number */}
-                            <div className="bg-blue-50 p-3 rounded-lg">
-                                <div className="font-semibold text-blue-800">{currentTrain.train_name}</div>
-                                <div className="text-sm text-blue-600">#{currentTrain.train_number}</div>
-                                <div className="text-xs text-blue-500 mt-1">{currentTrain.type}</div>
-                            </div>
-
-                            {/* Current Location */}
-                            <div className="flex items-start gap-2">
-                                <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1">
-                                    <div className="text-sm font-medium text-gray-800">Current Location</div>
-                                    <div className="text-sm text-gray-600">{currentTrain.current_station_name}</div>
-                                    <div className="text-xs text-gray-500">Station: {currentTrain.current_station}</div>
+                            {/* Train Name & Number with Type Tag */}
+                            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-blue-900">{currentTrain.train_name}</div>
+                                        <div className="text-sm text-blue-700 font-medium">#{currentTrain.train_number}</div>
+                                    </div>
+                                    <span className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full whitespace-nowrap">
+                                        {currentTrain.type}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Next Station */}
-                            <div className="flex items-start gap-2">
-                                <Route className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1">
-                                    <div className="text-sm font-medium text-gray-800">Next Station</div>
-                                    <div className="text-sm text-gray-600">{currentTrain.next_station_name}</div>
-                                    <div className="text-xs text-gray-500">Station: {currentTrain.next_station}</div>
+                            {/* Journey Progress from Source */}
+                            <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                                    <div className="text-sm font-semibold text-purple-900">From Source</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="bg-white/60 p-2 rounded">
+                                        <div className="text-purple-600 font-medium">Distance</div>
+                                        <div className="text-purple-900 font-semibold">{currentTrain.distance_from_source_km.toFixed(1)} km</div>
+                                    </div>
+                                    <div className="bg-white/60 p-2 rounded">
+                                        <div className="text-purple-600 font-medium">Time Elapsed</div>
+                                        <div className="text-purple-900 font-semibold">
+                                            {Math.floor(currentTrain.mins_since_dep / 60)}h {currentTrain.mins_since_dep % 60}m
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div className="mt-2 text-xs text-purple-700">
+                                    Journey Day: <span className="font-semibold">{currentTrain.current_day}</span>
                                 </div>
                             </div>
 
-                            {/* Timing Info */}
-                            <div className="flex items-start gap-2">
-                                <Clock className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1">
-                                    <div className="text-sm font-medium text-gray-800">Timing</div>
-                                    <div className="text-xs text-gray-600 space-y-1">
-                                        <div>Departed: {currentTrain.mins_since_dep} mins ago</div>
-                                        <div>Next arrival: {currentTrain.next_arrival_minutes} mins</div>
+                            {/* Current & Next Station */}
+                            <div className="bg-gradient-to-r from-green-50 to-orange-50 p-3 rounded-lg border border-gray-200">
+                                {/* Current Station */}
+                                <div className="mb-3 pb-3 border-b border-gray-200">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                        <div className="text-xs font-semibold text-green-700">CURRENT STATION</div>
+                                    </div>
+                                    <div className="ml-6">
+                                        <div className="text-sm font-semibold text-gray-900">{currentTrain.current_station_name}</div>
+                                        <div className="text-xs text-gray-600 font-mono">{currentTrain.current_station}</div>
                                         {currentTrain.halt_mins > 0 && (
-                                            <div>Halt duration: {currentTrain.halt_mins} mins</div>
+                                            <div className="mt-1 text-xs text-green-700">
+                                                Halt: <span className="font-semibold">{currentTrain.halt_mins} mins</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Distance Info */}
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                                <div className="text-xs text-gray-600 space-y-1">
-                                    <div>Distance from source: {currentTrain.distance_from_source_km.toFixed(1)} km</div>
-                                    <div>Distance to next: {(currentTrain.next_distance - currentTrain.distance_from_source_km).toFixed(1)} km</div>
-                                    <div>Journey day: {currentTrain.current_day}</div>
+                                {/* Next Station */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Clock className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                                        <div className="text-xs font-semibold text-orange-700">NEXT STATION</div>
+                                    </div>
+                                    <div className="ml-6">
+                                        <div className="text-sm font-semibold text-gray-900">{currentTrain.next_station_name}</div>
+                                        <div className="text-xs text-gray-600 font-mono">{currentTrain.next_station}</div>
+                                        <div className="mt-1 flex items-center gap-3 text-xs">
+                                            <div className="text-orange-700">
+                                                ETA: <span className="font-semibold">{currentTrain.next_arrival_minutes} mins</span>
+                                            </div>
+                                            <div className="text-gray-600">
+                                                Distance: <span className="font-semibold">{(currentTrain.next_distance - currentTrain.distance_from_source_km).toFixed(1)} km</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
