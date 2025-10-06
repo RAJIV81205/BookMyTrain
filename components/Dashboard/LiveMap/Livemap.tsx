@@ -573,20 +573,23 @@ const Livemap = () => {
                                     <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
                                     <div className="text-sm font-semibold text-purple-900">From Source</div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div className="grid grid-cols-3 gap-2 text-xs text-center">
                                     <div className="bg-white/60 p-2 rounded">
-                                        <div className="text-purple-600 font-medium">Distance</div>
+                                        <div className="text-purple-600 font-medium w-full">Distance</div>
                                         <div className="text-purple-900 font-semibold">{formatNumber(currentTrain.curr_distance, 1)} km</div>
                                     </div>
                                     <div className="bg-white/60 p-2 rounded">
-                                        <div className="text-purple-600 font-medium">Time Elapsed</div>
+                                        <div className="text-purple-600 font-medium w-full">Duration</div>
                                         <div className="text-purple-900 font-semibold">{getMinutesElapsedLabel(currentTrain.mins_since_dep)}</div>
 
                                     </div>
+                                    <div className="bg-white/60 p-2 rounded">
+                                        <div className="text-purple-600 font-medium w-full">Day</div>
+                                        <div className="text-purple-900 font-semibold">{typeof currentTrain.current_day === 'number' ? currentTrain.current_day : '—'}</div>
+
+                                    </div>
                                 </div>
-                                <div className="mt-2 text-xs text-purple-700">
-                                    Journey Day: <span className="font-semibold">{typeof currentTrain.current_day === 'number' ? currentTrain.current_day : '—'}</span>
-                                </div>
+                                
                             </div>
 
                             {/* Current & Next Station */}
