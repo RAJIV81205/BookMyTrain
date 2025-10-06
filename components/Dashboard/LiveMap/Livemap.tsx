@@ -166,6 +166,19 @@ const Livemap = () => {
         return '—';
     };
 
+    // Keep selected train in sync with refreshed data
+    useEffect(() => {
+        if (!currentTrain) return;
+        const updatedTrain = trains.find(t => t.train_number === currentTrain.train_number);
+        if (updatedTrain) {
+            // Replace with latest data to reflect live updates
+            setCurrentTrain(updatedTrain);
+        } else {
+            // Clear selection if the train is no longer present in feed
+            setCurrentTrain(null);
+        }
+    }, [trains]);
+
     // Convert minutes since midnight to HH:MM (24h) clock label
     const formatMinutesAsClock = (minutes: unknown): string => {
         const mins = typeof minutes === 'number' ? minutes : Number(minutes);
