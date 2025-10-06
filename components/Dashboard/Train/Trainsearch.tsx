@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTrainInfo } from 'irctc-connect';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Info, 
   Route, 
@@ -60,6 +61,26 @@ const Trainsearch = () => {
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Handle URL parameters on component mount
+  useEffect(() => {
+    const trainNumberFromUrl = searchParams.get('train');
+    
+    if (trainNumberFromUrl && /^\d{5}$/.test(trainNumberFromUrl)) {
+      setTrainNumber(trainNumberFromUrl);
+      // Auto-fetch train data if valid train number is in URL
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+        handleSubmitWithNumber(trainNumberFromUrl);
+      }
+    } else {
+      setIsInitialLoad(false);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (trainNumber.length > 0) {
@@ -86,6 +107,14 @@ const Trainsearch = () => {
   const handleSuggestionClick = (suggestion: typeof trainSuggestions[0]) => {
     setTrainNumber(suggestion.trainNo);
     setShowSuggestions(false);
+    
+    // Update URL with selected train number
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('train', suggestion.trainNo);
+    router.push(newUrl.pathname + newUrl.search, { scroll: false });
+    
+    // Auto-fetch train data for selected suggestion
+    handleSubmitWithNumber(suggestion.trainNo);
   };
 
   const handleInputFocus = () => {
@@ -99,25 +128,35 @@ const Trainsearch = () => {
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
-  const handleSubmit = async () => {
-    if (trainNumber.length !== 5) {
-      setError('Please enter exactly 5 digits');
-      return;
-    }
-
+  const handleSubmitWithNumber = async (number: string) => {
     setLoading(true);
     setError('');
     setTrainInfo(null);
     setShowSuggestions(false);
 
     try {
-      const result = await getTrainInfo(trainNumber);
+      const result = await getTrainInfo(number);
       setTrainInfo(result);
     } catch (err) {
       setError('Failed to fetch train information. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async () => {
+    if (trainNumber.length !== 5) {
+      setError('Please enter exactly 5 digits');
+      return;
+    }
+
+    // Update URL with train number
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('train', trainNumber);
+    router.push(newUrl.pathname + newUrl.search, { scroll: false });
+
+    // Fetch train data
+    await handleSubmitWithNumber(trainNumber);
   };
 
   const handleKeyPress = (e: any) => {
