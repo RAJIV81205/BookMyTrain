@@ -39,6 +39,7 @@ const Livemap = () => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const markers = useRef<mapboxgl.Marker[]>([]);
+    const activePopups = useRef<mapboxgl.Popup[]>([]);
     const [trains, setTrains] = useState<TrainData[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -88,6 +89,9 @@ const Livemap = () => {
         }
 
         return () => {
+            // Clean up popups
+            clearAllPopups();
+            
             // Clean up markers
             markers.current.forEach(marker => marker.remove());
             markers.current = [];
@@ -164,6 +168,16 @@ const Livemap = () => {
             return (next - from).toFixed(1);
         }
         return '—';
+    };
+
+    // Clear all active popups
+    const clearAllPopups = () => {
+        activePopups.current.forEach(popup => {
+            if (popup.isOpen()) {
+                popup.remove();
+            }
+        });
+        activePopups.current = [];
     };
 
     // Keep selected train in sync with refreshed data
@@ -302,13 +316,18 @@ const Livemap = () => {
 
         // Show popup on hover
         el.addEventListener('mouseenter', () => {
+            // Clear any existing popups before showing new one
+            clearAllPopups();
             popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+            activePopups.current.push(popup);
         });
 
         // Hide popup when not hovering (only if not highlighted)
         el.addEventListener('mouseleave', () => {
             if (!isHighlighted || searchQuery.length !== 5) {
                 popup.remove();
+                // Remove from active popups array
+                activePopups.current = activePopups.current.filter(p => p !== popup);
             }
         });
 
@@ -330,6 +349,9 @@ const Livemap = () => {
 
         // Wait for map to be fully loaded
         const updateMarkers = () => {
+            // Clear existing popups first
+            clearAllPopups();
+            
             // Clear existing markers
             markers.current.forEach(marker => marker.remove());
             markers.current = [];
@@ -358,6 +380,7 @@ const Livemap = () => {
                         if (isHighlighted && searchQuery.length === 5) {
                             setTimeout(() => {
                                 (el as any).popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+                                activePopups.current.push((el as any).popup);
                             }, 500); // Delay to ensure marker is fully added to map
                         }
 
