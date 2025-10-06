@@ -169,7 +169,7 @@ const Livemap = () => {
     // Keep selected train in sync with refreshed data
     useEffect(() => {
         if (!currentTrain) return;
-        const updatedTrain = trains.find(t => t.train_number === currentTrain.train_number);
+        const updatedTrain = trains.find(t => t.train_number === currentTrain.train_number && t.current_day === currentTrain.current_day);
         if (updatedTrain) {
             // Replace with latest data to reflect live updates
             setCurrentTrain(updatedTrain);
