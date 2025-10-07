@@ -39,9 +39,9 @@ interface ApiResponse {
 const Livemap = () => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
-    const markers = useRef<mapboxgl.Marker[]>([]);
-    const activePopups = useRef<mapboxgl.Popup[]>([]);
+    const highlightMarkers = useRef<mapboxgl.Marker[]>([]); // Only for highlighted trains
     const [trains, setTrains] = useState<TrainData[]>([]);
+    const trainsRef = useRef<TrainData[]>([]); // Keep ref for event handlers
     const [inputValue, setInputValue] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
@@ -49,6 +49,7 @@ const Livemap = () => {
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
     const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hoveredTrainId = useRef<string | null>(null);
 
     // Filter trains based on search - only filter if search query is exactly 5 digits
     const filteredTrains = trains.filter(train => {
@@ -59,7 +60,7 @@ const Livemap = () => {
         return train.train_number === searchQuery;
     });
 
-    // Initialize map
+    // Initialize map with GeoJSON layers
     useEffect(() => {
         if (!mapContainer.current || map.current) return;
 
@@ -74,14 +75,77 @@ const Livemap = () => {
         try {
             map.current = new mapboxgl.Map({
                 container: mapContainer.current,
-                style: 'mapbox://styles/mapbox/streets-v12', // Satellite imagery with labels
-                center: [78.9629, 20.5937], // Center of India
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [78.9629, 20.5937],
                 zoom: 4
             });
 
-
             map.current.on('load', () => {
                 console.log('Map loaded successfully');
+                
+                // Add GeoJSON source for all trains
+                map.current!.addSource('trains', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: []
+                    },
+                    cluster: false
+                });
+
+                // Add layer for MEMU trains (gray) - first priority
+                map.current!.addLayer({
+                    id: 'trains-memu',
+                    type: 'symbol',
+                    source: 'trains',
+                    filter: ['==', ['get', 'isMEMU'], true],
+                    layout: {
+                        'icon-image': 'train-memu',
+                        'icon-size': 0.5,
+                        'icon-rotate': ['get', 'bearing'],
+                        'icon-rotation-alignment': 'map',
+                        'icon-allow-overlap': true,
+                        'icon-ignore-placement': true
+                    }
+                });
+
+                // Add layer for premium trains (red) - second priority
+                map.current!.addLayer({
+                    id: 'trains-premium',
+                    type: 'symbol',
+                    source: 'trains',
+                    filter: ['all', ['==', ['get', 'isPremium'], true], ['!=', ['get', 'isMEMU'], true]],
+                    layout: {
+                        'icon-image': 'train-premium',
+                        'icon-size': 0.5,
+                        'icon-rotate': ['get', 'bearing'],
+                        'icon-rotation-alignment': 'map',
+                        'icon-allow-overlap': true,
+                        'icon-ignore-placement': true
+                    }
+                });
+
+                // Add layer for default trains (cyan) - last priority
+                map.current!.addLayer({
+                    id: 'trains-default',
+                    type: 'symbol',
+                    source: 'trains',
+                    filter: ['all', ['!=', ['get', 'isPremium'], true], ['!=', ['get', 'isMEMU'], true]],
+                    layout: {
+                        'icon-image': 'train-default',
+                        'icon-size': 0.5,
+                        'icon-rotate': ['get', 'bearing'],
+                        'icon-rotation-alignment': 'map',
+                        'icon-allow-overlap': true,
+                        'icon-ignore-placement': true
+                    }
+                });
+
+                // Create train icons
+                createTrainIcons();
+
+                // Add hover and click interactions
+                setupMapInteractions();
             });
 
         } catch (error) {
@@ -90,12 +154,8 @@ const Livemap = () => {
         }
 
         return () => {
-            // Clean up popups
-            clearAllPopups();
-
-            // Clean up markers
-            markers.current.forEach(marker => marker.remove());
-            markers.current = [];
+            highlightMarkers.current.forEach(marker => marker.remove());
+            highlightMarkers.current = [];
 
             if (map.current) {
                 map.current.remove();
@@ -133,6 +193,7 @@ const Livemap = () => {
             const data: ApiResponse = await response.json();
             if (data.success && data.data) {
                 setTrains(data.data);
+                trainsRef.current = data.data; // Keep ref updated
                 console.log(`Loaded ${data.data.length} trains`);
             }
         } catch (error) {
@@ -171,15 +232,7 @@ const Livemap = () => {
         return '—';
     };
 
-    // Clear all active popups
-    const clearAllPopups = () => {
-        activePopups.current.forEach(popup => {
-            if (popup.isOpen()) {
-                popup.remove();
-            }
-        });
-        activePopups.current = [];
-    };
+
 
     // Keep selected train in sync with refreshed data
     useEffect(() => {
@@ -219,228 +272,261 @@ const Livemap = () => {
         return (bearing + 360) % 360; // Normalize to 0-360 degrees
     };
 
-    // Create marker element
-    const createMarkerElement = (train: TrainData, isHighlighted: boolean = false) => {
+    // Create train icon images for the map
+    const createTrainIcons = () => {
+        if (!map.current) return;
+
+        const createIcon = (fillColor: string, strokeColor: string, strokeWidth: number, name: string) => {
+            const svgString = `
+                <svg height="32" width="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 511.998 511.998">
+                    <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"
+                        d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
+                        L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
+                </svg>
+            `;
+
+            const img = new Image(32, 32);
+            img.onload = () => {
+                if (!map.current!.hasImage(name)) {
+                    map.current!.addImage(name, img);
+                }
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+        };
+
+        // Default train (cyan)
+        createIcon('#7ce4f2', '#002459', 10, 'train-default');
+
+        // Premium train (red)
+        createIcon('#FF0000', '#8B0000', 12, 'train-premium');
+
+        // MEMU train (gray)
+        createIcon('#A9A9A9', '#696969', 10, 'train-memu');
+    };
+
+    // Setup map interactions (hover, click)
+    const setupMapInteractions = () => {
+        if (!map.current) return;
+
+        const layers = ['trains-default', 'trains-premium', 'trains-memu'];
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        });
+        
+        layers.forEach(layerId => {
+            // Change cursor on hover
+            map.current!.on('mouseenter', layerId, () => {
+                map.current!.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.current!.on('mouseleave', layerId, () => {
+                map.current!.getCanvas().style.cursor = '';
+                hoveredTrainId.current = null;
+                popup.remove();
+            });
+
+            // Show popup on hover
+            map.current!.on('mousemove', layerId, (e) => {
+                if (e.features && e.features.length > 0) {
+                    const feature = e.features[0];
+                    const props = feature.properties;
+                    
+                    if (props && hoveredTrainId.current !== props.train_number) {
+                        hoveredTrainId.current = props.train_number;
+                        
+                        popup
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div>
+                                    <p>${props.train_number} - ${props.train_name}</p>
+                                </div>
+                            `)
+                            .addTo(map.current!);
+                    }
+                }
+            });
+
+            // Handle click to show train details
+            map.current!.on('click', layerId, (e) => {
+                if (e.features && e.features.length > 0) {
+                    const feature = e.features[0];
+                    const props = feature.properties;
+                    
+                    if (props) {
+                        const train = trainsRef.current.find(t => 
+                            t.train_number === props.train_number && 
+                            t.current_day === props.current_day
+                        );
+                        if (train) {
+                            setCurrentTrain(train);
+                        }
+                    }
+                }
+            });
+        });
+    };
+
+    // Create highlighted marker element (only for search results)
+    const createHighlightedMarker = (train: TrainData) => {
         const el = document.createElement('div');
-        el.style.width = '10px';
-        el.style.height = '10px';
         el.style.cursor = 'pointer';
         el.style.display = 'flex';
         el.style.alignItems = 'center';
         el.style.justifyContent = 'center';
-        el.style.background = 'none'; // Remove background if using SVG
 
-        // Calculate rotation based on train direction
         let rotation = 0;
         if (train.next_lat && train.next_lng &&
             typeof train.next_lat === 'number' && typeof train.next_lng === 'number' &&
             !isNaN(train.next_lat) && !isNaN(train.next_lng)) {
-
-            const bearing = calculateBearing(
+            rotation = calculateBearing(
                 train.current_lat,
                 train.current_lng,
                 train.next_lat,
                 train.next_lng
             );
-            rotation = bearing;
         }
 
-        // Define premium trains
-        const premiumTrains = [
-            "Vande Bharat",
-            "Rajdhani",
-            "Tejas",
-            "Shatabdi",
-            "Jan Shatabdi",
-            "Duronto",
-            "Humsafar",
-            "Garib Rath",
-            "Sampark Kranti",
-            "Double Decker",
-            "Amrit Bharat"
-        ];
+        const svgStyle = `transform: rotate(${rotation}deg) scale(2); filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6)); transition: all 0.3s ease;`;
 
-        let fillColor: string;
-        let strokeColor: string;
-        let strokeWidth: string;
-
-        // Special case: MEMU trains -> gray
-        if (train.type === "MEMU") {
-            fillColor = "#A9A9A9";   // Gray fill
-            strokeColor = "#696969"; // Dark gray border
-            strokeWidth = "10";
-
-            // Premium trains -> red
-        } else if (premiumTrains.includes(train.type)) {
-            fillColor = "#FF0000";   // Red fill
-            strokeColor = "#8B0000"; // Darker red border
-            strokeWidth = "12";
-
-            // Default highlighting logic
-        } else {
-            fillColor = isHighlighted && searchQuery.length == 5 ? "#FFD700" : "#7ce4f2";
-            strokeColor = isHighlighted && searchQuery.length == 5 ? "#FF4500" : "#002459";
-            strokeWidth = isHighlighted && searchQuery.length == 5 ? "15" : "10";
-        }
-
-
-        // Build the SVG style with rotation and highlighting effects
-        let svgStyle = `transform: rotate(${rotation}deg); transition: all 0.3s ease;`;
-
-        if (isHighlighted && searchQuery.length == 5) {
-            svgStyle += ` filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6)); transform: rotate(${rotation}deg) scale(2);`;
-        }
-
-        // Insert your SVG with rotation and highlighting
         el.innerHTML = `
-                      <svg height="32px" width="32px" version="1.1" id="Layer_1" 
-                   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-               viewBox="0 0 511.998 511.998" xml:space="preserve" 
-              style="${svgStyle}">
-                  <g>
-               <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"
+            <svg height="32px" width="32px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 511.998 511.998" style="${svgStyle}">
+                <path fill="#FFD700" stroke="#FF4500" stroke-width="15"
                     d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
-             L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
-                </g>
+                    L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
             </svg>
+        `;
 
-    `;
-        // Create the popup instance outside the event handlers so it can be reused
         const popup = new mapboxgl.Popup({
             closeButton: false,
             closeOnClick: true
-        }).setHTML(`
-        <div>
-            <p>${train.train_number} - ${train.train_name}</p>
-        </div>
-    `);
+        }).setHTML(`<div><p>${train.train_number} - ${train.train_name}</p></div>`);
 
-        // Show popup on hover
         el.addEventListener('mouseenter', () => {
-            // Clear any existing popups before showing new one
-            clearAllPopups();
             popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
-            activePopups.current.push(popup);
         });
 
-        // Hide popup when not hovering (only if not highlighted)
-        el.addEventListener('mouseleave', () => {
-            if (!isHighlighted || searchQuery.length !== 5) {
-                popup.remove();
-                // Remove from active popups array
-                activePopups.current = activePopups.current.filter(p => p !== popup);
-            }
-        });
-
-        // Optional: still show popup on click if you want
         el.addEventListener('click', () => {
             setCurrentTrain(train);
         });
 
-        // Store popup reference on element for later access
-        (el as any).popup = popup;
-        (el as any).isHighlighted = isHighlighted;
-
         return el;
     };
 
-    // Update markers on map
-    useEffect(() => {
-        if (!map.current) return;
+    // Convert trains to GeoJSON
+    const trainsToGeoJSON = (trainData: TrainData[]) => {
+        const premiumTrains = [
+            "Vande Bharat", "Rajdhani", "Tejas", "Shatabdi", "Jan Shatabdi",
+            "Duronto", "Humsafar", "Garib Rath", "Sampark Kranti", "Double Decker", "Amrit Bharat"
+        ];
 
-        // Wait for map to be fully loaded
-        const updateMarkers = () => {
-            // Clear existing popups first
-            clearAllPopups();
-
-            // Clear existing markers
-            markers.current.forEach(marker => marker.remove());
-            markers.current = [];
-
-            // Add markers for ALL trains (not just filtered ones)
-            trains.forEach(train => {
-                if (train.current_lat && train.current_lng &&
-                    typeof train.current_lat === 'number' &&
-                    typeof train.current_lng === 'number' &&
-                    !isNaN(train.current_lat) &&
-                    !isNaN(train.current_lng)) {
-
-                    try {
-                        // Check if this train should be highlighted
-                        const isHighlighted = filteredTrains.some(filteredTrain =>
-                            filteredTrain.train_number === train.train_number
-                        ) && searchQuery.trim() !== '';
-
-                        const el = createMarkerElement(train, isHighlighted);
-
-                        const marker = new mapboxgl.Marker(el)
-                            .setLngLat([train.current_lng, train.current_lat])
-                            .addTo(map.current!);
-
-                        // Auto-show popup for highlighted trains
-                        if (isHighlighted && searchQuery.length === 5) {
-                            setTimeout(() => {
-                                (el as any).popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
-                                activePopups.current.push((el as any).popup);
-                            }, 500); // Delay to ensure marker is fully added to map
-                        }
-
-                        markers.current.push(marker);
-                    } catch (error) {
-                        console.warn(`Failed to create marker for train ${train.train_number}:`, error);
-                    }
+        const features = trainData
+            .filter(train => 
+                train.current_lat && train.current_lng &&
+                typeof train.current_lat === 'number' &&
+                typeof train.current_lng === 'number' &&
+                !isNaN(train.current_lat) &&
+                !isNaN(train.current_lng)
+            )
+            .map(train => {
+                let bearing = 0;
+                if (train.next_lat && train.next_lng &&
+                    typeof train.next_lat === 'number' && typeof train.next_lng === 'number' &&
+                    !isNaN(train.next_lat) && !isNaN(train.next_lng)) {
+                    bearing = calculateBearing(
+                        train.current_lat,
+                        train.current_lng,
+                        train.next_lat,
+                        train.next_lng
+                    );
                 }
+
+                const isMEMU = train.type === "MEMU";
+                const isPremium = premiumTrains.includes(train.type);
+
+                return {
+                    type: 'Feature' as const,
+                    geometry: {
+                        type: 'Point' as const,
+                        coordinates: [train.current_lng, train.current_lat]
+                    },
+                    properties: {
+                        train_number: train.train_number,
+                        train_name: train.train_name,
+                        current_day: train.current_day,
+                        bearing: bearing,
+                        isPremium: isPremium,
+                        isMEMU: isMEMU
+                    }
+                };
             });
 
-            // Handle different numbers of filtered results
-            if (filteredTrains.length >= 1 && filteredTrains.length <= 10 && searchQuery.trim() !== '') {
-                const validTrains = filteredTrains.filter(train =>
-                    train.current_lat && train.current_lng &&
-                    typeof train.current_lat === 'number' &&
-                    typeof train.current_lng === 'number' &&
-                    !isNaN(train.current_lat) &&
-                    !isNaN(train.current_lng)
+        return {
+            type: 'FeatureCollection' as const,
+            features
+        };
+    };
+
+    // Update GeoJSON data and highlighted markers
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return;
+
+        const source = map.current.getSource('trains') as mapboxgl.GeoJSONSource;
+        if (source) {
+            // Update GeoJSON with all trains
+            source.setData(trainsToGeoJSON(trains));
+        }
+
+        // Clear existing highlight markers
+        highlightMarkers.current.forEach(marker => marker.remove());
+        highlightMarkers.current = [];
+
+        // Add highlight markers only for filtered trains
+        if (filteredTrains.length >= 1 && filteredTrains.length <= 10 && searchQuery.length === 5) {
+            const validTrains = filteredTrains.filter(train =>
+                train.current_lat && train.current_lng &&
+                typeof train.current_lat === 'number' &&
+                typeof train.current_lng === 'number' &&
+                !isNaN(train.current_lat) &&
+                !isNaN(train.current_lng)
+            );
+
+            validTrains.forEach(train => {
+                const el = createHighlightedMarker(train);
+                const marker = new mapboxgl.Marker(el)
+                    .setLngLat([train.current_lng, train.current_lat])
+                    .addTo(map.current!);
+                highlightMarkers.current.push(marker);
+            });
+
+            // Handle camera positioning
+            if (validTrains.length === 1) {
+                const train = validTrains[0];
+                map.current!.flyTo({
+                    center: [train.current_lng, train.current_lat],
+                    zoom: 12,
+                    duration: 1500
+                });
+            } else if (validTrains.length > 1) {
+                const coordinates = validTrains.map(train => [train.current_lng, train.current_lat]);
+                const lngs = coordinates.map(coord => coord[0]);
+                const lats = coordinates.map(coord => coord[1]);
+
+                const bounds = new mapboxgl.LngLatBounds(
+                    [Math.min(...lngs), Math.min(...lats)],
+                    [Math.max(...lngs), Math.max(...lats)]
                 );
 
-                if (validTrains.length === 1) {
-                    // Single train: center and zoom to it
-                    const train = validTrains[0];
-                    map.current!.flyTo({
-                        center: [train.current_lng, train.current_lat],
-                        zoom: 12,
-                        duration: 1500
-                    });
-                } else if (validTrains.length > 1) {
-                    // Multiple trains: fit all in frame
-                    const coordinates = validTrains.map(train => [train.current_lng, train.current_lat]);
-
-                    // Calculate bounds
-                    const lngs = coordinates.map(coord => coord[0]);
-                    const lats = coordinates.map(coord => coord[1]);
-
-                    const minLng = Math.min(...lngs);
-                    const maxLng = Math.max(...lngs);
-                    const minLat = Math.min(...lats);
-                    const maxLat = Math.max(...lats);
-
-                    // Create bounds with some padding
-                    const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
-
-                    map.current!.fitBounds(bounds, {
-                        padding: { top: 50, bottom: 200, left: 100, right: 400 }, // Extra padding on right for search panel
-                        duration: 1500,
-                        maxZoom: 15 // Prevent zooming too close when trains are very close together
-                    });
-                }
+                map.current!.fitBounds(bounds, {
+                    padding: { top: 50, bottom: 200, left: 100, right: 400 },
+                    duration: 1500,
+                    maxZoom: 15
+                });
             }
-        };
-
-        if (map.current.isStyleLoaded()) {
-            updateMarkers();
-        } else {
-            map.current.on('load', updateMarkers);
         }
-    }, [filteredTrains, trains, searchQuery]);
+    }, [trains, filteredTrains, searchQuery]);
+
+
 
     // Handle map resize when sidebar changes
     useEffect(() => {
