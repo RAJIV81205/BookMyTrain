@@ -53,11 +53,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           {/* Header with Logo + Toggle */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-            {desktopOpen ? (
+            {desktopOpen && (
               <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
-            ) : (
-              <span className="text-blue-600 font-bold text-lg">B</span>
-            )}
+            ) }
             <button
               onClick={() => {
                 setDesktopOpen(!desktopOpen);
