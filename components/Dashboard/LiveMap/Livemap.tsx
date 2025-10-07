@@ -82,7 +82,7 @@ const Livemap = () => {
 
             map.current.on('load', () => {
                 console.log('Map loaded successfully');
-                
+
                 // Add GeoJSON source for all trains
                 map.current!.addSource('trains', {
                     type: 'geojson',
@@ -313,7 +313,7 @@ const Livemap = () => {
             closeButton: false,
             closeOnClick: false
         });
-        
+
         layers.forEach(layerId => {
             // Change cursor on hover
             map.current!.on('mouseenter', layerId, () => {
@@ -331,10 +331,10 @@ const Livemap = () => {
                 if (e.features && e.features.length > 0) {
                     const feature = e.features[0];
                     const props = feature.properties;
-                    
+
                     if (props && hoveredTrainId.current !== props.train_number) {
                         hoveredTrainId.current = props.train_number;
-                        
+
                         popup
                             .setLngLat(e.lngLat)
                             .setHTML(`
@@ -352,10 +352,10 @@ const Livemap = () => {
                 if (e.features && e.features.length > 0) {
                     const feature = e.features[0];
                     const props = feature.properties;
-                    
+
                     if (props) {
-                        const train = trainsRef.current.find(t => 
-                            t.train_number === props.train_number && 
+                        const train = trainsRef.current.find(t =>
+                            t.train_number === props.train_number &&
                             t.current_day === props.current_day
                         );
                         if (train) {
@@ -387,7 +387,7 @@ const Livemap = () => {
             );
         }
 
-        const svgStyle = `transform: rotate(${rotation}deg) scale(2); filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6)); transition: all 0.3s ease;`;
+        const svgStyle = `transform: rotate(${rotation}deg) scale(1.2); filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1)) drop-shadow(0 0 12px rgba(255, 69, 0, 0.6)); transition: all 0.3s ease;`;
 
         el.innerHTML = `
             <svg height="32px" width="32px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 511.998 511.998" style="${svgStyle}">
@@ -421,7 +421,7 @@ const Livemap = () => {
         ];
 
         const features = trainData
-            .filter(train => 
+            .filter(train =>
                 train.current_lat && train.current_lng &&
                 typeof train.current_lat === 'number' &&
                 typeof train.current_lng === 'number' &&
