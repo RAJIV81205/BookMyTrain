@@ -90,7 +90,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     }`}
                 >
                   <Icon className="h-6 w-6" />
-                  {desktopOpen && <span className="ml-3">{item.label}</span>}
+                  {desktopOpen && <span className="ml-3 truncate">{item.label}</span>}
                 </button>
               );
             })}
