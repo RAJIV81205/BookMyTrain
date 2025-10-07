@@ -25,8 +25,8 @@ export default function DashboardHeader({ user, onMenuClick }: DashboardHeaderPr
   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3">
-      <div className="flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 h-16">
+      <div className="flex items-center justify-between h-full">
         {/* Left side - Mobile Menu Button + Greeting */}
         <div className="flex items-center space-x-4">
           {/* Mobile Menu Button */}
