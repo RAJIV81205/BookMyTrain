@@ -91,7 +91,7 @@ const Livemap = () => {
         return () => {
             // Clean up popups
             clearAllPopups();
-            
+
             // Clean up markers
             markers.current.forEach(marker => marker.remove());
             markers.current = [];
@@ -351,7 +351,7 @@ const Livemap = () => {
         const updateMarkers = () => {
             // Clear existing popups first
             clearAllPopups();
-            
+
             // Clear existing markers
             markers.current.forEach(marker => marker.remove());
             markers.current = [];
@@ -592,14 +592,16 @@ const Livemap = () => {
                         <div className="space-y-3">
                             {/* Train Name & Number with Type Tag */}
                             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1">
-                                        <div className="font-semibold text-blue-900">{currentTrain.train_name}</div>
+                                <div className="flex flex-col gap-2">
+                                    <div className=" w-full flex flex-row justify-between text-center items-center">
                                         <div className="text-sm text-blue-700 font-medium">#{currentTrain.train_number}</div>
+                                        <span className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full whitespace-nowrap">
+                                            {currentTrain.type}
+                                        </span>
                                     </div>
-                                    <span className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full whitespace-nowrap">
-                                        {currentTrain.type}
-                                    </span>
+                                    <div className="font-semibold text-blue-900">{currentTrain.train_name}
+                                    </div>
+
                                 </div>
                             </div>
 
@@ -625,7 +627,7 @@ const Livemap = () => {
 
                                     </div>
                                 </div>
-                                
+
                             </div>
 
                             {/* Current & Next Station */}
