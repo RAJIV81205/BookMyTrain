@@ -498,7 +498,7 @@ const Livemap = () => {
 
 
     return (
-        <div className="relative w-full h-screen">
+        <div className="relative w-full h-[calc(100vh-4rem)]">
             {/* Map container */}
             <div ref={mapContainer} className=" h-full" />
 

@@ -300,7 +300,7 @@ const Search = () => {
 
 
   return (
-    <div className="min-h-screen  p-4 pt-10 lg:pt-5">
+    <div className="min-h-[calc(100vh-4rem)]  p-4 pt-10 lg:pt-5">
       <div className="max-w-6xl mx-auto">
         {!results.length && <div ref={statsRef}><TrainStatsBoxes station={stations.length} train={t.length} /></div>}
 
