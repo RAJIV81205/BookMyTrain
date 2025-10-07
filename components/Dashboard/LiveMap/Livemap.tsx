@@ -6,6 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Link from 'next/link';
 
+
 interface TrainData {
     current_day: number;
     current_lat: number;
@@ -14,7 +15,7 @@ interface TrainData {
     current_station_name: string;
     days_ago: number;
     departure_minutes: number;
-    curr_distance: number;
+    curr_distance: number; // updated field name from API
     halt_mins: number;
     mins_since_dep: number;
     next_arrival_minutes: number;
@@ -29,6 +30,7 @@ interface TrainData {
     type: string;
 }
 
+
 interface ApiResponse {
     success: boolean;
     data: TrainData[];
@@ -37,7 +39,8 @@ interface ApiResponse {
 const Livemap = () => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
-    const popupRef = useRef<mapboxgl.Popup | null>(null);
+    const markers = useRef<mapboxgl.Marker[]>([]);
+    const activePopups = useRef<mapboxgl.Popup[]>([]);
     const [trains, setTrains] = useState<TrainData[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -45,76 +48,70 @@ const Livemap = () => {
     const [backgroundLoading, setBackgroundLoading] = useState(false);
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
+    const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Calculate bearing between two coordinates
-    const calculateBearing = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-        const dLng = (lng2 - lng1) * Math.PI / 180;
-        const lat1Rad = lat1 * Math.PI / 180;
-        const lat2Rad = lat2 * Math.PI / 180;
-        const y = Math.sin(dLng) * Math.cos(lat2Rad);
-        const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
-        const bearing = Math.atan2(y, x) * 180 / Math.PI;
-        return (bearing + 360) % 360;
-    };
-
-    // Convert trains to GeoJSON with bearing calculation
-    const trainsToGeoJSON = (records: TrainData[]): GeoJSON.FeatureCollection => {
-        return {
-            type: 'FeatureCollection',
-            features: records
-                .filter(train => 
-                    train.current_lat && 
-                    train.current_lng && 
-                    typeof train.current_lat === 'number' &&
-                    typeof train.current_lng === 'number' &&
-                    !isNaN(train.current_lat) &&
-                    !isNaN(train.current_lng)
-                )
-                .map(train => {
-                    let bearing = 0;
-                    if (train.next_lat && train.next_lng &&
-                        typeof train.next_lat === 'number' && 
-                        typeof train.next_lng === 'number' &&
-                        !isNaN(train.next_lat) && 
-                        !isNaN(train.next_lng)) {
-                        bearing = calculateBearing(
-                            train.current_lat,
-                            train.current_lng,
-                            train.next_lat,
-                            train.next_lng
-                        );
-                    }
-
-                    return {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [train.current_lng, train.current_lat]
-                        },
-                        properties: {
-                            ...train,
-                            bearing: bearing,
-                            highlighted: searchQuery.length === 5 && train.train_number === searchQuery
-                        }
-                    } as GeoJSON.Feature;
-                })
-        };
-    };
-
-    // Filter trains based on search
+    // Filter trains based on search - only filter if search query is exactly 5 digits
     const filteredTrains = trains.filter(train => {
+        // Only filter if search query is exactly 5 digits (train number)
         if (searchQuery === '' || searchQuery.length !== 5 || !/^\d{5}$/.test(searchQuery)) {
-            return false;
+            return false; // Don't show any filtered results for incomplete searches
         }
         return train.train_number === searchQuery;
     });
 
+    // Initialize map
+    useEffect(() => {
+        if (!mapContainer.current || map.current) return;
+
+        mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+
+        if (!mapboxgl.accessToken) {
+            console.error('Mapbox access token not found');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            map.current = new mapboxgl.Map({
+                container: mapContainer.current,
+                style: 'mapbox://styles/mapbox/streets-v12', // Satellite imagery with labels
+                center: [78.9629, 20.5937], // Center of India
+                zoom: 4
+            });
+
+
+            map.current.on('load', () => {
+                console.log('Map loaded successfully');
+            });
+
+        } catch (error) {
+            console.error('Error initializing map:', error);
+            setLoading(false);
+        }
+
+        return () => {
+            // Clean up popups
+            clearAllPopups();
+
+            // Clean up markers
+            markers.current.forEach(marker => marker.remove());
+            markers.current = [];
+
+            if (map.current) {
+                map.current.remove();
+                map.current = null;
+            }
+        };
+    }, []);
+
     // Fetch train data
     const fetchTrainData = async (isBackground = false) => {
         try {
+            // Only show full loading screen on initial load
             if (isInitialLoad.current && !isBackground) {
                 setLoading(true);
             } else {
+                // All other refreshes are background
                 setBackgroundLoading(true);
             }
 
@@ -124,6 +121,8 @@ const Livemap = () => {
                     'Content-Type': 'application/json',
                     'X-Api-Key': "rri_eyJleHAiOjE3NTk4OTkwMTcwODIsImlhdCI6MTc1OTgxMjYxNzA4MiwidHlwZSI6ImludGVybmFsIiwicm5kIjoiQVJCcFM3dzhYazZFIn0=_NDA1YmZjZTA5YWJmN2U0ZDVmNTVjN2UzZWVmNDM2NDdhMDM3YzNhOTkxNzMyYTEzODAzOWY2YjNlNzM1YzU3YQ==",
                     "Referer": "https://railradar.in/",
+
+
                 }
             });
 
@@ -145,7 +144,7 @@ const Livemap = () => {
         }
     };
 
-    // Helper functions for train info panel
+    // Safe number formatting helpers to avoid runtime errors when API fields are missing
     const formatNumber = (value: unknown, fractionDigits: number = 1): string => {
         if (typeof value === 'number' && isFinite(value)) {
             return value.toFixed(fractionDigits);
@@ -172,10 +171,34 @@ const Livemap = () => {
         return '—';
     };
 
+    // Clear all active popups
+    const clearAllPopups = () => {
+        activePopups.current.forEach(popup => {
+            if (popup.isOpen()) {
+                popup.remove();
+            }
+        });
+        activePopups.current = [];
+    };
+
+    // Keep selected train in sync with refreshed data
+    useEffect(() => {
+        if (!currentTrain) return;
+        const updatedTrain = trains.find(t => t.train_number === currentTrain.train_number && t.current_day === currentTrain.current_day);
+        if (updatedTrain) {
+            // Replace with latest data to reflect live updates
+            setCurrentTrain(updatedTrain);
+        } else {
+            // Clear selection if the train is no longer present in feed
+            setCurrentTrain(null);
+        }
+    }, [trains]);
+
+    // Convert minutes since midnight to HH:MM (24h) clock label
     const formatMinutesAsClock = (minutes: unknown): string => {
         const mins = typeof minutes === 'number' ? minutes : Number(minutes);
         if (!isFinite(mins)) return 'N/A';
-        const normalized = ((mins % 1440) + 1440) % 1440;
+        const normalized = ((mins % 1440) + 1440) % 1440; // wrap around
         const hours = Math.floor(normalized / 60);
         const remainder = Math.floor(normalized % 60);
         const hh = String(hours).padStart(2, '0');
@@ -183,340 +206,335 @@ const Livemap = () => {
         return `${hh}:${mm}`;
     };
 
-    // Create train icon images
-    const createTrainIcon = (color: string, strokeColor: string, size: number = 32) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return canvas;
+    // Calculate bearing between two coordinates
+    const calculateBearing = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const lat1Rad = lat1 * Math.PI / 180;
+        const lat2Rad = lat2 * Math.PI / 180;
 
-        // Draw arrow pointing up (will be rotated by map)
-        ctx.fillStyle = color;
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 2;
-        
-        ctx.beginPath();
-        ctx.moveTo(size / 2, 2);
-        ctx.lineTo(size - 6, size - 2);
-        ctx.lineTo(size / 2, size - 8);
-        ctx.lineTo(6, size - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        const y = Math.sin(dLng) * Math.cos(lat2Rad);
+        const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
 
-        return canvas;
+        const bearing = Math.atan2(y, x) * 180 / Math.PI;
+        return (bearing + 360) % 360; // Normalize to 0-360 degrees
     };
 
-    // Initialize map
-    useEffect(() => {
-        if (!mapContainer.current || map.current) return;
+    // Create marker element
+    const createMarkerElement = (train: TrainData, isHighlighted: boolean = false) => {
+        const el = document.createElement('div');
+        el.style.width = '10px';
+        el.style.height = '10px';
+        el.style.cursor = 'pointer';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.background = 'none'; // Remove background if using SVG
 
-        mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+        // Calculate rotation based on train direction
+        let rotation = 0;
+        if (train.next_lat && train.next_lng &&
+            typeof train.next_lat === 'number' && typeof train.next_lng === 'number' &&
+            !isNaN(train.next_lat) && !isNaN(train.next_lng)) {
 
-        if (!mapboxgl.accessToken) {
-            console.error('Mapbox access token not found');
-            setLoading(false);
-            return;
+            const bearing = calculateBearing(
+                train.current_lat,
+                train.current_lng,
+                train.next_lat,
+                train.next_lng
+            );
+            rotation = bearing;
         }
 
-        map.current = new mapboxgl.Map({
-            container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [78.9629, 20.5937],
-            zoom: 4
+        // Define premium trains
+        const premiumTrains = [
+            "Vande Bharat",
+            "Rajdhani",
+            "Tejas",
+            "Shatabdi",
+            "Jan Shatabdi",
+            "Duronto",
+            "Humsafar",
+            "Garib Rath",
+            "Sampark Kranti",
+            "Double Decker",
+            "Amrit Bharat"
+        ];
+
+        let fillColor: string;
+        let strokeColor: string;
+        let strokeWidth: string;
+
+        // Special case: MEMU trains -> gray
+        if (train.type === "MEMU") {
+            fillColor = "#A9A9A9";   // Gray fill
+            strokeColor = "#696969"; // Dark gray border
+            strokeWidth = "10";
+
+            // Premium trains -> red
+        } else if (premiumTrains.includes(train.type)) {
+            fillColor = "#FF0000";   // Red fill
+            strokeColor = "#8B0000"; // Darker red border
+            strokeWidth = "12";
+
+            // Default highlighting logic
+        } else {
+            fillColor = isHighlighted && searchQuery.length == 5 ? "#FFD700" : "#7ce4f2";
+            strokeColor = isHighlighted && searchQuery.length == 5 ? "#FF4500" : "#002459";
+            strokeWidth = isHighlighted && searchQuery.length == 5 ? "15" : "10";
+        }
+
+
+        // Build the SVG style with rotation and highlighting effects
+        let svgStyle = `transform: rotate(${rotation}deg); transition: all 0.3s ease;`;
+
+        if (isHighlighted && searchQuery.length == 5) {
+            svgStyle += ` filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.6)); transform: rotate(${rotation}deg) scale(2);`;
+        }
+
+        // Insert your SVG with rotation and highlighting
+        el.innerHTML = `
+                      <svg height="32px" width="32px" version="1.1" id="Layer_1" 
+                   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+               viewBox="0 0 511.998 511.998" xml:space="preserve" 
+              style="${svgStyle}">
+                  <g>
+               <path fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"
+                    d="M370.758,122.728v389.27L261.384,388.412c-3.178-2.436-7.592-2.436-10.77,0L141.24,511.998v-389.27
+             L250.614,1.834c3.178-2.445,7.592-2.445,10.77,0L370.758,122.728z"/>
+                </g>
+            </svg>
+
+    `;
+        // Create the popup instance outside the event handlers so it can be reused
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: true
+        }).setHTML(`
+        <div>
+            <p>${train.train_number} - ${train.train_name}</p>
+        </div>
+    `);
+
+        // Show popup on hover
+        el.addEventListener('mouseenter', () => {
+            // Clear any existing popups before showing new one
+            clearAllPopups();
+            popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+            activePopups.current.push(popup);
         });
 
-        map.current.on('load', () => {
-            if (!map.current) return;
+        // Hide popup when not hovering (only if not highlighted)
+        el.addEventListener('mouseleave', () => {
+            if (!isHighlighted || searchQuery.length !== 5) {
+                popup.remove();
+                // Remove from active popups array
+                activePopups.current = activePopups.current.filter(p => p !== popup);
+            }
+        });
 
-            // Add train icons
-            const icons = [
-                { id: 'train-default', color: '#7ce4f2', stroke: '#002459' },
-                { id: 'train-premium', color: '#FF0000', stroke: '#8B0000' },
-                { id: 'train-memu', color: '#A9A9A9', stroke: '#696969' },
-                { id: 'train-highlighted', color: '#FFD700', stroke: '#FF4500' }
-            ];
+        // Optional: still show popup on click if you want
+        el.addEventListener('click', () => {
+            setCurrentTrain(train);
+        });
 
-            icons.forEach(icon => {
-                const canvas = createTrainIcon(icon.color, icon.stroke);
-                map.current!.addImage(icon.id, canvas as any);
-            });
+        // Store popup reference on element for later access
+        (el as any).popup = popup;
+        (el as any).isHighlighted = isHighlighted;
 
-            // Add GeoJSON source
-            map.current.addSource('trains', {
-                type: 'geojson',
-                data: trainsToGeoJSON(trains),
-                cluster: true,
-                clusterMaxZoom: 10,
-                clusterRadius: 50
-            });
+        return el;
+    };
 
-            // Cluster circles
-            map.current.addLayer({
-                id: 'trains-clusters',
-                type: 'circle',
-                source: 'trains',
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-color': '#0090ff',
-                    'circle-radius': [
-                        'step',
-                        ['get', 'point_count'],
-                        20, 100,
-                        30, 750,
-                        40
-                    ],
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#ffffff'
-                }
-            });
+    // Update markers on map
+    useEffect(() => {
+        if (!map.current) return;
 
-            // Cluster count
-            map.current.addLayer({
-                id: 'trains-cluster-count',
-                type: 'symbol',
-                source: 'trains',
-                filter: ['has', 'point_count'],
-                layout: {
-                    'text-field': '{point_count_abbreviated}',
-                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                    'text-size': 14
-                },
-                paint: {
-                    'text-color': '#ffffff'
-                }
-            });
+        // Wait for map to be fully loaded
+        const updateMarkers = () => {
+            // Clear existing popups first
+            clearAllPopups();
 
-            // Individual train symbols
-            map.current.addLayer({
-                id: 'trains-symbols',
-                type: 'symbol',
-                source: 'trains',
-                filter: ['!', ['has', 'point_count']],
-                layout: {
-                    'icon-image': [
-                        'case',
-                        ['boolean', ['get', 'highlighted'], false],
-                        'train-highlighted',
-                        [
-                            'match',
-                            ['get', 'type'],
-                            ['MEMU'],
-                            'train-memu',
-                            ['Vande Bharat', 'Rajdhani', 'Tejas', 'Shatabdi', 'Jan Shatabdi', 'Duronto', 'Humsafar', 'Garib Rath', 'Sampark Kranti', 'Double Decker', 'Amrit Bharat'],
-                            'train-premium',
-                            'train-default'
-                        ]
-                    ],
-                    'icon-size': [
-                        'case',
-                        ['boolean', ['get', 'highlighted'], false],
-                        1.5,
-                        0.8
-                    ],
-                    'icon-rotate': ['get', 'bearing'],
-                    'icon-rotation-alignment': 'map',
-                    'icon-allow-overlap': true,
-                    'icon-ignore-placement': false
-                }
-            });
+            // Clear existing markers
+            markers.current.forEach(marker => marker.remove());
+            markers.current = [];
 
-            // Hover popup
-            map.current.on('mouseenter', 'trains-symbols', (e) => {
-                if (!map.current) return;
-                map.current.getCanvas().style.cursor = 'pointer';
-                
-                const feature = e.features?.[0];
-                if (feature && feature.properties) {
-                    const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice() as [number, number];
-                    
-                    if (popupRef.current) {
-                        popupRef.current.remove();
+            // Add markers for ALL trains (not just filtered ones)
+            trains.forEach(train => {
+                if (train.current_lat && train.current_lng &&
+                    typeof train.current_lat === 'number' &&
+                    typeof train.current_lng === 'number' &&
+                    !isNaN(train.current_lat) &&
+                    !isNaN(train.current_lng)) {
+
+                    try {
+                        // Check if this train should be highlighted
+                        const isHighlighted = filteredTrains.some(filteredTrain =>
+                            filteredTrain.train_number === train.train_number
+                        ) && searchQuery.trim() !== '';
+
+                        const el = createMarkerElement(train, isHighlighted);
+
+                        const marker = new mapboxgl.Marker(el)
+                            .setLngLat([train.current_lng, train.current_lat])
+                            .addTo(map.current!);
+
+                        // Auto-show popup for highlighted trains
+                        if (isHighlighted && searchQuery.length === 5) {
+                            setTimeout(() => {
+                                (el as any).popup.setLngLat([train.current_lng, train.current_lat]).addTo(map.current!);
+                                activePopups.current.push((el as any).popup);
+                            }, 500); // Delay to ensure marker is fully added to map
+                        }
+
+                        markers.current.push(marker);
+                    } catch (error) {
+                        console.warn(`Failed to create marker for train ${train.train_number}:`, error);
                     }
-                    
-                    popupRef.current = new mapboxgl.Popup({
-                        closeButton: false,
-                        closeOnClick: false,
-                        offset: 15
-                    })
-                        .setLngLat(coordinates)
-                        .setHTML(`
-                            <div style="padding: 4px 8px;">
-                                <p style="margin: 0; font-weight: bold;">${feature.properties.train_number} - ${feature.properties.train_name}</p>
-                            </div>
-                        `)
-                        .addTo(map.current!);
                 }
             });
 
-            map.current.on('mouseleave', 'trains-symbols', () => {
-                if (!map.current) return;
-                map.current.getCanvas().style.cursor = '';
-                if (popupRef.current) {
-                    popupRef.current.remove();
-                }
-            });
+            // Handle different numbers of filtered results
+            if (filteredTrains.length >= 1 && filteredTrains.length <= 10 && searchQuery.trim() !== '') {
+                const validTrains = filteredTrains.filter(train =>
+                    train.current_lat && train.current_lng &&
+                    typeof train.current_lat === 'number' &&
+                    typeof train.current_lng === 'number' &&
+                    !isNaN(train.current_lat) &&
+                    !isNaN(train.current_lng)
+                );
 
-            // Click to select train
-            map.current.on('click', 'trains-symbols', (e) => {
-                const feature = e.features?.[0];
-                if (feature && feature.properties) {
-                    const found = trains.find(t => 
-                        t.train_number === feature.properties!.train_number && 
-                        t.current_day === feature.properties!.current_day
-                    );
-                    setCurrentTrain(found || null);
-                }
-            });
-
-            // Zoom into clusters on click
-            map.current.on('click', 'trains-clusters', (e) => {
-                if (!map.current) return;
-                const features = map.current.queryRenderedFeatures(e.point, {
-                    layers: ['trains-clusters']
-                });
-                const clusterId = features[0].properties!.cluster_id;
-                const source = map.current.getSource('trains') as mapboxgl.GeoJSONSource;
-                
-                source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-                    if (err || !map.current) return;
-                    map.current.easeTo({
-                        center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
-                        zoom: zoom
+                if (validTrains.length === 1) {
+                    // Single train: center and zoom to it
+                    const train = validTrains[0];
+                    map.current!.flyTo({
+                        center: [train.current_lng, train.current_lat],
+                        zoom: 12,
+                        duration: 1500
                     });
-                });
-            });
+                } else if (validTrains.length > 1) {
+                    // Multiple trains: fit all in frame
+                    const coordinates = validTrains.map(train => [train.current_lng, train.current_lat]);
 
-            map.current.on('mouseenter', 'trains-clusters', () => {
-                if (map.current) map.current.getCanvas().style.cursor = 'pointer';
-            });
+                    // Calculate bounds
+                    const lngs = coordinates.map(coord => coord[0]);
+                    const lats = coordinates.map(coord => coord[1]);
 
-            map.current.on('mouseleave', 'trains-clusters', () => {
-                if (map.current) map.current.getCanvas().style.cursor = '';
-            });
-        });
+                    const minLng = Math.min(...lngs);
+                    const maxLng = Math.max(...lngs);
+                    const minLat = Math.min(...lats);
+                    const maxLat = Math.max(...lats);
 
-        // Resize handler
-        const handleResize = () => {
-            if (map.current) {
-                map.current.resize();
+                    // Create bounds with some padding
+                    const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
+
+                    map.current!.fitBounds(bounds, {
+                        padding: { top: 50, bottom: 200, left: 100, right: 400 }, // Extra padding on right for search panel
+                        duration: 1500,
+                        maxZoom: 15 // Prevent zooming too close when trains are very close together
+                    });
+                }
             }
         };
+
+        if (map.current.isStyleLoaded()) {
+            updateMarkers();
+        } else {
+            map.current.on('load', updateMarkers);
+        }
+    }, [filteredTrains, trains, searchQuery]);
+
+    // Handle map resize when sidebar changes
+    useEffect(() => {
+        const handleResize = () => {
+            if (map.current) {
+                // Clear any existing timeout
+                if (resizeTimeoutRef.current) {
+                    clearTimeout(resizeTimeoutRef.current);
+                }
+
+                // Debounce the resize to avoid excessive calls
+                resizeTimeoutRef.current = setTimeout(() => {
+                    map.current?.resize();
+                }, 150);
+            }
+        };
+
+        // Listen for window resize events (which includes sidebar changes)
         window.addEventListener('resize', handleResize);
+
+        // Also trigger resize after delays to handle initial sidebar state and transitions
+        const initialResizeTimer = setTimeout(handleResize, 200);
+        const secondaryResizeTimer = setTimeout(handleResize, 500);
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            if (popupRef.current) popupRef.current.remove();
-            if (map.current) {
-                map.current.remove();
-                map.current = null;
+            clearTimeout(initialResizeTimer);
+            clearTimeout(secondaryResizeTimer);
+            if (resizeTimeoutRef.current) {
+                clearTimeout(resizeTimeoutRef.current);
             }
         };
     }, []);
 
-    // Update GeoJSON source when trains change
-    useEffect(() => {
-        if (map.current && map.current.getSource('trains')) {
-            const source = map.current.getSource('trains') as mapboxgl.GeoJSONSource;
-            source.setData(trainsToGeoJSON(trains));
-        }
-    }, [trains, searchQuery]);
-
-    // Keep selected train in sync with refreshed data
-    useEffect(() => {
-        if (!currentTrain) return;
-        const updatedTrain = trains.find(t => 
-            t.train_number === currentTrain.train_number && 
-            t.current_day === currentTrain.current_day
-        );
-        if (updatedTrain) {
-            setCurrentTrain(updatedTrain);
-        } else {
-            setCurrentTrain(null);
-        }
-    }, [trains]);
-
     // Fetch data on mount and set up auto-refresh
     useEffect(() => {
+        let interval: any;
         const timer = setTimeout(() => {
-            fetchTrainData();
-            const interval = setInterval(() => {
-                fetchTrainData(true);
-            }, 30000);
-            return () => clearInterval(interval);
-        }, 100);
+            if (map.current) {
+                // Initial load
+                fetchTrainData();
 
-        return () => clearTimeout(timer);
+                // Background refresh every 30 seconds
+                interval = setInterval(() => {
+                    fetchTrainData(true);
+                }, 30000);
+            }
+        }, 100); // Small delay to ensure map is ready
+
+        return () => {
+            clearTimeout(timer);
+            if (interval) clearInterval(interval);
+        };
     }, []);
 
-    // Search + map fit/zoom logic
-    useEffect(() => {
-        if (!map.current || filteredTrains.length === 0 || searchQuery.length !== 5) return;
-
-        const validTrains = filteredTrains.filter(train =>
-            train.current_lat && train.current_lng &&
-            typeof train.current_lat === 'number' &&
-            typeof train.current_lng === 'number' &&
-            !isNaN(train.current_lat) &&
-            !isNaN(train.current_lng)
-        );
-
-        if (validTrains.length === 1) {
-            const train = validTrains[0];
-            map.current.flyTo({
-                center: [train.current_lng, train.current_lat],
-                zoom: 12,
-                duration: 1500
-            });
-        } else if (validTrains.length > 1) {
-            const coordinates = validTrains.map(train => [train.current_lng, train.current_lat] as [number, number]);
-            const bounds = new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]);
-            coordinates.forEach(coord => bounds.extend(coord));
-
-            map.current.fitBounds(bounds, {
-                padding: { top: 50, bottom: 200, left: 100, right: 400 },
-                duration: 1500,
-                maxZoom: 15
-            });
-        }
-    }, [filteredTrains, searchQuery]);
 
     return (
         <div className="relative w-full h-[calc(100vh-4rem)]">
             {/* Map container */}
-            <div ref={mapContainer} className="h-full" />
+            <div ref={mapContainer} className=" h-full" />
 
             <div className="absolute top-4 left-4 z-10 gap-4 flex flex-col">
                 <button
-                    onClick={() => fetchTrainData(true)}
+                    onClick={() => fetchTrainData(true)} // Always use background refresh for manual refresh
                     disabled={backgroundLoading}
-                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer shadow-lg"
+                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer"
                     title="Refresh Data"
                 >
-                    <RefreshCw className={backgroundLoading ? "animate-spin" : ""} />
+                    <RefreshCw
+                        className={backgroundLoading ? "animate-spin" : ""}
+                    />
                 </button>
 
                 <button
                     onClick={() => {
                         if (map.current) {
                             map.current.flyTo({
-                                center: [78.9629, 20.5937],
+                                center: [78.9629, 20.5937], // Center of India
                                 zoom: 4,
                                 duration: 1500
                             });
                         }
                     }}
-                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer shadow-lg"
+                    className="flex-1 px-3 py-2 bg-white text-blue-500 rounded-lg hover:text-blue-700 text-sm cursor-pointer"
                     title="Reset map view"
                 >
                     <LocateFixed />
                 </button>
+
+
             </div>
 
             {/* Search panel */}
-            <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 w-80 z-10 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 w-80 z-10">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold">Live Trains</h3>
                     {backgroundLoading && (
@@ -530,6 +548,7 @@ const Livemap = () => {
                         value={inputValue}
                         onChange={(e) => {
                             const value = e.target.value;
+                            // Only allow digits and limit to 5 characters
                             if (/^\d{0,5}$/.test(value)) {
                                 setInputValue(value);
                             }
@@ -539,8 +558,8 @@ const Livemap = () => {
                     />
 
                     <button
-                        className="p-2 bg-blue-400 text-white rounded-lg cursor-pointer transition duration-300 ease-in-out hover:bg-blue-600"
-                        onClick={() => setSearchQuery(inputValue)}
+                        className="p-2 bg-blue-400 text-white rounded-lg cursor-pointer transition duration-300 ease-in-out hover:bg-blue-600 "
+                        onClick={() => setSearchQuery(inputValue)} // update only on button click
                     >
                         <Search />
                     </button>
@@ -575,13 +594,15 @@ const Livemap = () => {
                             {/* Train Name & Number with Type Tag */}
                             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
                                 <div className="flex flex-col gap-2">
-                                    <div className="w-full flex flex-row justify-between text-center items-center">
+                                    <div className=" w-full flex flex-row justify-between text-center items-center">
                                         <div className="text-sm text-blue-700 font-medium">#{currentTrain.train_number}</div>
                                         <span className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full whitespace-nowrap">
                                             {currentTrain.type}
                                         </span>
                                     </div>
-                                    <div className="font-semibold text-blue-900">{currentTrain.train_name}</div>
+                                    <div className="font-semibold text-blue-900">{currentTrain.train_name}
+                                    </div>
+
                                 </div>
                             </div>
 
@@ -606,16 +627,20 @@ const Livemap = () => {
                                     <div className="bg-white/60 p-2 rounded">
                                         <div className="text-purple-600 font-medium w-full">Duration</div>
                                         <div className="text-purple-900 font-semibold">{getMinutesElapsedLabel(currentTrain.mins_since_dep)}</div>
+
                                     </div>
                                     <div className="bg-white/60 p-2 rounded">
                                         <div className="text-purple-600 font-medium w-full">Day</div>
                                         <div className="text-purple-900 font-semibold">{typeof currentTrain.current_day === 'number' ? currentTrain.current_day : '—'}</div>
+
                                     </div>
                                 </div>
+
                             </div>
 
                             {/* Current & Next Station */}
                             <div className="bg-gradient-to-r from-green-50 to-orange-50 p-3 rounded-lg border border-gray-200">
+                                {/* Crossed Station (previous) */}
                                 <div className="mb-3 pb-3 border-b border-gray-200">
                                     <div className="flex items-center gap-2 mb-1">
                                         <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -635,6 +660,7 @@ const Livemap = () => {
                                     </div>
                                 </div>
 
+                                {/* Next Station */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <Clock className="w-4 h-4 text-orange-600 flex-shrink-0" />
@@ -644,6 +670,7 @@ const Livemap = () => {
                                         <div className="text-sm font-semibold text-gray-900">{currentTrain.next_station_name}</div>
                                         <div className="text-xs text-gray-600 font-mono">{currentTrain.next_station}</div>
                                         <div className="mt-1 flex items-center gap-3 text-xs">
+
                                             <div className="text-gray-600">
                                                 Distance: <span className="font-semibold">{getDistanceToNextKm(currentTrain)} km</span>
                                             </div>
@@ -659,7 +686,9 @@ const Livemap = () => {
                 )}
             </div>
 
-            {/* Loading indicator */}
+
+
+            {/* Loading indicator - only show on initial load */}
             {loading && isInitialLoad.current && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
                     <div className="bg-white p-4 rounded-lg">
