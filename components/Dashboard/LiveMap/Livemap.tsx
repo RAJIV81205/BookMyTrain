@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, LocateFixed, Search, X, Train, MapPin, Clock, Route } from "lucide-react"
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import Link from 'next/link';
 
 
 interface TrainData {
@@ -607,9 +608,16 @@ const Livemap = () => {
 
                             {/* Journey Progress from Source */}
                             <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                                    <div className="text-sm font-semibold text-purple-900">From Source</div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                                        <div className="text-sm font-semibold text-purple-900">From Source</div>
+                                    </div>
+                                    <Link href={`/dashboard/train?train=${currentTrain.train_number}`} className="cursor-pointer">
+                                        <button className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-lg hover:bg-purple-700 transition duration-300 shadow-sm cursor-pointer">
+                                            View Schedule
+                                        </button>
+                                    </Link>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs text-center">
                                     <div className="bg-white/60 p-2 rounded">
