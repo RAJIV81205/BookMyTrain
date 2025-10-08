@@ -30,23 +30,19 @@ jobs:
       - name: Extract API key
         working-directory: ./scripts
         run: node test.js
+        continue-on-error: false
+      
+      - name: Upload screenshot on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-screenshot
+          path: scripts/error_screenshot.png
+          if-no-files-found: ignore
       
       - name: Update Livemap component
-        run: |
-          if [ -f scripts/captured_headers.json ]; then
-            API_KEY=$(node -e "const data = require('./scripts/captured_headers.json'); console.log(data['x-api-key'] || '');")
-            
-            if [ ! -z "$API_KEY" ]; then
-              sed -i "s|'X-Api-Key': \"[^\"]*\"|'X-Api-Key': \"$API_KEY\"|g" components/Dashboard/LiveMap/Livemap.tsx
-              echo "API key updated successfully"
-            else
-              echo "No API key found in captured headers"
-              exit 1
-            fi
-          else
-            echo "captured_headers.json not found"
-            exit 1
-          fi
+        working-directory: ./scripts
+        run: node update-api-key.js
       
       - name: Check for changes
         id: git-check

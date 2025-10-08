@@ -45,3 +45,6 @@ package-lock.json
 .env
 .kiro
 .vscode
+scripts/node_modules
+scripts/bun.lock
+scripts/captured_headers.json
