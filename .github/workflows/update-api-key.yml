@@ -1,0 +1,63 @@
+name: Update RailRadar API Key
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-api-key:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm install playwright
+      
+      - name: Install Chromium
+        run: npx playwright install chromium
+      
+      - name: Extract API key
+        working-directory: ./scripts
+        run: node test.js
+      
+      - name: Update Livemap component
+        run: |
+          if [ -f scripts/captured_headers.json ]; then
+            API_KEY=$(node -e "const data = require('./scripts/captured_headers.json'); console.log(data['x-api-key'] || '');")
+            
+            if [ ! -z "$API_KEY" ]; then
+              sed -i "s|'X-Api-Key': \"[^\"]*\"|'X-Api-Key': \"$API_KEY\"|g" components/Dashboard/LiveMap/Livemap.tsx
+              echo "API key updated successfully"
+            else
+              echo "No API key found in captured headers"
+              exit 1
+            fi
+          else
+            echo "captured_headers.json not found"
+            exit 1
+          fi
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code components/Dashboard/LiveMap/Livemap.tsx || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add components/Dashboard/LiveMap/Livemap.tsx
+          git commit -m "chore: update RailRadar API key [automated]"
+          git push
