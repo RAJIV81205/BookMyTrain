@@ -1,0 +1,38 @@
+name: Update API Key Daily
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC (adjust timezone as needed)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-api-key:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        npm install puppeteer playwright-core playwright chromium
+        
+    - name: Extract API Key and Update Code
+      run: |
+        node scripts/update-api-key.js
+        
+    - name: Commit and Push Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add components/Dashboard/LiveMap/Livemap.tsx
+        git diff --staged --quiet || git commit -m "Auto-update API key - $(date)"
+        git push

@@ -1,0 +1,15 @@
+{
+  "name": "api-key-updater",
+  "version": "1.0.0",
+  "description": "Script to automatically update API key from railradar.in",
+  "main": "update-api-key.js",
+  "scripts": {
+    "update-api-key": "node update-api-key.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
