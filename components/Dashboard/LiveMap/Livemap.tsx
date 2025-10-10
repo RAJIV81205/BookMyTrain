@@ -167,43 +167,39 @@ const Livemap = () => {
     // Fetch train data
     const fetchTrainData = async (isBackground = false) => {
         try {
-            // Only show full loading screen on initial load
+            // Show full loading screen only on initial load
             if (isInitialLoad.current && !isBackground) {
                 setLoading(true);
             } else {
-                // All other refreshes are background
                 setBackgroundLoading(true);
             }
 
-            const response = await fetch('https://railradar.in/api/v1/trains/live-map', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': "rri_eyJleHAiOjE3NjAxOTk5MzYzMTMsImlhdCI6MTc2MDExMzUzNjMxMywidHlwZSI6ImludGVybmFsIiwicm5kIjoieTNFaDVObU1VdGJGIn0=_MzJiZWE5ZjYwZTgwNWYzNTUwNGRjZjA1ZjRiODE2MzdhYTk3ZDQ3YWNmYWI4NGI2NzkyZjBmNjdlNWMxMWZjNw==",
-                    "Referer": "https://railradar.in/",
-
-
-                }
+            // Call your backend API route instead of RailRadar directly
+            const response = await fetch("/api/livemap", {
+                method: "GET",
             });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data: ApiResponse = await response.json();
+            // Adjust type if you have ApiResponse defined, otherwise use any
+            const data: any = await response.json();
+
             if (data.success && data.data) {
                 setTrains(data.data);
                 trainsRef.current = data.data; // Keep ref updated
                 console.log(`Loaded ${data.data.length} trains`);
             }
         } catch (error) {
-            console.error('Error fetching train data:', error);
+            console.error("Error fetching train data:", error);
         } finally {
             setLoading(false);
             setBackgroundLoading(false);
             isInitialLoad.current = false;
         }
     };
+
 
     // Safe number formatting helpers to avoid runtime errors when API fields are missing
     const formatNumber = (value: unknown, fractionDigits: number = 1): string => {

@@ -3,7 +3,7 @@ const path = require('path');
 
 // Read captured headers
 const headersPath = path.join(__dirname, 'captured_headers.json');
-const liveMapPath = path.join(__dirname, '..', 'components', 'Dashboard', 'LiveMap', 'Livemap.tsx');
+const liveMapPath = path.join(__dirname, '..', 'app', 'api', '(dashboard)', 'livemap', 'route.ts');
 
 if (!fs.existsSync(headersPath)) {
   console.error('✗ captured_headers.json not found');
@@ -20,12 +20,12 @@ if (!apiKey) {
 
 console.log('✓ Found API key:', apiKey.substring(0, 20) + '...');
 
-// Read Livemap.tsx
+// Read route.ts
 let content = fs.readFileSync(liveMapPath, 'utf8');
 
 // Replace the API key
-const regex = /'X-Api-Key': "([^"]*)"/g;
-const newContent = content.replace(regex, `'X-Api-Key': "${apiKey}"`);
+const regex = /"X-Api-Key":\s*"([^"]*)"/g;
+const newContent = content.replace(regex, `"X-Api-Key": "${apiKey}"`);
 
 if (content === newContent) {
   console.log('ℹ No changes needed - API key is already up to date');
@@ -34,4 +34,4 @@ if (content === newContent) {
 
 // Write back
 fs.writeFileSync(liveMapPath, newContent, 'utf8');
-console.log('✓ API key updated successfully in Livemap.tsx');
+console.log('✓ API key updated successfully in route.ts');
