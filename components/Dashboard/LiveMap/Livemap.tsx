@@ -45,9 +45,11 @@ const Livemap = () => {
     const [inputValue, setInputValue] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
+    const [loadingStatus, setLoadingStatus] = useState<'map' | 'data' | 'ready'>('map');
     const [backgroundLoading, setBackgroundLoading] = useState(false);
     const [currentTrain, setCurrentTrain] = useState<TrainData | null>(null);
     const isInitialLoad = useRef(true);
+    const mapReady = useRef(false);
     const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hoveredTrainId = useRef<string | null>(null);
 
@@ -82,6 +84,8 @@ const Livemap = () => {
 
             map.current.on('load', () => {
                 console.log('Map loaded successfully');
+                mapReady.current = true;
+                setLoadingStatus('data');
 
                 // Add GeoJSON source for all trains
                 map.current!.addSource('trains', {
@@ -146,6 +150,9 @@ const Livemap = () => {
 
                 // Add hover and click interactions
                 setupMapInteractions();
+
+                // Fetch train data after map is ready
+                fetchTrainData();
             });
 
         } catch (error) {
@@ -167,10 +174,8 @@ const Livemap = () => {
     // Fetch train data
     const fetchTrainData = async (isBackground = false) => {
         try {
-            // Show full loading screen only on initial load
-            if (isInitialLoad.current && !isBackground) {
-                setLoading(true);
-            } else {
+            // Show background loading for manual refreshes or auto-refreshes
+            if (isBackground) {
                 setBackgroundLoading(true);
             }
 
@@ -194,9 +199,12 @@ const Livemap = () => {
         } catch (error) {
             console.error("Error fetching train data:", error);
         } finally {
-            setLoading(false);
+            if (isInitialLoad.current) {
+                setLoading(false);
+                setLoadingStatus('ready');
+                isInitialLoad.current = false;
+            }
             setBackgroundLoading(false);
-            isInitialLoad.current = false;
         }
     };
 
@@ -557,26 +565,19 @@ const Livemap = () => {
         };
     }, []);
 
-    // Fetch data on mount and set up auto-refresh
+    // Set up auto-refresh after initial load
     useEffect(() => {
-        let interval: any;
-        const timer = setTimeout(() => {
-            if (map.current) {
-                // Initial load
-                fetchTrainData();
+        if (!mapReady.current || isInitialLoad.current) return;
 
-                // Background refresh every 30 seconds
-                interval = setInterval(() => {
-                    fetchTrainData(true);
-                }, 30000);
-            }
-        }, 100); // Small delay to ensure map is ready
+        // Background refresh every 30 seconds
+        const interval = setInterval(() => {
+            fetchTrainData(true);
+        }, 30000);
 
         return () => {
-            clearTimeout(timer);
-            if (interval) clearInterval(interval);
+            clearInterval(interval);
         };
-    }, []);
+    }, [trains]); // Re-run when trains update to ensure interval is active
 
 
     return (
@@ -771,11 +772,24 @@ const Livemap = () => {
 
 
             {/* Loading indicator - only show on initial load */}
-            {loading && isInitialLoad.current && (
+            {loading && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-                    <div className="bg-white p-4 rounded-lg">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                        <div className="mt-2 text-sm">Loading trains...</div>
+                    <div className="bg-white p-6 rounded-lg shadow-xl min-w-[200px]">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <div className="mt-4 text-center">
+                            {loadingStatus === 'map' && (
+                                <>
+                                    <div className="text-sm font-semibold text-gray-800">Loading Map...</div>
+                                    <div className="text-xs text-gray-500 mt-1">Initializing Mapbox</div>
+                                </>
+                            )}
+                            {loadingStatus === 'data' && (
+                                <>
+                                    <div className="text-sm font-semibold text-gray-800">Fetching Train Data...</div>
+                                    <div className="text-xs text-gray-500 mt-1">Loading live positions</div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
