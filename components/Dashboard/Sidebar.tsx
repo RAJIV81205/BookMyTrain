@@ -2,13 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Tickets, Info, X, Map , PanelLeftOpen ,PanelRightOpen   } from 'lucide-react';
+import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
-  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
+
   { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
+  { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
+  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
   { label: "Train Map", path: '/dashboard/livemap', icon: Map, title: "Train Map" }
+
 ];
 
 interface SidebarProps {
@@ -55,7 +58,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
             {desktopOpen && (
               <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
-            ) }
+            )}
             <button
               onClick={() => {
                 setDesktopOpen(!desktopOpen);
@@ -65,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               {desktopOpen ? (
                 <PanelRightOpen />
               ) : (
-                <PanelLeftOpen /> 
+                <PanelLeftOpen />
               )}
             </button>
           </div>
@@ -81,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   key={item.path}
                   onClick={() => router.push(item.path)}
                   title={item.title}
-                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors
+                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors cursor-pointer
                   ${isActive
                       ? 'bg-blue-50 text-blue-700 border border-blue-700/50'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
