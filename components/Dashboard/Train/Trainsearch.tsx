@@ -87,15 +87,17 @@ const Trainsearch = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (trainNumber.length > 0) {
+    if (trainNumber.length >= 2) {
       const filtered = trainSuggestions.filter(train =>
         train.trainNo.includes(trainNumber) ||
         train.trainName.toLowerCase().includes(trainNumber.toLowerCase())
       );
       setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0 && trainNumber.length < 5);
-    } else {
+      setShowSuggestions(filtered.length > 0);
+    } else if (trainNumber.length === 0) {
       setFilteredSuggestions(trainSuggestions.slice(0, 8)); // Show first 8 suggestions
+      setShowSuggestions(false);
+    } else {
       setShowSuggestions(false);
     }
   }, [trainNumber]);
@@ -109,8 +111,9 @@ const Trainsearch = () => {
   };
 
   const handleSuggestionClick = (suggestion: typeof trainSuggestions[0]) => {
-    setTrainNumber(suggestion.trainNo);
+    // Prevent blur from hiding suggestions before click completes
     setShowSuggestions(false);
+    setTrainNumber(suggestion.trainNo);
 
     // Update URL with selected train number
     const newUrl = new URL(window.location.href);
@@ -124,12 +127,14 @@ const Trainsearch = () => {
   const handleInputFocus = () => {
     if (trainNumber.length === 0) {
       setShowSuggestions(true);
+    } else if (trainNumber.length >= 2) {
+      setShowSuggestions(true);
     }
   };
 
   const handleInputBlur = () => {
     // Delay hiding suggestions to allow click events
-    setTimeout(() => setShowSuggestions(false), 200);
+    setTimeout(() => setShowSuggestions(false), 300);
   };
 
   const handleSubmitWithNumber = async (number: string) => {
@@ -267,6 +272,7 @@ const Trainsearch = () => {
                     onKeyPress={handleKeyPress}
                     onFocus={handleInputFocus}
                     onBlur={handleInputBlur}
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     placeholder="Enter 5-digit train number"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     maxLength={5}
@@ -282,7 +288,10 @@ const Trainsearch = () => {
                         {filteredSuggestions.map((suggestion) => (
                           <button
                             key={suggestion.trainNo}
-                            onClick={() => handleSuggestionClick(suggestion)}
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // Prevent blur from firing
+                              handleSuggestionClick(suggestion);
+                            }}
                             className="w-full text-left p-3 hover:bg-gray-50 rounded-md transition-colors"
                           >
                             <div className="flex items-center justify-between">
@@ -304,8 +313,8 @@ const Trainsearch = () => {
                   onClick={handleSubmit}
                   disabled={loading || trainNumber.length !== 5}
                   className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${loading || trainNumber.length !== 5
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
                     }`}
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ scale: loading || trainNumber.length !== 5 ? 1 : 1.02 }}
@@ -488,8 +497,8 @@ const Trainsearch = () => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
                           className={`border-b border-gray-100 ${index === 0 || index === trainInfo.data.route.length - 1
-                              ? 'bg-blue-50'
-                              : 'hover:bg-gray-50'
+                            ? 'bg-blue-50'
+                            : 'hover:bg-gray-50'
                             }`}
                         >
                           <td className="py-3 px-4">
