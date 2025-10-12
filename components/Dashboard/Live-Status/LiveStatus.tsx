@@ -273,36 +273,23 @@ const LiveStatus = () => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg border border-blue-500 p-6 text-white"
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
-                      <Train className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold">
-                        {liveStatus.trainNo} - {liveStatus.trainName}
-                      </h2>
-                      {liveStatus.availableDates && liveStatus.availableDates.length > 0 && (
-                        <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          Available: {liveStatus.availableDates.join(', ')}
-                        </p>
-                      )}
-                    </div>
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-50 p-2 rounded-lg">
+                    <Train className="w-6 h-6 text-blue-600" />
                   </div>
-                  {liveStatus.totalRuns > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="font-semibold text-sm">
-                          {liveStatus.totalRuns} Active Run{liveStatus.totalRuns > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  <div className="ml-4 flex-1">
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {liveStatus.trainNo} - {liveStatus.trainName}
+                    </h2>
+                    {liveStatus.totalRuns > 0 && (
+                      <span className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded mt-1">
+                        {liveStatus.totalRuns} Active Run{liveStatus.totalRuns > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -313,17 +300,9 @@ const LiveStatus = () => {
               return (
                 <div key={runDate} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   {/* Run Header */}
-                  <div className="mb-4 pb-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-green-600" />
-                          Journey Date: {runDate}
-                        </h3>
-                        {run.statusNote && (
-                          <p className="text-sm text-gray-600 mt-1">{run.statusNote}</p>
-                        )}
-                      </div>
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">Journey Date: {runDate}</h3>
                       {run.lastUpdate && (
                         <div className="text-right">
                           <p className="text-xs text-gray-500">Last Updated</p>
@@ -331,161 +310,116 @@ const LiveStatus = () => {
                         </div>
                       )}
                     </div>
+                    {run.statusNote && (
+                      <p className="text-sm text-gray-600">{run.statusNote}</p>
+                    )}
                   </div>
 
                   {/* Station-wise Status Table */}
                   {run.stations && run.stations.length > 0 && (
-                    <>
-                      <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-green-600" />
-                        Station-wise Live Status ({run.totalStations} stations)
-                      </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-3 px-4 font-medium text-gray-600">Station</th>
+                            <th className="text-center py-3 px-4 font-medium text-gray-600">Platform</th>
+                            <th className="text-center py-3 px-4 font-medium text-gray-600">Distance</th>
+                            <th className="text-center py-3 px-4 font-medium text-gray-600">Arrival</th>
+                            <th className="text-center py-3 px-4 font-medium text-gray-600">Departure</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {run.stations.map((station: any, index: number) => {
+                            // Check if this is a status update row
+                            const isStatusUpdate = station.stationName &&
+                              (station.stationName.toLowerCase().includes('arrived at') ||
+                                station.stationName.toLowerCase().includes('updated on'));
 
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b-2 border-gray-300 bg-gray-50">
-                              <th className="text-left py-3 px-4 font-semibold text-gray-700">Station</th>
-                              <th className="text-center py-3 px-4 font-semibold text-gray-700">Platform</th>
-                              <th className="text-center py-3 px-4 font-semibold text-gray-700">Distance</th>
-                              <th className="text-center py-3 px-4 font-semibold text-gray-700">Arrival</th>
-                              <th className="text-center py-3 px-4 font-semibold text-gray-700">Departure</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {run.stations.map((station: any, index: number) => {
-                              // Check if this is a status update row
-                              const isStatusUpdate = station.stationName &&
-                                (station.stationName.toLowerCase().includes('arrived at') ||
-                                  station.stationName.toLowerCase().includes('updated on'));
-
-                              if (isStatusUpdate) {
-                                return (
-                                  <motion.tr
-                                    key={index}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.4, delay: index * 0.02 }}
-                                    className="bg-gradient-to-r from-green-50 to-blue-50 border-y-2 border-green-300"
-                                  >
-                                    <td colSpan={5} className="py-4 px-4">
-                                      <div className="flex items-center justify-center gap-3">
-                                        <div className="bg-green-500 p-2 rounded-full">
-                                          <MapPin className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="text-center">
-                                          <p className="font-bold text-green-800 text-lg">
-                                            {station.stationName}
-                                          </p>
-                                          {station.stationCode && station.stationCode !== '-' && (
-                                            <p className="text-sm text-green-700 mt-1">
-                                              Station Code: {station.stationCode}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </td>
-                                  </motion.tr>
-                                );
-                              }
-
-                              // Regular station row
-                              const hasArrived = station.arrival?.actual && station.arrival.actual !== '-';
-                              const hasDeparted = station.departure?.actual && station.departure.actual !== '-';
-                              const isCurrentStation = hasArrived && !hasDeparted;
-
+                            if (isStatusUpdate) {
                               return (
                                 <motion.tr
                                   key={index}
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ duration: 0.3, delay: index * 0.02 }}
-                                  className={`border-b border-gray-100 transition-colors ${isCurrentStation
-                                      ? 'bg-yellow-50 hover:bg-yellow-100'
-                                      : hasDeparted
-                                        ? 'bg-green-50/30 hover:bg-green-50'
-                                        : 'hover:bg-gray-50'
-                                    }`}
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
+                                  className="bg-blue-50 border-y border-blue-200"
                                 >
-                                  <td className="py-4 px-4">
-                                    <div className="flex items-center gap-2">
-                                      {isCurrentStation && (
-                                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                                      )}
-                                      {hasDeparted && !isCurrentStation && (
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                      )}
-                                      <div>
-                                        <p className="font-semibold text-gray-900">{station.stationName}</p>
-                                        <p className="text-sm text-gray-600">{station.stationCode}</p>
+                                  <td colSpan={5} className="py-4 px-4">
+                                    <div className="flex items-center justify-center gap-3">
+                                      <div className="bg-blue-100 p-2 rounded-lg">
+                                        <MapPin className="w-5 h-5 text-blue-600" />
                                       </div>
-                                    </div>
-                                  </td>
-                                  <td className="text-center py-4 px-4">
-                                    {station.platform ? (
-                                      <span className="inline-block px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                                        PF {station.platform}
-                                      </span>
-                                    ) : (
-                                      <span className="text-gray-400">-</span>
-                                    )}
-                                  </td>
-                                  <td className="text-center py-4 px-4">
-                                    {station.distanceKm ? (
-                                      <span className="text-gray-700 font-medium">{station.distanceKm} km</span>
-                                    ) : (
-                                      <span className="text-gray-400">-</span>
-                                    )}
-                                  </td>
-                                  <td className="text-center py-4 px-4">
-                                    <div className="space-y-1">
-                                      <div className="text-sm text-gray-500">
-                                        Sch: {station.arrival?.scheduled || '-'}
+                                      <div className="text-center">
+                                        <p className="font-semibold text-blue-900">
+                                          {station.stationName}
+                                        </p>
                                       </div>
-                                      {station.arrival?.actual && station.arrival.actual !== '-' ? (
-                                        <div className="flex flex-col items-center gap-1">
-                                          <span className="font-bold text-green-700 text-base">
-                                            {station.arrival.actual}
-                                          </span>
-                                          {station.arrival.delay && (
-                                            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
-                                              {station.arrival.delay}
-                                            </span>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <span className="text-gray-400 text-sm">Not arrived</span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="text-center py-4 px-4">
-                                    <div className="space-y-1">
-                                      <div className="text-sm text-gray-500">
-                                        Sch: {station.departure?.scheduled || '-'}
-                                      </div>
-                                      {station.departure?.actual && station.departure.actual !== '-' ? (
-                                        <div className="flex flex-col items-center gap-1">
-                                          <span className="font-bold text-green-700 text-base">
-                                            {station.departure.actual}
-                                          </span>
-                                          {station.departure.delay && (
-                                            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
-                                              {station.departure.delay}
-                                            </span>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <span className="text-gray-400 text-sm">Not departed</span>
-                                      )}
                                     </div>
                                   </td>
                                 </motion.tr>
                               );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
+                            }
+
+                            // Regular station row
+                            const hasArrived = station.arrival?.actual && station.arrival.actual !== '-';
+                            const hasDeparted = station.departure?.actual && station.departure.actual !== '-';
+                            const isCurrentStation = hasArrived && !hasDeparted;
+
+                            return (
+                              <motion.tr
+                                key={index}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
+                                className={`border-b border-gray-100 ${isCurrentStation
+                                  ? 'bg-blue-50'
+                                  : hasDeparted
+                                    ? 'bg-gray-50'
+                                    : 'hover:bg-gray-50'
+                                  }`}
+                              >
+                                <td className="py-3 px-4">
+                                  <div>
+                                    <p className="font-medium text-gray-900">{station.stationName}</p>
+                                    <p className="text-sm text-gray-500">{station.stationCode}</p>
+                                  </div>
+                                </td>
+                                <td className="text-center py-3 px-4 text-gray-600">
+                                  {station.platform || '-'}
+                                </td>
+                                <td className="text-center py-3 px-4 text-gray-600">
+                                  {station.distanceKm ? `${station.distanceKm} km` : '-'}
+                                </td>
+                                <td className="text-center py-3 px-4">
+                                  <div className="text-gray-900">{station.arrival?.scheduled || '-'}</div>
+                                  {station.arrival?.actual && station.arrival.actual !== '-' && (
+                                    <div className={`text-sm font-medium mt-1 ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
+                                      }`}>
+                                      {station.arrival.actual}
+                                      {station.arrival.delay && (
+                                        <span className="text-xs ml-1">({station.arrival.delay})</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="text-center py-3 px-4">
+                                  <div className="text-gray-900">{station.departure?.scheduled || '-'}</div>
+                                  {station.departure?.actual && station.departure.actual !== '-' && (
+                                    <div className={`text-sm font-medium mt-1 ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
+                                      }`}>
+                                      {station.departure.actual}
+                                      {station.departure.delay && (
+                                        <span className="text-xs ml-1">({station.departure.delay})</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+                              </motion.tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               );
