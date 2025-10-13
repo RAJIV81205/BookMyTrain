@@ -187,18 +187,17 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const trainNumber = searchParams.get("trainNumber");
-    const date = searchParams.get("date");
 
-    if (!trainNumber || !date) {
+    if (!trainNumber) {
       return NextResponse.json(
-        { error: "Train number and date are required" },
+        { error: "Train number is required" },
         { status: 400 }
       );
     }
 
-    // Format date as DD-MMM-YYYY (e.g., 12-Oct-2025)
-    const dateObj = new Date(date);
-    const formattedDate = dateObj.toLocaleDateString("en-GB", {
+    // Use today's date to fetch all available running instances
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -229,33 +228,16 @@ export async function GET(request: Request) {
     // Parse the HTML response
     const parsedData = parseTrainLiveHTML(html);
 
-    // Find the maximum number of stations (currently running trains)
-    let maxStations = 0;
-    Object.keys(parsedData.runs).forEach((runDate) => {
-      const stationCount = parsedData.runs[runDate].totalStations;
-      if (stationCount > maxStations) {
-        maxStations = stationCount;
-      }
-    });
-
-    // Filter to include all runs with the maximum station count
-    const currentRuns: any = {};
-    Object.keys(parsedData.runs).forEach((runDate) => {
-      if (parsedData.runs[runDate].totalStations === maxStations) {
-        currentRuns[runDate] = parsedData.runs[runDate];
-      }
-    });
-
-    // Filter to only include the currently running trains
-    const filteredResult = {
+    // Return all runs with their data
+    const result = {
       trainNo: parsedData.trainNo,
       trainName: parsedData.trainName,
       availableDates: parsedData.availableDates,
-      totalRuns: Object.keys(currentRuns).length,
-      runs: currentRuns,
+      totalRuns: parsedData.totalRuns,
+      runs: parsedData.runs,
     };
 
-    return NextResponse.json(filteredResult, { status: 200 });
+    return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Server Error" },

@@ -11,42 +11,11 @@ const LiveStatus = () => {
   const [trainNumber, setTrainNumber] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [liveStatus, setLiveStatus] = useState<any>(null);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
-
-  // Generate date options (today, yesterday, day before yesterday)
-  const dateOptions = React.useMemo(() => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const dayBeforeYesterday = new Date(today);
-    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
-
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const getLabel = (date: Date, index: number) => {
-      const labels = ['Today', 'Yesterday', 'Day Before Yesterday'];
-      return `${labels[index]} (${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
-    };
-
-    return [
-      { value: formatDate(today), label: getLabel(today, 0) },
-      { value: formatDate(yesterday), label: getLabel(yesterday, 1) },
-      { value: formatDate(dayBeforeYesterday), label: getLabel(dayBeforeYesterday, 2) }
-    ];
-  }, []);
-
-  // Set default date to today
-  useEffect(() => {
-    setSelectedDate(dateOptions[0].value);
-  }, [dateOptions]);
 
   // Filter suggestions based on input
   useEffect(() => {
@@ -96,18 +65,15 @@ const LiveStatus = () => {
       return;
     }
 
-    if (!selectedDate) {
-      setError('Please select a date');
-      return;
-    }
-
     setLoading(true);
     setError('');
     setLiveStatus(null);
+    setAvailableDates([]);
+    setSelectedDate('');
 
     try {
       const response = await fetch(
-        `/api/livestatus?trainNumber=${trainNumber}&date=${selectedDate}`
+        `/api/livestatus?trainNumber=${trainNumber}`
       );
 
       if (!response.ok) {
@@ -115,7 +81,19 @@ const LiveStatus = () => {
       }
 
       const data = await response.json();
-      setLiveStatus(data);
+
+      console.log('Received data:', data);
+      console.log('Available dates:', data.availableDates);
+
+      if (data.availableDates && data.availableDates.length > 0) {
+        setAvailableDates(data.availableDates);
+        setLiveStatus(data);
+        // Auto-select the first date
+        setSelectedDate(data.availableDates[0]);
+        console.log('Set selected date to:', data.availableDates[0]);
+      } else {
+        setError('No running trains found for this train number');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch live status. Please try again.');
     } finally {
@@ -195,30 +173,6 @@ const LiveStatus = () => {
               )}
             </div>
 
-            {/* Date Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Date
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {dateOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSelectedDate(option.value)}
-                    className={`p-3 rounded-lg border-2 transition-all ${selectedDate === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span className="font-medium text-sm">{option.label}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Submit Button */}
             <motion.button
               onClick={handleSubmit}
@@ -261,48 +215,70 @@ const LiveStatus = () => {
         </div>
 
         {/* Live Status Results */}
-        {liveStatus && (
+        {liveStatus && availableDates.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            {/* Train Info Header */}
-            {liveStatus.trainNo && (
+            {/* Train Info Header with Date Selector */}
+            {liveStatus && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
               >
-                <div className="flex items-center mb-4">
-                  <div className="bg-blue-50 p-2 rounded-lg">
-                    <Train className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      {liveStatus.trainNo} - {liveStatus.trainName}
-                    </h2>
-                    {liveStatus.totalRuns > 0 && (
-                      <span className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded mt-1">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-50 p-2 rounded-lg">
+                      <Train className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {liveStatus.trainNo} - {liveStatus.trainName}
+                      </h2>
+                      <span className="text-xs text-green-700">
                         {liveStatus.totalRuns} Active Run{liveStatus.totalRuns > 1 ? 's' : ''}
                       </span>
-                    )}
+                    </div>
+                  </div>
+
+                  {/* Date Selector Tabs - Inline */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {availableDates.map((date) => (
+                      <button
+                        key={date}
+                        onClick={() => {
+                          console.log('Clicked date:', date);
+                          setSelectedDate(date);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedDate === date
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{date}</span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Display each run */}
-            {liveStatus.runs && Object.keys(liveStatus.runs).map((runDate) => {
-              const run = liveStatus.runs[runDate];
+            {/* Display selected run */}
+            {liveStatus.runs && liveStatus.runs[selectedDate] && (() => {
+              const run = liveStatus.runs[selectedDate];
               return (
-                <div key={runDate} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div key={selectedDate} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   {/* Run Header */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">Journey Date: {runDate}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Live Status</h3>
                       {run.lastUpdate && (
                         <div className="text-right">
                           <p className="text-xs text-gray-500">Last Updated</p>
@@ -311,7 +287,9 @@ const LiveStatus = () => {
                       )}
                     </div>
                     {run.statusNote && (
-                      <p className="text-sm text-gray-600">{run.statusNote}</p>
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm font-medium text-blue-900">{run.statusNote}</p>
+                      </div>
                     )}
                   </div>
 
@@ -423,7 +401,7 @@ const LiveStatus = () => {
                   )}
                 </div>
               );
-            })}
+            })()}
 
             {/* Show error if no data */}
             {liveStatus && !liveStatus.trainNo && (
