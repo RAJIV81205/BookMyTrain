@@ -2,51 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Train, Calendar, ArrowRight, AlertCircle, MapPin, Clock } from 'lucide-react';
+import { Search, Train, Calendar, ArrowRight, AlertCircle, MapPin } from 'lucide-react';
 import trains from "@/lib/constants/trains.json"
 
 const trainSuggestions = trains
 
 const LiveStatus = () => {
   const [trainNumber, setTrainNumber] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedRunDate, setSelectedRunDate] = useState('');
   const [liveStatus, setLiveStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
-
-  // Generate date options (today, yesterday, day before yesterday)
-  const dateOptions = React.useMemo(() => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const dayBeforeYesterday = new Date(today);
-    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
-
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const getLabel = (date: Date, index: number) => {
-      const labels = ['Today', 'Yesterday', 'Day Before Yesterday'];
-      return `${labels[index]} (${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
-    };
-
-    return [
-      { value: formatDate(today), label: getLabel(today, 0) },
-      { value: formatDate(yesterday), label: getLabel(yesterday, 1) },
-      { value: formatDate(dayBeforeYesterday), label: getLabel(dayBeforeYesterday, 2) }
-    ];
-  }, []);
-
-  // Set default date to today
-  useEffect(() => {
-    setSelectedDate(dateOptions[0].value);
-  }, [dateOptions]);
 
   // Filter suggestions based on input
   useEffect(() => {
@@ -96,18 +64,14 @@ const LiveStatus = () => {
       return;
     }
 
-    if (!selectedDate) {
-      setError('Please select a date');
-      return;
-    }
-
     setLoading(true);
     setError('');
     setLiveStatus(null);
+    setSelectedRunDate('');
 
     try {
       const response = await fetch(
-        `/api/livestatus?trainNumber=${trainNumber}&date=${selectedDate}`
+        `/api/livestatus?trainNumber=${trainNumber}`
       );
 
       if (!response.ok) {
@@ -116,6 +80,12 @@ const LiveStatus = () => {
 
       const data = await response.json();
       setLiveStatus(data);
+      
+      // Auto-select the latest date (first date in the runs object)
+      if (data.runs && Object.keys(data.runs).length > 0) {
+        const dates = Object.keys(data.runs);
+        setSelectedRunDate(dates[0]);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch live status. Please try again.');
     } finally {
@@ -195,30 +165,6 @@ const LiveStatus = () => {
               )}
             </div>
 
-            {/* Date Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Date
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {dateOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSelectedDate(option.value)}
-                    className={`p-3 rounded-lg border-2 transition-all ${selectedDate === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span className="font-medium text-sm">{option.label}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Submit Button */}
             <motion.button
               onClick={handleSubmit}
@@ -294,136 +240,175 @@ const LiveStatus = () => {
               </motion.div>
             )}
 
-            {/* Display each run */}
-            {liveStatus.runs && Object.keys(liveStatus.runs).map((runDate) => {
-              const run = liveStatus.runs[runDate];
-              return (
-                <div key={runDate} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  {/* Run Header */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">Journey Date: {runDate}</h3>
-                      {run.lastUpdate && (
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Last Updated</p>
-                          <p className="text-sm font-medium text-gray-700">{run.lastUpdate}</p>
+            {/* Date Tabs */}
+            {liveStatus.runs && Object.keys(liveStatus.runs).length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Select Journey Date</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(liveStatus.runs).map((runDate) => (
+                    <button
+                      key={runDate}
+                      onClick={() => setSelectedRunDate(runDate)}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                        selectedRunDate === runDate
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {runDate}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Run Details for Selected Date */}
+            {selectedRunDate && liveStatus.runs && liveStatus.runs[selectedRunDate] && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              >
+                {(() => {
+                  const run = liveStatus.runs[selectedRunDate];
+                  return (
+                    <>
+                      {/* Run Header */}
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">Journey Date: {selectedRunDate}</h3>
+                          {run.lastUpdate && (
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">Last Updated</p>
+                              <p className="text-sm font-medium text-gray-700">{run.lastUpdate}</p>
+                            </div>
+                          )}
+                        </div>
+                        {run.statusNote && (
+                          <p className="text-sm text-gray-600">{run.statusNote}</p>
+                        )}
+                      </div>
+
+                      {/* Station-wise Status Table */}
+                      {run.stations && run.stations.length > 0 && (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-gray-200">
+                                <th className="text-left py-3 px-4 font-medium text-gray-600">Station</th>
+                                <th className="text-center py-3 px-4 font-medium text-gray-600">Platform</th>
+                                <th className="text-center py-3 px-4 font-medium text-gray-600">Distance</th>
+                                <th className="text-center py-3 px-4 font-medium text-gray-600">Arrival</th>
+                                <th className="text-center py-3 px-4 font-medium text-gray-600">Departure</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {run.stations.map((station: any, index: number) => {
+                                // Check if this is a status update row
+                                const isStatusUpdate = station.stationName &&
+                                  (station.stationName.toLowerCase().includes('arrived at') ||
+                                    station.stationName.toLowerCase().includes('updated on'));
+
+                                if (isStatusUpdate) {
+                                  return (
+                                    <motion.tr
+                                      key={index}
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
+                                      className="bg-blue-50 border-y border-blue-200"
+                                    >
+                                      <td colSpan={5} className="py-4 px-4">
+                                        <div className="flex items-center justify-center gap-3">
+                                          <div className="bg-blue-100 p-2 rounded-lg">
+                                            <MapPin className="w-5 h-5 text-blue-600" />
+                                          </div>
+                                          <div className="text-center">
+                                            <p className="font-semibold text-blue-900">
+                                              {station.stationName}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </motion.tr>
+                                  );
+                                }
+
+                                // Regular station row
+                                const hasArrived = station.arrival?.actual && station.arrival.actual !== '-';
+                                const hasDeparted = station.departure?.actual && station.departure.actual !== '-';
+                                const isCurrentStation = hasArrived && !hasDeparted;
+
+                                return (
+                                  <motion.tr
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
+                                    className={`border-b border-gray-100 ${isCurrentStation
+                                      ? 'bg-blue-50'
+                                      : hasDeparted
+                                        ? 'bg-gray-50'
+                                        : 'hover:bg-gray-50'
+                                      }`}
+                                  >
+                                    <td className="py-3 px-4">
+                                      <div>
+                                        <p className="font-medium text-gray-900">{station.stationName}</p>
+                                        <p className="text-sm text-gray-500">{station.stationCode}</p>
+                                      </div>
+                                    </td>
+                                    <td className="text-center py-3 px-4 text-gray-600">
+                                      {station.platform || '-'}
+                                    </td>
+                                    <td className="text-center py-3 px-4 text-gray-600">
+                                      {station.distanceKm ? `${station.distanceKm} km` : '-'}
+                                    </td>
+                                    <td className="text-center py-3 px-4">
+                                      <div className="text-gray-900">{station.arrival?.scheduled || '-'}</div>
+                                      {station.arrival?.actual && station.arrival.actual !== '-' && (
+                                        <div className={`text-sm font-medium mt-1 ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
+                                          }`}>
+                                          {station.arrival.actual}
+                                          {station.arrival.delay && (
+                                            <span className="text-xs ml-1">({station.arrival.delay})</span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="text-center py-3 px-4">
+                                      <div className="text-gray-900">{station.departure?.scheduled || '-'}</div>
+                                      {station.departure?.actual && station.departure.actual !== '-' && (
+                                        <div className={`text-sm font-medium mt-1 ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
+                                          }`}>
+                                          {station.departure.actual}
+                                          {station.departure.delay && (
+                                            <span className="text-xs ml-1">({station.departure.delay})</span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </td>
+                                  </motion.tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       )}
-                    </div>
-                    {run.statusNote && (
-                      <p className="text-sm text-gray-600">{run.statusNote}</p>
-                    )}
-                  </div>
-
-                  {/* Station-wise Status Table */}
-                  {run.stations && run.stations.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-4 font-medium text-gray-600">Station</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-600">Platform</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-600">Distance</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-600">Arrival</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-600">Departure</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {run.stations.map((station: any, index: number) => {
-                            // Check if this is a status update row
-                            const isStatusUpdate = station.stationName &&
-                              (station.stationName.toLowerCase().includes('arrived at') ||
-                                station.stationName.toLowerCase().includes('updated on'));
-
-                            if (isStatusUpdate) {
-                              return (
-                                <motion.tr
-                                  key={index}
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
-                                  className="bg-blue-50 border-y border-blue-200"
-                                >
-                                  <td colSpan={5} className="py-4 px-4">
-                                    <div className="flex items-center justify-center gap-3">
-                                      <div className="bg-blue-100 p-2 rounded-lg">
-                                        <MapPin className="w-5 h-5 text-blue-600" />
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="font-semibold text-blue-900">
-                                          {station.stationName}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </td>
-                                </motion.tr>
-                              );
-                            }
-
-                            // Regular station row
-                            const hasArrived = station.arrival?.actual && station.arrival.actual !== '-';
-                            const hasDeparted = station.departure?.actual && station.departure.actual !== '-';
-                            const isCurrentStation = hasArrived && !hasDeparted;
-
-                            return (
-                              <motion.tr
-                                key={index}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
-                                className={`border-b border-gray-100 ${isCurrentStation
-                                  ? 'bg-blue-50'
-                                  : hasDeparted
-                                    ? 'bg-gray-50'
-                                    : 'hover:bg-gray-50'
-                                  }`}
-                              >
-                                <td className="py-3 px-4">
-                                  <div>
-                                    <p className="font-medium text-gray-900">{station.stationName}</p>
-                                    <p className="text-sm text-gray-500">{station.stationCode}</p>
-                                  </div>
-                                </td>
-                                <td className="text-center py-3 px-4 text-gray-600">
-                                  {station.platform || '-'}
-                                </td>
-                                <td className="text-center py-3 px-4 text-gray-600">
-                                  {station.distanceKm ? `${station.distanceKm} km` : '-'}
-                                </td>
-                                <td className="text-center py-3 px-4">
-                                  <div className="text-gray-900">{station.arrival?.scheduled || '-'}</div>
-                                  {station.arrival?.actual && station.arrival.actual !== '-' && (
-                                    <div className={`text-sm font-medium mt-1 ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
-                                      }`}>
-                                      {station.arrival.actual}
-                                      {station.arrival.delay && (
-                                        <span className="text-xs ml-1">({station.arrival.delay})</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="text-center py-3 px-4">
-                                  <div className="text-gray-900">{station.departure?.scheduled || '-'}</div>
-                                  {station.departure?.actual && station.departure.actual !== '-' && (
-                                    <div className={`text-sm font-medium mt-1 ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time') ? 'text-red-600' : 'text-green-700'
-                                      }`}>
-                                      {station.departure.actual}
-                                      {station.departure.delay && (
-                                        <span className="text-xs ml-1">({station.departure.delay})</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </td>
-                              </motion.tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    </>
+                  );
+                })()}
+              </motion.div>
+            )}
 
             {/* Show error if no data */}
             {liveStatus && !liveStatus.trainNo && (
