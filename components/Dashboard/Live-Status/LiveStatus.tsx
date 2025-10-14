@@ -345,7 +345,7 @@ const LiveStatus = () => {
                                 className="relative flex items-start gap-6"
                               >
                                 {/* Left Side - Arrival Timings */}
-                                <div className="w-24 text-right pt-1">
+                                <div className="w-20 text-right pt-1">
                                   {station.arrival?.scheduled && station.arrival.scheduled !== '-' && (
                                     <div>
                                       <p className="text-gray-900 font-medium text-sm">
@@ -385,7 +385,7 @@ const LiveStatus = () => {
                                   )}
                                 </div>
 
-                                {/* Right Side - Station Details */}
+                                {/* Middle - Station Details */}
                                 <div className="flex-1 pb-8">
                                   <div className="flex items-baseline gap-2 mb-1">
                                     <h4 className={`font-semibold ${isCurrentStation ? 'text-gray-900 text-lg' : 'text-gray-900'
@@ -414,23 +414,31 @@ const LiveStatus = () => {
                                         <span className="ml-1 text-gray-900 font-medium">{station.distanceKm} km</span>
                                       </div>
                                     )}
-                                    {station.departure?.scheduled && station.departure.scheduled !== '-' && (
-                                      <div>
-                                        <span className="text-gray-500">Departure:</span>
-                                        <span className="ml-1 text-gray-900 font-medium">
-                                          {extractTime(station.departure.scheduled)}
-                                        </span>
-                                        {station.departure?.actual && station.departure.actual !== '-' && (
-                                          <span className={`ml-1 text-xs font-medium ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time')
-                                            ? 'text-red-600'
-                                            : 'text-green-600'
-                                            }`}>
-                                            ({extractTime(station.departure.actual)})
-                                          </span>
-                                        )}
-                                      </div>
-                                    )}
                                   </div>
+                                </div>
+
+                                {/* Right Side - Departure Timings */}
+                                <div className="w-20 text-left pt-1">
+                                  {station.departure?.scheduled && station.departure.scheduled !== '-' && (
+                                    <div>
+                                      <p className="text-gray-900 font-medium text-sm">
+                                        {extractTime(station.departure.scheduled)}
+                                      </p>
+                                      {station.departure?.actual && station.departure.actual !== '-' && (
+                                        <p className={`text-xs mt-0.5 font-medium ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time')
+                                          ? 'text-red-600'
+                                          : 'text-green-600'
+                                          }`}>
+                                          {extractTime(station.departure.actual)}
+                                        </p>
+                                      )}
+                                      {station.departure?.delay && (
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                          {station.departure.delay}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </motion.div>
                             );
