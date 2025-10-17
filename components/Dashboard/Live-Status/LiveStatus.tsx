@@ -300,7 +300,7 @@ const LiveStatus = () => {
                           {run.stations.map((station: any, index: number) => {
                             // Check if this is a status update row
                             const isStatusUpdate = station.stationName &&
-                              (station.stationName.toLowerCase().includes('arrived at') ||
+                              (station.stationName.toLowerCase().includes('arrived at') || station.stationName.toLowerCase().includes('departed from') ||
                                 station.stationName.toLowerCase().includes('updated on'));
 
                             if (isStatusUpdate) {
