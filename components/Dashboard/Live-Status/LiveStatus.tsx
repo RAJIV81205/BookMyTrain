@@ -352,7 +352,7 @@ const LiveStatus = () => {
                                         {extractTime(station.arrival.scheduled)}
                                       </p>
                                       {station.arrival?.actual && station.arrival.actual !== '-' && (
-                                        <p className={`text-xs mt-0.5 font-medium ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time')
+                                        <p className={`text-sm mt-0.5 font-medium ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time')
                                           ? 'text-red-600'
                                           : 'text-green-600'
                                           }`}>
@@ -360,7 +360,10 @@ const LiveStatus = () => {
                                         </p>
                                       )}
                                       {station.arrival?.delay && (
-                                        <p className="text-xs text-gray-500 mt-0.5">
+                                        <p className={`text-xs mt-0.5 ${station.arrival.delay && !station.arrival.delay.toLowerCase().includes('on time')
+                                          ? 'text-red-600'
+                                          : 'text-green-600'
+                                          }`}>
                                           {station.arrival.delay}
                                         </p>
                                       )}
@@ -425,7 +428,7 @@ const LiveStatus = () => {
                                         {extractTime(station.departure.scheduled)}
                                       </p>
                                       {station.departure?.actual && station.departure.actual !== '-' && (
-                                        <p className={`text-xs mt-0.5 font-medium ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time')
+                                        <p className={`text-sm mt-0.5 font-medium ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time')
                                           ? 'text-red-600'
                                           : 'text-green-600'
                                           }`}>
@@ -433,7 +436,10 @@ const LiveStatus = () => {
                                         </p>
                                       )}
                                       {station.departure?.delay && (
-                                        <p className="text-xs text-gray-500 mt-0.5">
+                                        <p className={`text-xs mt-0.5 font-medium ${station.departure.delay && !station.departure.delay.toLowerCase().includes('on time')
+                                          ? 'text-red-600'
+                                          : 'text-green-600'
+                                          }`}>
                                           {station.departure.delay}
                                         </p>
                                       )}
