@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Train, Calendar, ArrowRight, AlertCircle, MapPin } from 'lucide-react';
 import trains from "@/lib/constants/trains.json"
+import CoachPosition from './CoachPosition';
 
 const trainSuggestions = trains
 
@@ -15,6 +16,8 @@ const LiveStatus = () => {
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
+  const [coachPopupData, setCoachPopupData] = useState<any[] | null>(null);
+  const [showCoachPopup, setShowCoachPopup] = useState(false);
 
   // Filter suggestions based on input
   useEffect(() => {
@@ -98,6 +101,13 @@ const LiveStatus = () => {
       handleSubmit();
     }
   };
+
+  // Button click handler
+  const handleCoachPopup = (data: any[] = []) => {
+    setCoachPopupData(data);
+    setShowCoachPopup(true);
+  };
+  const closeCoachPopup = () => setShowCoachPopup(false);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white py-8 px-4">
@@ -420,6 +430,25 @@ const LiveStatus = () => {
                                   </div>
                                 </div>
 
+                                {/* Coach Position Button (show only if coachPosition available) */}
+                                <div className="flex-1 flex justify-center items-center px-5 h-full">
+                                  {Array.isArray(station.coachPosition) && station.coachPosition.length > 0 ? (
+                                    <button
+                                      className="bg-blue-500 text-white rounded-md px-3 py-1 text-sm hover:bg-blue-600 transition"
+                                      onClick={() => handleCoachPopup(station.coachPosition)}
+                                    >
+                                      Coach Position
+                                    </button>
+                                  ) : (
+                                    <button className="bg-gray-200 text-gray-500 rounded-md px-3 py-1 text-sm cursor-not-allowed" disabled title="No coach data for this station">
+                                      No Coach Data
+                                    </button>
+                                  )}
+                                </div>
+
+                                
+
+
                                 {/* Right Side - Departure Timings */}
                                 <div className="w-20 text-left pt-1">
                                   {station.departure?.scheduled && station.departure.scheduled !== '-' && (
@@ -470,6 +499,7 @@ const LiveStatus = () => {
           </motion.div>
         )}
       </div>
+      <CoachPosition open={showCoachPopup} onClose={closeCoachPopup} coachPosition={coachPopupData || []} />
     </div>
   );
 };
