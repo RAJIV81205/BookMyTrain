@@ -6,7 +6,7 @@ export async function GET(request: Request) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "X-Api-Key": "rri_eyJleHAiOjE3NjA4NzI1MTUxNDMsImlhdCI6MTc2MDc4NjExNTE0MywidHlwZSI6ImludGVybmFsIiwicm5kIjoiMktubkNvR2JQdUVIIn0=_NWI2NDVjNmQxMzc0YjBjNmJjMmQ5MDc5MzlmMTZjNWYzMGVjMTkyMDNjMDVhNzhjY2VlOWI3MTE1Y2E3YjI0Zg==",
+        "X-Api-Key": "rri_eyJleHAiOjE3NjA4Nzc1MDQ5MDMsImlhdCI6MTc2MDc5MTEwNDkwMywidHlwZSI6ImludGVybmFsIiwicm5kIjoiRGQxelkySzJlQlNjIn0=_Yzc2MWJiMWMzMDM2Nzg5M2VjYjZlNjg3OTM1NGM2ZmRkZmY4MTllMTdmMjg5YTZmNjc5OWMxMjVhM2M5MWIwYw==",
         Referer: "https://railradar.in/",
       },
     });
