@@ -334,7 +334,7 @@ export async function GET(request: Request) {
 
     const html = await response.text();
     console.log('📄 [LiveStatus API] HTML Response Length:', html.length, 'characters');
-    console.log(html)
+    // console.log(html)
 
     // Parse the HTML response
     console.log('🔍 [LiveStatus API] Parsing HTML...');
