@@ -242,6 +242,31 @@ function parseTrainLiveHTML(html: string) {
   }
 }
 
+async function generateToken() {
+  const t = Date.now(); // current unix timestamp in ms
+  const response = await fetch(`https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`, {
+    headers: {
+      "accept": "*/*",
+      "x-requested-with": "XMLHttpRequest",
+      "Referer": "https://enquiry.indianrail.gov.in/mntes/",
+    },
+    method: "GET",
+  });
+
+  const html = await response.text();
+
+  // Extract hidden input name/value
+  const match = html.match(/name='([^']+)' value='([^']+)'/);
+  if (!match) throw new Error("CSRF token not found in response");
+
+  const tokenName = match[1];
+  const tokenValue = match[2];
+
+  console.log("🧩 CSRF Token fetched:", tokenName, tokenValue);
+  return { tokenName, tokenValue };
+}
+
+
 export async function GET(request: Request) {
   const startTime = Date.now();
   console.log('🚂 [LiveStatus API] Request received');
@@ -307,6 +332,7 @@ export async function GET(request: Request) {
 
     const html = await response.text();
     console.log('📄 [LiveStatus API] HTML Response Length:', html.length, 'characters');
+    console.log(html)
 
     // Parse the HTML response
     console.log('🔍 [LiveStatus API] Parsing HTML...');
