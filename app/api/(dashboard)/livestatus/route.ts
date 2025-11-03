@@ -8,10 +8,11 @@ function parseTrainLiveHTML(html: string) {
     const $ = cheerio.load(html);
 
     // Extract train number and name from the blue header panel
-    const trainHeader = $(".w3-panel.w3-round.w3-blue h3").first().text().trim();
+    const trainHeader = $(".w3-panel.w3-round.w3-blue h3").eq(1).text().trim();
+
     console.log('🏷️  [Parser] Train Header:', trainHeader);
 
-    const trainMatch = trainHeader.match(/^(\d+)\s+(.+)$/);
+    const trainMatch = trainHeader.match(/(\d{5})\s+(.+)/);
     const trainNo = trainMatch ? trainMatch[1] : "";
     const trainName = trainMatch ? trainMatch[2] : "";
 
