@@ -205,20 +205,16 @@ function parseTrainLiveHTML(html: string) {
 
     console.log('📊 [Parser] Total runs parsed:', Object.keys(runs).length);
 
-    // Filter runs to only include those with maximum totalStations (active runs)
-    const stationCounts = Object.values(runs).map((run: any) => run.totalStations);
-    const maxStations = Math.max(...stationCounts);
-
-    console.log('🔍 [Parser] Station counts per run:', stationCounts);
-    console.log('📈 [Parser] Maximum stations:', maxStations);
-
+    // Filter runs to only include those that are running or completed (exclude "Yet to start")
     const filteredRuns: any = {};
     Object.entries(runs).forEach(([date, run]: [string, any]) => {
-      if (run.totalStations === maxStations) {
+      const isYetToStart = run.statusNote.includes("Yet to start from its source");
+
+      if (!isYetToStart) {
         filteredRuns[date] = run;
-        console.log(`  ✅ [Parser] Including run: ${date} (${run.totalStations} stations)`);
+        console.log(`  ✅ [Parser] Including run: ${date} - Status: ${run.statusNote}`);
       } else {
-        console.log(`  ⏭️  [Parser] Excluding run: ${date} (${run.totalStations} stations)`);
+        console.log(`  ⏭️  [Parser] Excluding run: ${date} - Status: Yet to start`);
       }
     });
 
