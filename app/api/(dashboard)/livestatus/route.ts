@@ -3,18 +3,18 @@ import * as cheerio from "cheerio";
 
 function parseTrainLiveHTML(html: string) {
   console.log('🔧 [Parser] Starting HTML parsing...');
-  
+
   try {
     const $ = cheerio.load(html);
 
     // Extract train number and name from the blue header panel
     const trainHeader = $(".w3-panel.w3-round.w3-blue h3").first().text().trim();
     console.log('🏷️  [Parser] Train Header:', trainHeader);
-    
+
     const trainMatch = trainHeader.match(/^(\d+)\s+(.+)$/);
     const trainNo = trainMatch ? trainMatch[1] : "";
     const trainName = trainMatch ? trainMatch[2] : "";
-    
+
     if (!trainNo || !trainName) {
       console.warn('⚠️  [Parser] Warning: Could not extract train number or name from header');
     }
@@ -25,14 +25,14 @@ function parseTrainLiveHTML(html: string) {
       const dateText = $(el).text().trim();
       if (dateText) availableDates.push(dateText);
     });
-    
+
     console.log('📅 [Parser] Found', availableDates.length, 'available dates:', availableDates);
 
     // Parse each tab pane (each date's journey)
     const runs: any = {};
     const tabPanes = $(".tab-pane");
     console.log('📑 [Parser] Found', tabPanes.length, 'tab panes to process');
-    
+
     $(".tab-pane").each((paneIndex, pane) => {
       const $pane = $(pane);
       const paneId = $pane.attr("id");
@@ -49,13 +49,13 @@ function parseTrainLiveHTML(html: string) {
         console.warn(`⚠️  [Parser] Pane ${paneIndex}: No date found for pane ID: ${paneId}`);
         return;
       }
-      
+
       console.log(`📋 [Parser] Processing pane ${paneIndex + 1}/${tabPanes.length} - Date: ${startDate}`);
 
       // Extract status and last update information
       const statusNote = $pane.find("h6").first().text().trim();
       const lastUpdateText = $pane.find('font[size="2pt"]').first().text().trim();
-      
+
       console.log(`  ℹ️  [Parser] Status: ${statusNote}`);
       console.log(`  🕐 [Parser] Last Update: ${lastUpdateText}`);
 
@@ -63,111 +63,111 @@ function parseTrainLiveHTML(html: string) {
       const stations: any[] = [];
       const stationCards = $pane.find(".w3-card-2");
       console.log(`  🚉 [Parser] Found ${stationCards.length} station cards`);
-      
+
       $pane.find(".w3-card-2").each((cardIndex, card) => {
-      const $card = $(card);
+        const $card = $(card);
 
-      // Extract arrival time (left side)
-      let scheduledArrival = "";
-      let actualArrival = "";
-      let arrivalDelay = "";
-      const leftTimeContainer = $card.find('.w3-container[style*="float:left"][style*="width:100px"]').first();
-      if (leftTimeContainer.length) {
-        const schedArrText = leftTimeContainer.find("font").first().text().trim();
-        scheduledArrival = schedArrText;
+        // Extract arrival time (left side)
+        let scheduledArrival = "";
+        let actualArrival = "";
+        let arrivalDelay = "";
+        const leftTimeContainer = $card.find('.w3-container[style*="float:left"][style*="width:100px"]').first();
+        if (leftTimeContainer.length) {
+          const schedArrText = leftTimeContainer.find("font").first().text().trim();
+          scheduledArrival = schedArrText;
 
-        const arrivalFonts = leftTimeContainer.find("font");
-        if (arrivalFonts.length > 1) {
-          const actualArrText = $(arrivalFonts[1]).find("b").text().trim();
-          actualArrival = actualArrText;
-          const arrDelaySpan = $(arrivalFonts[1]).find(".w3-round");
-          if (arrDelaySpan.length) {
-            arrivalDelay = arrDelaySpan.text().trim();
-          }
-        }
-      }
-
-      // Extract station info (middle section)
-      let stationCode = "";
-      let stationName = "";
-      let platform = "";
-      let distance = "";
-      const middleContainer = $card.find('.w3-container[style*="float:right"][style*="flex:1"]').first();
-      if (middleContainer.length) {
-        const stationNameBold = middleContainer.find("b").first();
-        if (stationNameBold.length) {
-          stationName = stationNameBold.text().trim();
-        }
-
-        const innerDiv = middleContainer.find('.w3-container[style*="text-align: center"]');
-        if (innerDiv.length) {
-          const innerText = innerDiv.text();
-          const codeMatch = innerText.match(/([A-Z]{2,5})\s+/);
-          if (codeMatch) {
-            stationCode = codeMatch[1].trim();
-          }
-
-          const pfSpan = innerDiv.find(".w3-orange");
-          if (pfSpan.length) {
-            const pfText = pfSpan.text().trim();
-            const pfMatch = pfText.match(/PF\s+(\d+)/i);
-            if (pfMatch) {
-              platform = pfMatch[1];
+          const arrivalFonts = leftTimeContainer.find("font");
+          if (arrivalFonts.length > 1) {
+            const actualArrText = $(arrivalFonts[1]).find("b").text().trim();
+            actualArrival = actualArrText;
+            const arrDelaySpan = $(arrivalFonts[1]).find(".w3-round");
+            if (arrDelaySpan.length) {
+              arrivalDelay = arrDelaySpan.text().trim();
             }
           }
         }
 
-        const distMatch = middleContainer.html() && middleContainer.html()!.match(/<b>(\d+)<\/b>\s*KMs/i);
-        if (distMatch) {
-          distance = distMatch[1];
-        }
-      }
-
-      // Extract departure time (right side)
-      let scheduledDeparture = "";
-      let actualDeparture = "";
-      let departureDelay = "";
-      const rightTimeContainer = $card.find('.w3-container[style*="float:right"][style*="text-align:right"][style*="width:100px"]').first();
-      if (rightTimeContainer.length) {
-        const schedDepText = rightTimeContainer.find("font").first().text().trim();
-        scheduledDeparture = schedDepText;
-
-        const departureFonts = rightTimeContainer.find("font");
-        if (departureFonts.length > 1) {
-          const actualDepText = $(departureFonts[1]).find("b").text().trim();
-          actualDeparture = actualDepText;
-          const depDelaySpan = $(departureFonts[1]).find(".w3-round");
-          if (depDelaySpan.length) {
-            departureDelay = depDelaySpan.text().trim();
+        // Extract station info (middle section)
+        let stationCode = "";
+        let stationName = "";
+        let platform = "";
+        let distance = "";
+        const middleContainer = $card.find('.w3-container[style*="float:right"][style*="flex:1"]').first();
+        if (middleContainer.length) {
+          const stationNameBold = middleContainer.find("b").first();
+          if (stationNameBold.length) {
+            stationName = stationNameBold.text().trim();
           }
-        }
-      }
 
-      // Extract coach position information
-      const coachPosition: any[] = [];
-      const modalButton = $card.find('[data-bs-toggle="modal"]');
-      if (modalButton.length) {
-        const modalId = modalButton.attr("data-bs-target");
-        if (modalId) {
-          const modal = $(modalId);
-          const modalBody = modal.find(".modal-body");
-          if (modalBody.length) {
-            modalBody.find('div[style*="display:inline-block"]').each((_, coachDiv) => {
-              const $coachDiv = $(coachDiv);
-              const coachType = $coachDiv.find("div").first().text().trim();
-              const coachNumber = $coachDiv.find("div b").text().trim();
-              const position = $coachDiv.find("div").last().text().trim();
-              if (coachType && position && !position.includes("Divyangjan")) {
-                coachPosition.push({
-                  type: coachType,
-                  number: coachNumber || coachType,
-                  position: position,
-                });
+          const innerDiv = middleContainer.find('.w3-container[style*="text-align: center"]');
+          if (innerDiv.length) {
+            const innerText = innerDiv.text();
+            const codeMatch = innerText.match(/([A-Z]{2,5})\s+/);
+            if (codeMatch) {
+              stationCode = codeMatch[1].trim();
+            }
+
+            const pfSpan = innerDiv.find(".w3-orange");
+            if (pfSpan.length) {
+              const pfText = pfSpan.text().trim();
+              const pfMatch = pfText.match(/PF\s+(\d+)/i);
+              if (pfMatch) {
+                platform = pfMatch[1];
               }
-            });
+            }
+          }
+
+          const distMatch = middleContainer.html() && middleContainer.html()!.match(/<b>(\d+)<\/b>\s*KMs/i);
+          if (distMatch) {
+            distance = distMatch[1];
           }
         }
-      }
+
+        // Extract departure time (right side)
+        let scheduledDeparture = "";
+        let actualDeparture = "";
+        let departureDelay = "";
+        const rightTimeContainer = $card.find('.w3-container[style*="float:right"][style*="text-align:right"][style*="width:100px"]').first();
+        if (rightTimeContainer.length) {
+          const schedDepText = rightTimeContainer.find("font").first().text().trim();
+          scheduledDeparture = schedDepText;
+
+          const departureFonts = rightTimeContainer.find("font");
+          if (departureFonts.length > 1) {
+            const actualDepText = $(departureFonts[1]).find("b").text().trim();
+            actualDeparture = actualDepText;
+            const depDelaySpan = $(departureFonts[1]).find(".w3-round");
+            if (depDelaySpan.length) {
+              departureDelay = depDelaySpan.text().trim();
+            }
+          }
+        }
+
+        // Extract coach position information
+        const coachPosition: any[] = [];
+        const modalButton = $card.find('[data-bs-toggle="modal"]');
+        if (modalButton.length) {
+          const modalId = modalButton.attr("data-bs-target");
+          if (modalId) {
+            const modal = $(modalId);
+            const modalBody = modal.find(".modal-body");
+            if (modalBody.length) {
+              modalBody.find('div[style*="display:inline-block"]').each((_, coachDiv) => {
+                const $coachDiv = $(coachDiv);
+                const coachType = $coachDiv.find("div").first().text().trim();
+                const coachNumber = $coachDiv.find("div b").text().trim();
+                const position = $coachDiv.find("div").last().text().trim();
+                if (coachType && position && !position.includes("Divyangjan")) {
+                  coachPosition.push({
+                    type: coachType,
+                    number: coachNumber || coachType,
+                    position: position,
+                  });
+                }
+              });
+            }
+          }
+        }
 
         // Only add station if we have valid data
         if (stationCode || stationName || scheduledArrival || scheduledDeparture) {
@@ -208,7 +208,7 @@ function parseTrainLiveHTML(html: string) {
     // Filter runs to only include those with maximum totalStations (active runs)
     const stationCounts = Object.values(runs).map((run: any) => run.totalStations);
     const maxStations = Math.max(...stationCounts);
-    
+
     console.log('🔍 [Parser] Station counts per run:', stationCounts);
     console.log('📈 [Parser] Maximum stations:', maxStations);
 
@@ -234,7 +234,7 @@ function parseTrainLiveHTML(html: string) {
 
     console.log('✅ [Parser] Parsing completed successfully');
     return result;
-    
+
   } catch (parseError: any) {
     console.error('❌ [Parser] Error during HTML parsing:', parseError.message);
     console.error('❌ [Parser] Stack:', parseError.stack);
@@ -243,28 +243,24 @@ function parseTrainLiveHTML(html: string) {
 }
 
 async function generateToken() {
-  const t = Date.now(); // current unix timestamp in ms
-  const response = await fetch(`https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`, {
-    headers: {
-      "accept": "*/*",
-      "x-requested-with": "XMLHttpRequest",
-      "Referer": "https://enquiry.indianrail.gov.in/mntes/",
-    },
-    method: "GET",
+  const t = Date.now();
+  const res = await fetch(`https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`, {
+    headers: { "x-requested-with": "XMLHttpRequest", "Referer": "https://enquiry.indianrail.gov.in/mntes/" },
   });
 
-  const html = await response.text();
-
-  // Extract hidden input name/value
+  const html = await res.text();
+  const cookie = res.headers.get("set-cookie") || "";
   const match = html.match(/name='([^']+)' value='([^']+)'/);
-  if (!match) throw new Error("CSRF token not found in response");
 
-  const tokenName = match[1];
-  const tokenValue = match[2];
+  if (!match) throw new Error("CSRF token not found");
 
-  console.log("🧩 CSRF Token fetched:", tokenName, tokenValue);
-  return { tokenName, tokenValue };
+  return {
+    cookie,                 // full JSESSIONID + others
+    tokenName: match[1],
+    tokenValue: match[2],
+  };
 }
+
 
 
 export async function GET(request: Request) {
@@ -305,12 +301,14 @@ export async function GET(request: Request) {
     console.log('📅 [LiveStatus API] Formatted Date:', formattedDate);
 
     // Fetch from Indian Railway API
-    const formData = new URLSearchParams();
-    formData.append("jDate", formattedDate);
-    formData.append("trainNo", trainNumber);
+    const { cookie, tokenName, tokenValue } = await generateToken();
 
-    console.log('🌐 [LiveStatus API] Fetching from Indian Railway API...');
-    console.log('📤 [LiveStatus API] Request Body:', formData.toString());
+    const formData = new URLSearchParams({
+      lan: "en",
+      jDate: formattedDate,
+      trainNo: trainNumber,
+      [tokenName]: tokenValue,
+    });
 
     const response = await fetch(
       "https://enquiry.indianrail.gov.in/mntes/tr?opt=TrainRunning&subOpt=FindRunningInstance",
@@ -318,10 +316,14 @@ export async function GET(request: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
+          "Referer": "https://enquiry.indianrail.gov.in/mntes/",
+          "Cookie": cookie,  // attach the same session cookie
         },
         body: formData.toString(),
       }
     );
+
+
 
     console.log('📥 [LiveStatus API] Response Status:', response.status, response.statusText);
 
@@ -378,7 +380,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: process.env.NODE_ENV === 'development' ? err.message : undefined
       },
