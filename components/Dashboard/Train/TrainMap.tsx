@@ -87,49 +87,72 @@ const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route }) => {
         const map = mapRef.current!
 
         const addDataToMap = () => {
-          // Clear previous markers and layers
-          markersRef.current.forEach(m => m.remove())
-          markersRef.current = []
-
+          // Clear previous layers and sources
           if (map.getSource('route-line')) {
             map.removeLayer('route-line')
             map.removeSource('route-line')
           }
+          if (map.getSource('stations')) {
+            if (map.getLayer('stations-circle')) map.removeLayer('stations-circle')
+            if (map.getLayer('stations-label')) map.removeLayer('stations-label')
+            map.removeSource('stations')
+          }
 
-          // Add markers with popups
-          points.forEach((p) => {
-            const el = document.createElement('div')
-            el.style.width = '12px'
-            el.style.height = '12px'
-            el.style.borderRadius = '50%'
-            el.style.background = ORANGE
-            el.style.boxShadow = '0 0 0 2px white'
-            el.style.cursor = 'pointer'
-            el.title = `${p.code} - ${p.name}`
+          // Create GeoJSON for stations
+          const stationsGeoJSON: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+            type: 'FeatureCollection',
+            features: points.map(p => ({
+              type: 'Feature',
+              properties: {
+                name: p.name,
+                code: p.code
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [p.lng, p.lat]
+              }
+            }))
+          }
 
-            const popup = new mapboxgl.Popup({ offset: 15, closeButton: false })
-              .setHTML(`
-                <div style="padding: 4px 8px; font-size: 13px;">
-                  <div style="font-weight: 600; color: #111827;">${p.name}</div>
-                  <div style="font-size: 12px; color: #6b7280;">${p.code}</div>
-                </div>
-              `)
+          // Add stations source and layers
+          map.addSource('stations', {
+            type: 'geojson',
+            data: stationsGeoJSON
+          })
 
-            const marker = new mapboxgl.Marker(el)
-              .setLngLat([p.lng, p.lat])
-              .setPopup(popup)
-              .addTo(map)
+          map.addLayer({
+            id: 'stations-circle',
+            type: 'circle',
+            source: 'stations',
+            paint: {
+              'circle-radius': 6,
+              'circle-color': ORANGE,
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#ffffff'
+            }
+          })
 
-            // Show popup on hover
-            el.addEventListener('mouseenter', () => popup.addTo(map))
-            el.addEventListener('mouseleave', () => popup.remove())
-
-            markersRef.current.push(marker)
+          map.addLayer({
+            id: 'stations-label',
+            type: 'symbol',
+            source: 'stations',
+            layout: {
+              'text-field': ['get', 'code'],
+              'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+              'text-size': 11,
+              'text-offset': [0, 1.5],
+              'text-anchor': 'top'
+            },
+            paint: {
+              'text-color': '#111827',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1.5
+            }
           })
 
           // Add line if we have at least two points
           if (points.length >= 2) {
-            const line: GeoJSON.Feature<GeoJSON.LineString> = {
+            const lineGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
               type: 'Feature',
               properties: {},
               geometry: {
@@ -140,7 +163,7 @@ const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route }) => {
 
             map.addSource('route-line', {
               type: 'geojson',
-              data: line
+              data: lineGeoJSON
             })
 
             map.addLayer({
@@ -153,7 +176,7 @@ const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route }) => {
               },
               paint: {
                 'line-color': BLUE,
-                'line-width': 4
+                'line-width': 3
               }
             })
 
@@ -162,6 +185,32 @@ const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route }) => {
             points.forEach(p => bounds.extend([p.lng, p.lat]))
             map.fitBounds(bounds, { padding: 60, duration: 800, maxZoom: 10 })
           }
+
+          // Add popup on click
+          map.on('click', 'stations-circle', (e) => {
+            if (!e.features || !e.features[0]) return
+            const feature = e.features[0]
+            const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice() as [number, number]
+            const { name, code } = feature.properties as { name: string; code: string }
+
+            new mapboxgl.Popup()
+              .setLngLat(coordinates)
+              .setHTML(`
+                <div style="padding: 4px 8px; font-size: 13px;">
+                  <div style="font-weight: 600; color: #111827;">${name}</div>
+                  <div style="font-size: 12px; color: #6b7280;">${code}</div>
+                </div>
+              `)
+              .addTo(map)
+          })
+
+          // Change cursor on hover
+          map.on('mouseenter', 'stations-circle', () => {
+            map.getCanvas().style.cursor = 'pointer'
+          })
+          map.on('mouseleave', 'stations-circle', () => {
+            map.getCanvas().style.cursor = ''
+          })
 
           setLoading(false)
         }
