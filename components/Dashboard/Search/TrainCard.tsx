@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Clock, Calendar, Users, Train, ChevronDown, ChevronUp } from 'lucide-react'
+import { Clock, Calendar, Users, Train, ChevronDown, ChevronUp , Info} from 'lucide-react'
 import { gsap } from 'gsap'
 
 interface SeatClass {
@@ -307,10 +307,30 @@ const TrainCard: React.FC<TrainCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-row items-center gap-4 justify-center">
+
+          {/* Train Details Button (FIRST) */}
           <button
             onClick={(e) => {
-              // Add click animation
+              gsap.to(e.target, {
+                scale: 0.95,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1,
+                ease: "power2.out"
+              })
+              window.open("YOUR_TRAIN_DETAILS_URL_HERE", "_blank")
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-lg"
+          >
+            <Info className="w-4 h-4" />
+            <span className="hidden sm:inline">View Train Details</span>
+            <span className="sm:hidden">Train Details</span>
+          </button>
+
+          {/* Seat Availability Button */}
+          <button
+            onClick={(e) => {
               gsap.to(e.target, {
                 scale: 0.95,
                 duration: 0.1,
@@ -327,7 +347,9 @@ const TrainCard: React.FC<TrainCardProps> = ({
             <span className="sm:hidden">Check Availability</span>
             {showAvailability ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
+
         </div>
+
       </div>
 
       {showAvailability && (
