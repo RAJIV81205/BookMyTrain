@@ -66,6 +66,8 @@ const Trainsearch = () => {
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -76,6 +78,7 @@ const Trainsearch = () => {
 
     if (trainNumberFromUrl && /^\d{5}$/.test(trainNumberFromUrl)) {
       setTrainNumber(trainNumberFromUrl);
+      setShowSuggestions(false); // Don't show suggestions when loading from URL
       // Auto-fetch train data if valid train number is in URL
       if (isInitialLoad) {
         setIsInitialLoad(false);
@@ -87,33 +90,37 @@ const Trainsearch = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    setSelectedSuggestionIndex(-1); // Reset selection when train number changes
+    
     if (trainNumber.length >= 2) {
       const filtered = trainSuggestions.filter(train =>
         train.trainNo.includes(trainNumber) ||
         train.trainName.toLowerCase().includes(trainNumber.toLowerCase())
       );
       setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
+      setShowSuggestions(isInputFocused && filtered.length > 0);
     } else if (trainNumber.length === 0) {
       setFilteredSuggestions(trainSuggestions.slice(0, 8)); // Show first 8 suggestions
       setShowSuggestions(false);
     } else {
       setShowSuggestions(false);
     }
-  }, [trainNumber]);
+  }, [trainNumber, isInputFocused]);
 
   const handleInputChange = (e: any) => {
     const value = e.target.value;
     if (/^\d{0,5}$/.test(value)) {
       setTrainNumber(value);
       setError('');
+      setTrainInfo(null); // Clear previous results when typing
     }
   };
 
   const handleSuggestionClick = (suggestion: typeof trainSuggestions[0]) => {
-    // Prevent blur from hiding suggestions before click completes
     setShowSuggestions(false);
+    setIsInputFocused(false);
     setTrainNumber(suggestion.trainNo);
+    setSelectedSuggestionIndex(-1);
 
     // Update URL with selected train number
     const newUrl = new URL(window.location.href);
@@ -125,16 +132,19 @@ const Trainsearch = () => {
   };
 
   const handleInputFocus = () => {
-    if (trainNumber.length === 0) {
-      setShowSuggestions(true);
-    } else if (trainNumber.length >= 2) {
+    setIsInputFocused(true);
+    if (trainNumber.length >= 2 && filteredSuggestions.length > 0) {
       setShowSuggestions(true);
     }
   };
 
   const handleInputBlur = () => {
     // Delay hiding suggestions to allow click events
-    setTimeout(() => setShowSuggestions(false), 300);
+    setTimeout(() => {
+      setShowSuggestions(false);
+      setIsInputFocused(false);
+      setSelectedSuggestionIndex(-1);
+    }, 200);
   };
 
   const handleSubmitWithNumber = async (number: string) => {
@@ -168,9 +178,40 @@ const Trainsearch = () => {
     await handleSubmitWithNumber(trainNumber);
   };
 
-  const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
+  const handleKeyDown = (e: any) => {
+    if (!showSuggestions) {
+      if (e.key === 'Enter') {
+        handleSubmit();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < filteredSuggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < filteredSuggestions.length) {
+          handleSuggestionClick(filteredSuggestions[selectedSuggestionIndex]);
+        } else {
+          handleSubmit();
+        }
+        break;
+      
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
     }
   };
 
@@ -269,30 +310,36 @@ const Trainsearch = () => {
                     type="number"
                     value={trainNumber}
                     onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     onFocus={handleInputFocus}
                     onBlur={handleInputBlur}
                     onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     placeholder="Enter 5-digit train number"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     maxLength={5}
+                    autoComplete="off"
                   />
 
                   {/* Simple Suggestions Dropdown */}
-                  {showSuggestions && (
+                  {showSuggestions && filteredSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
                       <div className="p-2">
                         <div className="text-xs font-medium text-gray-500 px-3 py-2 mb-1">
                           {trainNumber ? `${filteredSuggestions.length} trains found` : 'Popular trains'}
                         </div>
-                        {filteredSuggestions.map((suggestion) => (
+                        {filteredSuggestions.map((suggestion, index) => (
                           <button
                             key={suggestion.trainNo}
                             onMouseDown={(e) => {
                               e.preventDefault(); // Prevent blur from firing
                               handleSuggestionClick(suggestion);
                             }}
-                            className="w-full text-left p-3 hover:bg-gray-50 rounded-md transition-colors"
+                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                            className={`w-full text-left p-3 rounded-md transition-colors ${
+                              selectedSuggestionIndex === index 
+                                ? 'bg-blue-50 border border-blue-200' 
+                                : 'hover:bg-gray-50'
+                            }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -300,7 +347,9 @@ const Trainsearch = () => {
                                   {suggestion.trainNo} - {suggestion.trainName}
                                 </div>
                               </div>
-                              <ArrowRight className="w-4 h-4 text-gray-400" />
+                              <ArrowRight className={`w-4 h-4 ${
+                                selectedSuggestionIndex === index ? 'text-blue-600' : 'text-gray-400'
+                              }`} />
                             </div>
                           </button>
                         ))}
