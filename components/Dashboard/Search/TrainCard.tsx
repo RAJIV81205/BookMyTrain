@@ -319,7 +319,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                 repeat: 1,
                 ease: "power2.out"
               })
-              window.open("YOUR_TRAIN_DETAILS_URL_HERE", "_blank")
+              window.open(`/dashboard/train?train=${data.train_no}`, "_blank")
             }}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-lg"
           >
