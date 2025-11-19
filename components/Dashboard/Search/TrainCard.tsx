@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Clock, Calendar, Users, Train, ChevronDown, ChevronUp , Info} from 'lucide-react'
+import { Clock, Calendar, Users, Train, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { gsap } from 'gsap'
 
 interface SeatClass {
@@ -307,7 +307,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-row items-center gap-4 justify-center">
+        <div className="mt-6 flex flex-row items-center gap-3 justify-center">
 
           {/* Train Details Button (FIRST) */}
           <button
@@ -321,14 +321,14 @@ const TrainCard: React.FC<TrainCardProps> = ({
               })
               window.open(`/dashboard/train?train=${data.train_no}`, "_blank")
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 font-medium hover:shadow-md active:scale-95"
           >
             <Info className="w-4 h-4" />
             <span className="hidden sm:inline">View Train Details</span>
             <span className="sm:hidden">Train Details</span>
           </button>
 
-          {/* Seat Availability Button */}
+          {/* Seat Availability Button (Primary Action) */}
           <button
             onClick={(e) => {
               gsap.to(e.target, {
@@ -340,7 +340,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
               })
               handleCheckAvailability()
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium hover:shadow-md active:scale-95"
           >
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Check Seat Availability</span>
@@ -349,7 +349,6 @@ const TrainCard: React.FC<TrainCardProps> = ({
           </button>
 
         </div>
-
       </div>
 
       {showAvailability && (
