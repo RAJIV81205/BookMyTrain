@@ -18,23 +18,27 @@ const LiveStatus = () => {
   const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
   const [coachPopupData, setCoachPopupData] = useState<any[] | null>(null);
   const [showCoachPopup, setShowCoachPopup] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Filter suggestions based on input
   useEffect(() => {
+    setSelectedSuggestionIndex(-1); // Reset selection when train number changes
+    
     if (trainNumber.length >= 2) {
       const filtered = trainSuggestions.filter(train =>
         train.trainNo.includes(trainNumber) ||
         train.trainName.toLowerCase().includes(trainNumber.toLowerCase())
       );
       setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
+      setShowSuggestions(isInputFocused && filtered.length > 0);
     } else if (trainNumber.length === 0) {
       setFilteredSuggestions(trainSuggestions.slice(0, 8));
       setShowSuggestions(false);
     } else {
       setShowSuggestions(false);
     }
-  }, [trainNumber]);
+  }, [trainNumber, isInputFocused]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -46,19 +50,25 @@ const LiveStatus = () => {
 
   const handleSuggestionClick = (suggestion: typeof trainSuggestions[0]) => {
     setShowSuggestions(false);
+    setIsInputFocused(false);
     setTrainNumber(suggestion.trainNo);
+    setSelectedSuggestionIndex(-1);
   };
 
   const handleInputFocus = () => {
-    if (trainNumber.length === 0) {
-      setShowSuggestions(true);
-    } else if (trainNumber.length >= 2) {
+    setIsInputFocused(true);
+    if (trainNumber.length >= 2 && filteredSuggestions.length > 0) {
       setShowSuggestions(true);
     }
   };
 
   const handleInputBlur = () => {
-    setTimeout(() => setShowSuggestions(false), 300);
+    // Delay hiding suggestions to allow click events
+    setTimeout(() => {
+      setShowSuggestions(false);
+      setIsInputFocused(false);
+      setSelectedSuggestionIndex(-1);
+    }, 200);
   };
 
   const handleSubmit = async () => {
@@ -97,8 +107,39 @@ const LiveStatus = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
+    if (!showSuggestions) {
+      if (e.key === 'Enter') {
+        handleSubmit();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < filteredSuggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < filteredSuggestions.length) {
+          handleSuggestionClick(filteredSuggestions[selectedSuggestionIndex]);
+        } else {
+          handleSubmit();
+        }
+        break;
+      
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
     }
   };
 
@@ -113,99 +154,108 @@ const LiveStatus = () => {
     <div className="min-h-[calc(100vh-4rem)] bg-white py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Train className="w-7 h-7 text-blue-600" />
-            <h1 className="text-2xl font-semibold text-gray-900">Live Train Status</h1>
+        
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-white p-3 rounded-full shadow-sm">
+              <Train className="w-8 h-8 text-gray-700" />
+            </div>
           </div>
-          <p className="text-gray-500 text-sm ml-10">Track your train in real-time</p>
+          <h1 className="text-3xl font-semibold text-gray-900 mb-2">  Live Train Status</h1>
+          <p className="text-gray-600">Track your train in real-time</p>
         </div>
 
         {/* Search Card */}
-        <div className="border border-gray-200 rounded-lg p-6 mb-8">
-          <div className="space-y-4">
-            {/* Train Number Input with Suggestions */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Train Number
-              </label>
-              <input
-                type="number"
-                value={trainNumber}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                placeholder="Enter 5-digit train number"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
-                maxLength={5}
-              />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="relative">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <input
+                  type="number"
+                  value={trainNumber}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                  placeholder="Enter 5-digit train number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  maxLength={5}
+                  autoComplete="off"
+                />
 
-              {/* Suggestions Dropdown */}
-              {showSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-gray-500 px-3 py-2 mb-1">
-                      {trainNumber ? `${filteredSuggestions.length} trains found` : 'Popular trains'}
-                    </div>
-                    {filteredSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.trainNo}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          handleSuggestionClick(suggestion);
-                        }}
-                        className="w-full text-left p-3 hover:bg-gray-50 rounded transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">
-                              {suggestion.trainNo} - {suggestion.trainName}
+                {/* Simple Suggestions Dropdown */}
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-gray-500 px-3 py-2 mb-1">
+                        {trainNumber ? `${filteredSuggestions.length} trains found` : 'Popular trains'}
+                      </div>
+                      {filteredSuggestions.map((suggestion, index) => (
+                        <button
+                          key={suggestion.trainNo}
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent blur from firing
+                            handleSuggestionClick(suggestion);
+                          }}
+                          onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                          className={`w-full text-left p-3 rounded-md transition-colors ${
+                            selectedSuggestionIndex === index 
+                              ? 'bg-blue-50 border border-blue-200' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900 text-sm">
+                                {suggestion.trainNo} - {suggestion.trainName}
+                              </div>
                             </div>
+                            <ArrowRight className={`w-4 h-4 ${
+                              selectedSuggestionIndex === index ? 'text-blue-600' : 'text-gray-400'
+                            }`} />
                           </div>
-                          <ArrowRight className="w-4 h-4 text-gray-400" />
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Submit Button */}
-            <motion.button
-              onClick={handleSubmit}
-              disabled={loading || trainNumber.length !== 5}
-              className={`w-full px-6 py-3 rounded-md font-medium transition-all flex items-center justify-center gap-2 ${loading || trainNumber.length !== 5
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              whileTap={{ scale: 0.98 }}
-            >
-              {loading ? (
-                <>
-                  <motion.div
-                    className="rounded-full h-4 w-4 border-2 border-white border-t-transparent"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  />
-                  Fetching Live Status...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4" />
-                  Track Train
-                </>
-              )}
-            </motion.button>
+              <motion.button
+                onClick={handleSubmit}
+                disabled={loading || trainNumber.length !== 5}
+                className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${loading || trainNumber.length !== 5
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
+                  }`}
+                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: loading || trainNumber.length !== 5 ? 1 : 1.02 }}
+              >
+                {loading ? (
+                  <>
+                    <motion.div
+                      className="rounded-full h-4 w-4 border-2 border-white border-t-transparent"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4" />
+                    Track Train
+                  </>
+                )}
+              </motion.button>
+            </div>
           </div>
 
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 p-3 bg-red-50 border border-red-100 rounded-md text-red-700 text-sm flex items-center gap-2"
+              className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2"
             >
               <AlertCircle className="w-4 h-4" />
               {error}
@@ -446,7 +496,7 @@ const LiveStatus = () => {
                                   )}
                                 </div>
 
-                                
+
 
 
                                 {/* Right Side - Departure Timings */}
