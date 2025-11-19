@@ -1,17 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
-
   { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
   { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
   { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
   { label: "Train Map", path: '/dashboard/livemap', icon: Map, title: "Train Map" }
-
 ];
 
 interface SidebarProps {
@@ -24,11 +22,34 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
 
   const [desktopOpen, setDesktopOpen] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0 });
+  const navRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleNavigation = (path: string) => {
     router.push(path);
-    onClose(); // Close sidebar on mobile after navigation
+    onClose();
   };
+
+  // Update active index based on pathname
+  useEffect(() => {
+    const index = navItems.findIndex(item => item.path === pathname);
+    if (index !== -1) {
+      setActiveIndex(index);
+    }
+  }, [pathname]);
+
+  // Update indicator position
+  useEffect(() => {
+    const activeButton = navRefs.current[activeIndex];
+    if (activeButton) {
+      const { offsetTop, offsetHeight } = activeButton;
+      setIndicatorStyle({
+        top: offsetTop,
+        height: offsetHeight
+      });
+    }
+  }, [activeIndex, desktopOpen]);
 
   // Auto-close desktop sidebar when visiting livemap
   useEffect(() => {
@@ -41,7 +62,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
-    }, 300); // Match the transition duration
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [desktopOpen]);
@@ -57,13 +78,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Header with Logo + Toggle */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
             {desktopOpen && (
-              <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
+              <h1 className="text-xl font-bold text-blue-600 transition-opacity duration-300">BookMyTrain</h1>
             )}
             <button
               onClick={() => {
                 setDesktopOpen(!desktopOpen);
               }}
-              className="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              className="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             >
               {desktopOpen ? (
                 <PanelRightOpen />
@@ -74,23 +95,34 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-2 py-6 space-y-3">
-            {navItems.map((item) => {
+          <nav className="flex-1 px-2 py-6 space-y-3 relative">
+            {/* Animated Background Indicator */}
+            <div
+              className="absolute left-2 right-2 bg-blue-50 border border-blue-700/50 rounded-lg transition-all duration-300 ease-out"
+              style={{
+                top: `${indicatorStyle.top}px`,
+                height: `${indicatorStyle.height}px`,
+                opacity: indicatorStyle.height > 0 ? 1 : 0
+              }}
+            />
+
+            {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
 
               return (
                 <button
                   key={item.path}
+                  ref={el => { navRefs.current[index] = el; }}
                   onClick={() => router.push(item.path)}
                   title={item.title}
-                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors cursor-pointer
+                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-lg transition-all duration-200 cursor-pointer relative z-10
                   ${isActive
-                      ? 'bg-blue-50 text-blue-700 border border-blue-700/50'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className={`h-6 w-6 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                   {desktopOpen && <span className="ml-3 truncate">{item.label}</span>}
                 </button>
               );
@@ -99,7 +131,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       </div>
 
-      {/* Mobile Sidebar (UNCHANGED) */}
+      {/* Mobile Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
         <div className="flex flex-col h-full">
@@ -108,7 +140,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <h1 className="text-xl font-bold text-blue-600">BookMyTrain</h1>
             <button
               onClick={onClose}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -130,12 +162,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <button
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-700 border-2 border-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-300 ${isActive
+                    ? 'bg-blue-50 text-blue-700 border-2 border-blue-700 scale-105'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:scale-102'
                     }`}
                 >
-                  <Icon className="mr-3 h-6 w-6" />
+                  <Icon className={`mr-3 h-6 w-6 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                   {item.label}
                 </button>
               );
