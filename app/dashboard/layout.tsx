@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-import Sidebar from '@/components/Dashboard/Sidebar';
-import DashboardHeader from '@/components/Dashboard/DashboardHeader';
-import { User } from '@/types/auth';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import Sidebar from "@/components/Dashboard/Sidebar";
+import DashboardHeader from "@/components/Dashboard/DashboardHeader";
+import { User } from "@/types/auth";
 
 export default function DashboardLayout({
   children,
@@ -20,48 +20,45 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem('token') 
+      const token = localStorage.getItem("token");
 
       if (!token) {
-        toast.error('No authentication token found. Please login.');
-        router.push('/auth/login');
+        toast.error("No authentication token found. Please login.");
+        router.push("/auth/login");
         setIsLoading(false);
         return;
       }
 
-      const verificationPromise = fetch('/api/auth/verify', {
-        method: 'POST',
+      const verificationPromise = fetch("/api/auth/verify", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }).then(async (response) => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error || 'Session expired';
+          const errorMessage = errorData.error || "Session expired";
           throw new Error(errorMessage);
         }
         return response.json();
       });
 
       try {
-        const data = await toast.promise(
-          verificationPromise,
-          {
-            loading: 'Verifying your session...',
-            success: 'Welcome back!',
-            error: (err) => `${err.message}. Please login again.`,
-          }
-        );
+        const data = await toast.promise(verificationPromise, {
+          loading: "Verifying your session...",
+          success: "Welcome back!",
+          error: (err) => `${err.message}. Please login again.`,
+        });
 
         setIsVerified(true);
         if (data.user) {
           setUser(data.user);
         }
       } catch (error) {
-        console.error('Token verification failed:', error);
-        localStorage.removeItem('token');
-        router.push('/auth/login');
+        console.error("Token verification failed:", error);
+        localStorage.removeItem("token");
+        router.push("/auth/login");
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +70,7 @@ export default function DashboardLayout({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="loader"></div>
       </div>
     );
   }
@@ -91,20 +88,15 @@ export default function DashboardLayout({
       )}
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <DashboardHeader 
-          user={user} 
+        <DashboardHeader
+          user={user}
           onMenuClick={() => setIsSidebarOpen(true)}
         />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );
