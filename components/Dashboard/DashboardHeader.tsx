@@ -48,13 +48,13 @@ export default function DashboardHeader({ user, onMenuClick }: DashboardHeaderPr
         {/* Right side - Profile */}
         <div className="flex items-center space-x-3">
           {/* Profile Avatar */}
-          <div className="flex items-center space-x-3 lg:border lg:border-gray-200 lg:py-1 lg:px-2 lg:bg-gray-100 rounded-full ">
+          <div className="flex items-center space-x-3 lg:border lg:border-gray-200 lg:py-1 lg:px-3 lg:bg-gray-100 rounded-full ">
             <div className="w-8 h-8 lg:w-8 lg:h-8 bg-gray-600 rounded-full flex items-center justify-center">
               <span className="text-xs lg:text-sm font-medium text-white">
                 {userInitials}
               </span>
             </div>
-            <span className="hidden sm:block text-sm lg:text-base font-medium text-gray-700">
+            <span className="hidden sm:block text-sm lg:text-base font-medium text-gray-700 ">
               {userName}
             </span>
           </div>
