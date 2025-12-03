@@ -239,6 +239,10 @@ function parseTrainLiveHTML(html: string) {
   }
 }
 
+function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
+
+}
+
 async function generateToken() {
   const t = Date.now();
   const res = await fetch(`https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`, {
@@ -267,6 +271,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const trainNumber = searchParams.get("trainNumber");
+    const trainDate = searchParams.get("trainDate") || "";
 
     console.log('📋 [LiveStatus API] Train Number:', trainNumber);
 
@@ -330,17 +335,17 @@ export async function GET(request: Request) {
     }
 
     const html = await response.text();
-    console.log('📄 [LiveStatus API] HTML Response Length:', html.length, 'characters');
-    // console.log(html)
+
+
 
     // Parse the HTML response
-    console.log('🔍 [LiveStatus API] Parsing HTML...');
-    const parsedData = parseTrainLiveHTML(html);
+    if (trainDate) {
+      const parsedData = parseTrainLiveHTMLwithDate(html, trainDate);
+      return NextResponse.json(parsedData, { status: 200 });
+    } else {
+      const parsedData = parseTrainLiveHTML(html);
+    }
 
-    console.log('✅ [LiveStatus API] Parsing Complete');
-    console.log('🚆 [LiveStatus API] Train:', parsedData.trainNo, '-', parsedData.trainName);
-    console.log('📊 [LiveStatus API] Total Runs:', parsedData.totalRuns);
-    console.log('📍 [LiveStatus API] Available Dates:', parsedData.availableDates);
 
     // Log station count for each run
     Object.entries(parsedData.runs).forEach(([date, run]: [string, any]) => {
