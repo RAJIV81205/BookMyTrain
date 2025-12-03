@@ -2,23 +2,15 @@ import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
 
 function parseTrainLiveHTML(html: string) {
-  console.log('🔧 [Parser] Starting HTML parsing...');
-
   try {
     const $ = cheerio.load(html);
 
     // Extract train number and name from the blue header panel
     const trainHeader = $(".w3-panel.w3-round.w3-blue h3").eq(1).text().trim();
 
-    console.log('🏷️  [Parser] Train Header:', trainHeader);
-
     const trainMatch = trainHeader.match(/(\d{5})\s+(.+)/);
     const trainNo = trainMatch ? trainMatch[1] : "";
     const trainName = trainMatch ? trainMatch[2] : "";
-
-    if (!trainNo || !trainName) {
-      console.warn('⚠️  [Parser] Warning: Could not extract train number or name from header');
-    }
 
     // Extract all available dates from navigation tabs
     const availableDates: string[] = [];
@@ -27,12 +19,8 @@ function parseTrainLiveHTML(html: string) {
       if (dateText) availableDates.push(dateText);
     });
 
-    console.log('📅 [Parser] Found', availableDates.length, 'available dates:', availableDates);
-
     // Parse each tab pane (each date's journey)
     const runs: any = {};
-    const tabPanes = $(".tab-pane");
-    console.log('📑 [Parser] Found', tabPanes.length, 'tab panes to process');
 
     $(".tab-pane").each((paneIndex, pane) => {
       const $pane = $(pane);
@@ -47,23 +35,15 @@ function parseTrainLiveHTML(html: string) {
       });
 
       if (!startDate) {
-        console.warn(`⚠️  [Parser] Pane ${paneIndex}: No date found for pane ID: ${paneId}`);
         return;
       }
-
-      console.log(`📋 [Parser] Processing pane ${paneIndex + 1}/${tabPanes.length} - Date: ${startDate}`);
 
       // Extract status and last update information
       const statusNote = $pane.find("h6").first().text().trim();
       const lastUpdateText = $pane.find('font[size="2pt"]').first().text().trim();
 
-      console.log(`  ℹ️  [Parser] Status: ${statusNote}`);
-      console.log(`  🕐 [Parser] Last Update: ${lastUpdateText}`);
-
       // Parse all station cards
       const stations: any[] = [];
-      const stationCards = $pane.find(".w3-card-2");
-      console.log(`  🚉 [Parser] Found ${stationCards.length} station cards`);
 
       $pane.find(".w3-card-2").each((cardIndex, card) => {
         const $card = $(card);
@@ -189,12 +169,8 @@ function parseTrainLiveHTML(html: string) {
             },
             coachPosition,
           });
-        } else {
-          console.warn(`  ⚠️  [Parser] Card ${cardIndex}: Skipped - insufficient data`);
         }
       });
-
-      console.log(`  ✅ [Parser] Parsed ${stations.length} valid stations for ${startDate}`);
 
       runs[startDate] = {
         statusNote,
@@ -204,8 +180,6 @@ function parseTrainLiveHTML(html: string) {
       };
     });
 
-    console.log('📊 [Parser] Total runs parsed:', Object.keys(runs).length);
-
     // Filter runs to only include those that are running or completed (exclude "Yet to start")
     const filteredRuns: any = {};
     Object.entries(runs).forEach(([date, run]: [string, any]) => {
@@ -213,13 +187,8 @@ function parseTrainLiveHTML(html: string) {
 
       if (!isYetToStart) {
         filteredRuns[date] = run;
-        console.log(`  ✅ [Parser] Including run: ${date} - Status: ${run.statusNote}`);
-      } else {
-        console.log(`  ⏭️  [Parser] Excluding run: ${date} - Status: Yet to start`);
       }
     });
-
-    console.log('🎯 [Parser] Final filtered runs:', Object.keys(filteredRuns).length);
 
     const result = {
       trainNo,
@@ -229,7 +198,6 @@ function parseTrainLiveHTML(html: string) {
       runs: filteredRuns,
     };
 
-    console.log('✅ [Parser] Parsing completed successfully');
     return result;
 
   } catch (parseError: any) {
@@ -240,22 +208,15 @@ function parseTrainLiveHTML(html: string) {
 }
 
 function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
-  console.log('🔧 [Parser-Date] Starting HTML parsing for specific date:', trainDate);
-
   try {
     const $ = cheerio.load(html);
 
     // Extract train number and name from the blue header panel
     const trainHeader = $(".w3-panel.w3-round.w3-blue h3").eq(1).text().trim();
-    console.log('🏷️  [Parser-Date] Train Header:', trainHeader);
 
     const trainMatch = trainHeader.match(/(\d{5})\s+(.+)/);
     const trainNo = trainMatch ? trainMatch[1] : "";
     const trainName = trainMatch ? trainMatch[2] : "";
-
-    if (!trainNo || !trainName) {
-      console.warn('⚠️  [Parser-Date] Warning: Could not extract train number or name from header');
-    }
 
     // Find the specific tab pane for the requested date
     let targetPaneId = "";
@@ -274,8 +235,6 @@ function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
       throw new Error(`Train data not available for date: ${trainDate}`);
     }
 
-    console.log('📋 [Parser-Date] Found pane ID for date:', targetPaneId);
-
     // Get the specific tab pane
     const $pane = $(`#${targetPaneId}`);
     if (!$pane.length) {
@@ -287,15 +246,10 @@ function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
     const statusNote = $pane.find("h6").first().text().trim();
     const lastUpdateText = $pane.find('font[size="2pt"]').first().text().trim();
 
-    console.log(`  ℹ️  [Parser-Date] Status: ${statusNote}`);
-    console.log(`  🕐 [Parser-Date] Last Update: ${lastUpdateText}`);
-
     // Parse all station cards
     const stations: any[] = [];
-    const stationCards = $pane.find(".w3-card-2");
-    console.log(`  🚉 [Parser-Date] Found ${stationCards.length} station cards`);
 
-    $pane.find(".w3-card-2").each((cardIndex, card) => {
+    $pane.find(".w3-card-2").each((_, card) => {
       const $card = $(card);
 
       // Extract arrival time (left side)
@@ -419,12 +373,8 @@ function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
           },
           coachPosition,
         });
-      } else {
-        console.warn(`  ⚠️  [Parser-Date] Card ${cardIndex}: Skipped - insufficient data`);
       }
     });
-
-    console.log(`  ✅ [Parser-Date] Parsed ${stations.length} valid stations for ${trainDate}`);
 
     const result = {
       trainNo,
@@ -436,7 +386,6 @@ function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
       stations,
     };
 
-    console.log('✅ [Parser-Date] Parsing completed successfully');
     return result;
 
   } catch (parseError: any) {
@@ -468,15 +417,10 @@ async function generateToken() {
 
 
 export async function GET(request: Request) {
-  const startTime = Date.now();
-  console.log('🚂 [LiveStatus API] Request received');
-
   try {
     const { searchParams } = new URL(request.url);
     const trainNumber = searchParams.get("trainNumber");
     const trainDate = searchParams.get("trainDate") || "";
-
-
 
     if (!trainNumber) {
       console.error('❌ [LiveStatus API] Error: Train number is missing');
@@ -503,7 +447,6 @@ export async function GET(request: Request) {
       year: "numeric",
     }).replace(/ /g, "-");
 
-
     // Fetch from Indian Railway API
     const { cookie, tokenName, tokenValue } = await generateToken();
 
@@ -528,15 +471,11 @@ export async function GET(request: Request) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "Referer": process.env.LIVE_STATUS_LINK_REFERER as string,
-          "Cookie": cookie,  // attach the same session cookie
+          "Cookie": cookie,
         },
         body: formData.toString(),
       }
     );
-
-
-
-    console.log('📥 [LiveStatus API] Response Status:', response.status, response.statusText);
 
     if (!response.ok) {
       console.error('❌ [LiveStatus API] HTTP Error:', response.status, response.statusText);
@@ -545,28 +484,16 @@ export async function GET(request: Request) {
 
     const html = await response.text();
 
-
-
     // Parse the HTML response
     let parsedData;
     if (trainDate) {
       parsedData = parseTrainLiveHTMLwithDate(html, trainDate);
-      console.log(`  📅 ${parsedData.date}: ${parsedData.totalStations} stations`);
     } else {
       parsedData = parseTrainLiveHTML(html);
-      // Log station count for each run
-      Object.entries(parsedData.runs).forEach(([date, run]: [string, any]) => {
-        console.log(`  📅 ${date}: ${run.totalStations} stations`);
-      });
     }
-
-    const duration = Date.now() - startTime;
-    console.log(`⏱️  [LiveStatus API] Request completed in ${duration}ms`);
 
     return NextResponse.json(parsedData, { status: 200 });
   } catch (err: any) {
-    const duration = Date.now() - startTime;
-    console.error('❌ [LiveStatus API] Error occurred after', duration, 'ms');
     console.error('❌ [LiveStatus API] Error Type:', err.name);
     console.error('❌ [LiveStatus API] Error Message:', err.message);
     console.error('❌ [LiveStatus API] Error Stack:', err.stack);
