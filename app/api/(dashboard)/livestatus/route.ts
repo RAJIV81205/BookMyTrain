@@ -476,7 +476,7 @@ export async function GET(request: Request) {
     const trainNumber = searchParams.get("trainNumber");
     const trainDate = searchParams.get("trainDate") || "";
 
-    console.log('📋 [LiveStatus API] Train Number:', trainNumber);
+
 
     if (!trainNumber) {
       console.error('❌ [LiveStatus API] Error: Train number is missing');
@@ -503,7 +503,6 @@ export async function GET(request: Request) {
       year: "numeric",
     }).replace(/ /g, "-");
 
-    console.log('📅 [LiveStatus API] Formatted Date:', formattedDate);
 
     // Fetch from Indian Railway API
     const { cookie, tokenName, tokenValue } = await generateToken();
@@ -515,13 +514,20 @@ export async function GET(request: Request) {
       [tokenName]: tokenValue,
     });
 
+    if(!process.env.LIVE_STATUS_LINK || !process.env.LIVE_STATUS_LINK_REFERER) {
+      return NextResponse.json(
+        { error: "Missing environment variables" },
+        { status: 500 }
+      );
+    }
+
     const response = await fetch(
-      "https://enquiry.indianrail.gov.in/mntes/tr?opt=TrainRunning&subOpt=FindRunningInstance",
+      process.env.LIVE_STATUS_LINK as string,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "Referer": "https://enquiry.indianrail.gov.in/mntes/",
+          "Referer": process.env.LIVE_STATUS_LINK_REFERER as string,
           "Cookie": cookie,  // attach the same session cookie
         },
         body: formData.toString(),
