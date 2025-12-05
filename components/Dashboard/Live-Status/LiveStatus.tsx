@@ -29,6 +29,7 @@ const LiveStatus = () => {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const currentStatusRef = React.useRef<HTMLDivElement>(null);
+  const [scrollTrigger, setScrollTrigger] = useState(0);
 
   // Filter suggestions based on input
   useEffect(() => {
@@ -83,7 +84,7 @@ const LiveStatus = () => {
 
   // Scroll to current status when data loads or date changes
   useEffect(() => {
-    if (selectedRunDate && currentStatusRef.current) {
+    if (scrollTrigger > 0 && currentStatusRef.current) {
       // Delay to ensure DOM is rendered
       setTimeout(() => {
         currentStatusRef.current?.scrollIntoView({
@@ -92,7 +93,7 @@ const LiveStatus = () => {
         });
       }, 500);
     }
-  }, [selectedRunDate]);
+  }, [scrollTrigger]);
 
   const handleSubmit = async () => {
     if (trainNumber.length !== 5) {
@@ -379,10 +380,12 @@ const LiveStatus = () => {
               liveStatus.runs &&
               liveStatus.runs[selectedRunDate] && (
                 <motion.div
+                  key={selectedRunDate}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.3 }}
                   className="border border-gray-200 rounded-lg p-6"
+                  onAnimationComplete={() => setScrollTrigger(prev => prev + 1)}
                 >
                   {(() => {
                     const run = liveStatus.runs[selectedRunDate];
