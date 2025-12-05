@@ -32,7 +32,7 @@ function getClientIp(req: NextRequest): string {
   return "unknown";
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Only protect /api routes (can expand to others if you want)
