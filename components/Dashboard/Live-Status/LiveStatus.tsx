@@ -85,13 +85,13 @@ const LiveStatus = () => {
   // Scroll to current status when data loads or date changes
   useEffect(() => {
     if (scrollTrigger > 0 && currentStatusRef.current) {
-      // Delay to ensure DOM is rendered
+      // Delay to ensure DOM is rendered and animations complete
       setTimeout(() => {
         currentStatusRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "center",
         });
-      }, 500);
+      }, 800);
     }
   }, [scrollTrigger]);
 
