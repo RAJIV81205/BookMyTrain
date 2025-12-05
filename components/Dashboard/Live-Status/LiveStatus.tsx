@@ -374,339 +374,372 @@ const LiveStatus = () => {
                     </button>
                   ))}
                 </div>
-              </motion.div>
-            )}
 
-            {/* Run Details for Selected Date */}
-            {selectedRunDate &&
-              liveStatus.runs &&
-              liveStatus.runs[selectedRunDate] && (
-                <motion.div
-                  key={selectedRunDate}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.3 }}
-                  className="border border-gray-200 rounded-lg p-6"
-                  onAnimationComplete={() => setScrollTrigger(prev => prev + 1)}
-                >
-                  {(() => {
-                    const run = liveStatus.runs[selectedRunDate];
-                    return (
-                      <>
-                        {/* Run Header */}
-                        <div className="mb-8">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Journey: {selectedRunDate}
-                            </h3>
-                            {run.lastUpdate && (
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500">
-                                  Last Updated
+                {/* Run Details for Selected Date */}
+                {selectedRunDate &&
+                  liveStatus.runs &&
+                  liveStatus.runs[selectedRunDate] && (
+                    <motion.div
+                      key={selectedRunDate}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                      className="border border-gray-200 rounded-lg p-6"
+                      onAnimationComplete={() =>
+                        setScrollTrigger((prev) => prev + 1)
+                      }
+                    >
+                      {(() => {
+                        const run = liveStatus.runs[selectedRunDate];
+                        return (
+                          <>
+                            {/* Run Header */}
+                            <div className="mb-8">
+                              <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                  Journey: {selectedRunDate}
+                                </h3>
+                                {run.lastUpdate && (
+                                  <div className="text-right">
+                                    <p className="text-xs text-gray-500">
+                                      Last Updated
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {run.lastUpdate}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              {run.statusNote && (
+                                <p className="text-sm text-gray-600">
+                                  {run.statusNote}
                                 </p>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {run.lastUpdate}
-                                </p>
+                              )}
+                            </div>
+
+                            {/* Station-wise Status with Track Visualization */}
+                            {run.stations && run.stations.length > 0 && (
+                              <div className="space-y-0">
+                                {run.stations.map(
+                                  (station: any, index: number) => {
+                                    // Check if this is a status update row
+                                    const isStatusUpdate =
+                                      station.stationName &&
+                                      (station.stationName
+                                        .toLowerCase()
+                                        .includes("arrived at") ||
+                                        station.stationName
+                                          .toLowerCase()
+                                          .includes("departed from") ||
+                                        station.stationName
+                                          .toLowerCase()
+                                          .includes("updated on"));
+
+                                    if (isStatusUpdate) {
+                                      return (
+                                        <motion.div
+                                          key={index}
+                                          ref={currentStatusRef}
+                                          initial={{
+                                            opacity: 0,
+                                            scale: 0.9,
+                                            y: 50,
+                                          }}
+                                          whileInView={{
+                                            opacity: 1,
+                                            scale: 1,
+                                            y: 0,
+                                          }}
+                                          viewport={{
+                                            once: true,
+                                            margin: "-50px",
+                                          }}
+                                          transition={{
+                                            duration: 0.4,
+                                            ease: "easeOut",
+                                          }}
+                                          className="relative flex items-center justify-center py-6 my-6"
+                                        >
+                                          <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t-2 border-blue-200"></div>
+                                          </div>
+                                          <div className="relative flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-blue-600 shadow-md">
+                                            <MapPin className="w-5 h-5 text-blue-600" />
+                                            <p className="font-semibold text-blue-900 text-sm">
+                                              {station.stationName}
+                                            </p>
+                                          </div>
+                                        </motion.div>
+                                      );
+                                    }
+
+                                    // Regular station row
+                                    const hasArrived =
+                                      station.arrival?.actual &&
+                                      station.arrival.actual !== "-";
+                                    const hasDeparted =
+                                      station.departure?.actual &&
+                                      station.departure.actual !== "-";
+                                    const isCurrentStation =
+                                      hasArrived && !hasDeparted;
+                                    const isLastStation =
+                                      index === run.stations.length - 1;
+
+                                    // Helper function to extract time from datetime string
+                                    const extractTime = (timeStr: string) => {
+                                      if (!timeStr || timeStr === "-")
+                                        return timeStr;
+                                      // Remove date part if present (e.g., "06:01 14-Oct" -> "06:01")
+                                      return timeStr.split(" ")[0];
+                                    };
+
+                                    return (
+                                      <motion.div
+                                        key={index}
+                                        initial={{
+                                          opacity: 0.5,
+                                          scale: 0.9,
+                                          y: 30,
+                                        }}
+                                        whileInView={{
+                                          opacity: 1,
+                                          scale: 1,
+                                          y: 0,
+                                        }}
+                                        viewport={{
+                                          once: true,
+                                          margin: "-100px",
+                                        }}
+                                        transition={{
+                                          duration: 0.5,
+                                          ease: "easeOut",
+                                        }}
+                                        className="relative flex items-start gap-6"
+                                      >
+                                        {/* Left Side - Arrival Timings */}
+                                        <div className="w-20 text-right pt-1">
+                                          {station.arrival?.scheduled &&
+                                            station.arrival.scheduled !==
+                                              "-" && (
+                                              <div>
+                                                <p className="text-gray-900 font-medium text-sm">
+                                                  {extractTime(
+                                                    station.arrival.scheduled
+                                                  )}
+                                                </p>
+                                                {station.arrival?.actual &&
+                                                  station.arrival.actual !==
+                                                    "-" && (
+                                                    <p
+                                                      className={`text-sm mt-0.5 font-medium ${
+                                                        station.arrival.delay &&
+                                                        !station.arrival.delay
+                                                          .toLowerCase()
+                                                          .includes("on time")
+                                                          ? "text-red-600"
+                                                          : "text-green-600"
+                                                      }`}
+                                                    >
+                                                      {extractTime(
+                                                        station.arrival.actual
+                                                      )}
+                                                    </p>
+                                                  )}
+                                                {station.arrival?.delay && (
+                                                  <p
+                                                    className={`text-xs mt-0.5 ${
+                                                      station.arrival.delay &&
+                                                      !station.arrival.delay
+                                                        .toLowerCase()
+                                                        .includes("on time")
+                                                        ? "text-red-600"
+                                                        : "text-green-600"
+                                                    }`}
+                                                  >
+                                                    {station.arrival.delay}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            )}
+                                        </div>
+
+                                        {/* Center - Track Line */}
+                                        <div className="flex flex-col items-center">
+                                          {/* Station Point */}
+                                          <div
+                                            className={`w-4 h-4 rounded-full border-2 z-10 ${
+                                              isCurrentStation
+                                                ? "bg-blue-600 border-blue-600 shadow-lg"
+                                                : hasDeparted
+                                                ? "bg-blue-400 border-blue-400"
+                                                : "bg-white border-gray-300"
+                                            }`}
+                                          />
+
+                                          {/* Vertical Track */}
+                                          {!isLastStation && (
+                                            <div
+                                              className={`w-0.5 flex-1 min-h-[80px] ${
+                                                hasDeparted
+                                                  ? "bg-blue-400"
+                                                  : "bg-gray-200"
+                                              }`}
+                                            />
+                                          )}
+                                        </div>
+
+                                        {/* Middle - Station Details */}
+                                        <div className="flex-1 pb-8">
+                                          <div className="flex items-baseline gap-2 mb-1">
+                                            <h4
+                                              className={`font-semibold ${
+                                                isCurrentStation
+                                                  ? "text-gray-900 text-lg"
+                                                  : "text-gray-900"
+                                              }`}
+                                            >
+                                              {station.stationName}
+                                            </h4>
+                                            <span className="text-sm text-gray-500">
+                                              {station.stationCode}
+                                            </span>
+                                          </div>
+
+                                          {isCurrentStation && (
+                                            <span className="inline-block px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full mb-2">
+                                              Current Location
+                                            </span>
+                                          )}
+
+                                          <div className="flex flex-wrap gap-4 text-sm mt-2">
+                                            {station.platform && (
+                                              <div>
+                                                <span className="text-gray-500">
+                                                  Platform:
+                                                </span>
+                                                <span className="ml-1 text-gray-900 font-medium">
+                                                  {station.platform}
+                                                </span>
+                                              </div>
+                                            )}
+                                            {station.distanceKm && (
+                                              <div>
+                                                <span className="text-gray-500">
+                                                  Distance:
+                                                </span>
+                                                <span className="ml-1 text-gray-900 font-medium">
+                                                  {station.distanceKm} km
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Coach Position Button (show only if coachPosition available) */}
+                                        <div className="flex-1 flex justify-center items-center px-5 h-full">
+                                          {Array.isArray(
+                                            station.coachPosition
+                                          ) &&
+                                          station.coachPosition.length > 0 ? (
+                                            <button
+                                              className="bg-blue-500 text-white rounded-md px-3 py-1 text-sm hover:bg-blue-600 transition"
+                                              onClick={() =>
+                                                handleCoachPopup(
+                                                  station.coachPosition
+                                                )
+                                              }
+                                            >
+                                              Coach Position
+                                            </button>
+                                          ) : (
+                                            <button
+                                              className="bg-gray-200 text-gray-500 rounded-md px-3 py-1 text-sm cursor-not-allowed"
+                                              disabled
+                                              title="No coach data for this station"
+                                            >
+                                              No Coach Data
+                                            </button>
+                                          )}
+                                        </div>
+
+                                        {/* Right Side - Departure Timings */}
+                                        <div className="w-20 text-left pt-1">
+                                          {station.departure?.scheduled &&
+                                            station.departure.scheduled !==
+                                              "-" && (
+                                              <div>
+                                                <p className="text-gray-900 font-medium text-sm">
+                                                  {extractTime(
+                                                    station.departure.scheduled
+                                                  )}
+                                                </p>
+                                                {station.departure?.actual &&
+                                                  station.departure.actual !==
+                                                    "-" && (
+                                                    <p
+                                                      className={`text-sm mt-0.5 font-medium ${
+                                                        station.departure
+                                                          .delay &&
+                                                        !station.departure.delay
+                                                          .toLowerCase()
+                                                          .includes("on time")
+                                                          ? "text-red-600"
+                                                          : "text-green-600"
+                                                      }`}
+                                                    >
+                                                      {extractTime(
+                                                        station.departure.actual
+                                                      )}
+                                                    </p>
+                                                  )}
+                                                {station.departure?.delay && (
+                                                  <p
+                                                    className={`text-xs mt-0.5 font-medium ${
+                                                      station.departure.delay &&
+                                                      !station.departure.delay
+                                                        .toLowerCase()
+                                                        .includes("on time")
+                                                        ? "text-red-600"
+                                                        : "text-green-600"
+                                                    }`}
+                                                  >
+                                                    {station.departure.delay}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            )}
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  }
+                                )}
                               </div>
                             )}
-                          </div>
-                          {run.statusNote && (
-                            <p className="text-sm text-gray-600">
-                              {run.statusNote}
-                            </p>
-                          )}
-                        </div>
+                          </>
+                        );
+                      })()}
+                    </motion.div>
+                  )}
 
-                        {/* Station-wise Status with Track Visualization */}
-                        {run.stations && run.stations.length > 0 && (
-                          <div className="space-y-0">
-                            {run.stations.map((station: any, index: number) => {
-                              // Check if this is a status update row
-                              const isStatusUpdate =
-                                station.stationName &&
-                                (station.stationName
-                                  .toLowerCase()
-                                  .includes("arrived at") ||
-                                  station.stationName
-                                    .toLowerCase()
-                                    .includes("departed from") ||
-                                  station.stationName
-                                    .toLowerCase()
-                                    .includes("updated on"));
-
-                              if (isStatusUpdate) {
-                                return (
-                                  <motion.div
-                                    key={index}
-                                    ref={currentStatusRef}
-                                    initial={{ opacity: 0, scale: 0.9 , y:50 }}
-                                    whileInView={{ opacity: 1, scale: 1 , y:0}}
-                                    viewport={{ once: true, margin: "-50px" }}
-                                    transition={{
-                                      duration: 0.4,
-                                      ease: "easeOut",
-                                    }}
-                                    className="relative flex items-center justify-center py-6 my-6"
-                                  >
-                                    <div className="absolute inset-0 flex items-center">
-                                      <div className="w-full border-t-2 border-blue-200"></div>
-                                    </div>
-                                    <div className="relative flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-blue-600 shadow-md">
-                                      <MapPin className="w-5 h-5 text-blue-600" />
-                                      <p className="font-semibold text-blue-900 text-sm">
-                                        {station.stationName}
-                                      </p>
-                                    </div>
-                                  </motion.div>
-                                );
-                              }
-
-                              // Regular station row
-                              const hasArrived =
-                                station.arrival?.actual &&
-                                station.arrival.actual !== "-";
-                              const hasDeparted =
-                                station.departure?.actual &&
-                                station.departure.actual !== "-";
-                              const isCurrentStation =
-                                hasArrived && !hasDeparted;
-                              const isLastStation =
-                                index === run.stations.length - 1;
-
-                              // Helper function to extract time from datetime string
-                              const extractTime = (timeStr: string) => {
-                                if (!timeStr || timeStr === "-") return timeStr;
-                                // Remove date part if present (e.g., "06:01 14-Oct" -> "06:01")
-                                return timeStr.split(" ")[0];
-                              };
-
-                              return (
-                                <motion.div
-                                  key={index}
-                                  initial={{ opacity: 0.5,scale:0.9, y: 30 }}
-                                  whileInView={{ opacity: 1,scale:1, y: 0 }}
-                                  viewport={{ once: true, margin: "-100px" }}
-                                  transition={{
-                                    duration: 0.5,
-                                    ease: "easeOut",
-                                  }}
-                                  className="relative flex items-start gap-6"
-                                >
-                                  {/* Left Side - Arrival Timings */}
-                                  <div className="w-20 text-right pt-1">
-                                    {station.arrival?.scheduled &&
-                                      station.arrival.scheduled !== "-" && (
-                                        <div>
-                                          <p className="text-gray-900 font-medium text-sm">
-                                            {extractTime(
-                                              station.arrival.scheduled
-                                            )}
-                                          </p>
-                                          {station.arrival?.actual &&
-                                            station.arrival.actual !== "-" && (
-                                              <p
-                                                className={`text-sm mt-0.5 font-medium ${
-                                                  station.arrival.delay &&
-                                                  !station.arrival.delay
-                                                    .toLowerCase()
-                                                    .includes("on time")
-                                                    ? "text-red-600"
-                                                    : "text-green-600"
-                                                }`}
-                                              >
-                                                {extractTime(
-                                                  station.arrival.actual
-                                                )}
-                                              </p>
-                                            )}
-                                          {station.arrival?.delay && (
-                                            <p
-                                              className={`text-xs mt-0.5 ${
-                                                station.arrival.delay &&
-                                                !station.arrival.delay
-                                                  .toLowerCase()
-                                                  .includes("on time")
-                                                  ? "text-red-600"
-                                                  : "text-green-600"
-                                              }`}
-                                            >
-                                              {station.arrival.delay}
-                                            </p>
-                                          )}
-                                        </div>
-                                      )}
-                                  </div>
-
-                                  {/* Center - Track Line */}
-                                  <div className="flex flex-col items-center">
-                                    {/* Station Point */}
-                                    <div
-                                      className={`w-4 h-4 rounded-full border-2 z-10 ${
-                                        isCurrentStation
-                                          ? "bg-blue-600 border-blue-600 shadow-lg"
-                                          : hasDeparted
-                                          ? "bg-blue-400 border-blue-400"
-                                          : "bg-white border-gray-300"
-                                      }`}
-                                    />
-
-                                    {/* Vertical Track */}
-                                    {!isLastStation && (
-                                      <div
-                                        className={`w-0.5 flex-1 min-h-[80px] ${
-                                          hasDeparted
-                                            ? "bg-blue-400"
-                                            : "bg-gray-200"
-                                        }`}
-                                      />
-                                    )}
-                                  </div>
-
-                                  {/* Middle - Station Details */}
-                                  <div className="flex-1 pb-8">
-                                    <div className="flex items-baseline gap-2 mb-1">
-                                      <h4
-                                        className={`font-semibold ${
-                                          isCurrentStation
-                                            ? "text-gray-900 text-lg"
-                                            : "text-gray-900"
-                                        }`}
-                                      >
-                                        {station.stationName}
-                                      </h4>
-                                      <span className="text-sm text-gray-500">
-                                        {station.stationCode}
-                                      </span>
-                                    </div>
-
-                                    {isCurrentStation && (
-                                      <span className="inline-block px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full mb-2">
-                                        Current Location
-                                      </span>
-                                    )}
-
-                                    <div className="flex flex-wrap gap-4 text-sm mt-2">
-                                      {station.platform && (
-                                        <div>
-                                          <span className="text-gray-500">
-                                            Platform:
-                                          </span>
-                                          <span className="ml-1 text-gray-900 font-medium">
-                                            {station.platform}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {station.distanceKm && (
-                                        <div>
-                                          <span className="text-gray-500">
-                                            Distance:
-                                          </span>
-                                          <span className="ml-1 text-gray-900 font-medium">
-                                            {station.distanceKm} km
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Coach Position Button (show only if coachPosition available) */}
-                                  <div className="flex-1 flex justify-center items-center px-5 h-full">
-                                    {Array.isArray(station.coachPosition) &&
-                                    station.coachPosition.length > 0 ? (
-                                      <button
-                                        className="bg-blue-500 text-white rounded-md px-3 py-1 text-sm hover:bg-blue-600 transition"
-                                        onClick={() =>
-                                          handleCoachPopup(
-                                            station.coachPosition
-                                          )
-                                        }
-                                      >
-                                        Coach Position
-                                      </button>
-                                    ) : (
-                                      <button
-                                        className="bg-gray-200 text-gray-500 rounded-md px-3 py-1 text-sm cursor-not-allowed"
-                                        disabled
-                                        title="No coach data for this station"
-                                      >
-                                        No Coach Data
-                                      </button>
-                                    )}
-                                  </div>
-
-                                  {/* Right Side - Departure Timings */}
-                                  <div className="w-20 text-left pt-1">
-                                    {station.departure?.scheduled &&
-                                      station.departure.scheduled !== "-" && (
-                                        <div>
-                                          <p className="text-gray-900 font-medium text-sm">
-                                            {extractTime(
-                                              station.departure.scheduled
-                                            )}
-                                          </p>
-                                          {station.departure?.actual &&
-                                            station.departure.actual !==
-                                              "-" && (
-                                              <p
-                                                className={`text-sm mt-0.5 font-medium ${
-                                                  station.departure.delay &&
-                                                  !station.departure.delay
-                                                    .toLowerCase()
-                                                    .includes("on time")
-                                                    ? "text-red-600"
-                                                    : "text-green-600"
-                                                }`}
-                                              >
-                                                {extractTime(
-                                                  station.departure.actual
-                                                )}
-                                              </p>
-                                            )}
-                                          {station.departure?.delay && (
-                                            <p
-                                              className={`text-xs mt-0.5 font-medium ${
-                                                station.departure.delay &&
-                                                !station.departure.delay
-                                                  .toLowerCase()
-                                                  .includes("on time")
-                                                  ? "text-red-600"
-                                                  : "text-green-600"
-                                              }`}
-                                            >
-                                              {station.departure.delay}
-                                            </p>
-                                          )}
-                                        </div>
-                                      )}
-                                  </div>
-                                </motion.div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </motion.div>
-              )}
-
-            {/* Show error if no data */}
-            {liveStatus &&
-              (!liveStatus.runs ||
-                Object.keys(liveStatus.runs).length === 0) && (
-                <div className="border border-gray-200 rounded-lg p-8">
-                  <div className="text-center">
-                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No Data Found
-                    </h3>
-                    <p className="text-gray-600">
-                      Unable to fetch live status for this train. Please try
-                      again.
-                    </p>
-                  </div>
-                </div>
-              )}
+                {/* Show error if no data */}
+                {liveStatus &&
+                  (!liveStatus.runs ||
+                    Object.keys(liveStatus.runs).length === 0) && (
+                    <div className="border border-gray-200 rounded-lg p-8">
+                      <div className="text-center">
+                        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          No Data Found
+                        </h3>
+                        <p className="text-gray-600">
+                          Unable to fetch live status for this train. Please try
+                          again.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+              </motion.div>
+            )}
           </motion.div>
         )}
       </div>
