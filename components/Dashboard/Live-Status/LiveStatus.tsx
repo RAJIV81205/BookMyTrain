@@ -85,13 +85,13 @@ const LiveStatus = () => {
   // Scroll to current status when data loads or date changes
   useEffect(() => {
     if (scrollTrigger > 0 && currentStatusRef.current) {
-      // Delay to ensure DOM is rendered and animations complete
+      // Delay to ensure DOM is rendered
       setTimeout(() => {
         currentStatusRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "center",
         });
-      }, 800);
+      }, 400);
     }
   }, [scrollTrigger]);
 
@@ -319,9 +319,10 @@ const LiveStatus = () => {
             {/* Train Info Header */}
             {liveStatus.trainNo && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
                 className="border border-gray-200 rounded-lg p-6"
               >
                 <div className="flex items-center justify-between">
@@ -347,8 +348,9 @@ const LiveStatus = () => {
             {liveStatus.runs && Object.keys(liveStatus.runs).length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
                 className="border border-gray-200 rounded-lg p-4"
               >
                 <div className="flex items-center gap-2 mb-3">
@@ -437,11 +439,12 @@ const LiveStatus = () => {
                                   <motion.div
                                     key={index}
                                     ref={currentStatusRef}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
+                                    initial={{ opacity: 0, scale: 0.9 , y:50 }}
+                                    whileInView={{ opacity: 1, scale: 1 , y:0}}
+                                    viewport={{ once: true, margin: "-50px" }}
                                     transition={{
-                                      duration: 0.3,
-                                      delay: 0.3 + index * 0.05,
+                                      duration: 0.4,
+                                      ease: "easeOut",
                                     }}
                                     className="relative flex items-center justify-center py-6 my-6"
                                   >
@@ -480,11 +483,12 @@ const LiveStatus = () => {
                               return (
                                 <motion.div
                                   key={index}
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
+                                  initial={{ opacity: 0.5,scale:0.9, y: 30 }}
+                                  whileInView={{ opacity: 1,scale:1, y: 0 }}
+                                  viewport={{ once: true, margin: "-100px" }}
                                   transition={{
-                                    duration: 0.3,
-                                    delay: 0.3 + index * 0.05,
+                                    duration: 0.5,
+                                    ease: "easeOut",
                                   }}
                                   className="relative flex items-start gap-6"
                                 >
