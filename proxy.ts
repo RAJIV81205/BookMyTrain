@@ -40,7 +40,7 @@ function withCorsHeaders(res: NextResponse, req: NextRequest) {
   return res;
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   if (!path.startsWith("/api")) {
