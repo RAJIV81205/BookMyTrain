@@ -1,16 +1,13 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// 🔌 Shared Redis client (works on Vercel edge/serverless)
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// 🌐 Global rate limit: 100 requests / 10 minutes per IP
 const globalLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.fixedWindow(100, "10 m"),
@@ -25,29 +22,43 @@ function getClientIp(req: NextRequest): string {
   const realIp = req.headers.get("x-real-ip");
   if (realIp) return realIp;
 
-  // Vercel sometimes sets this
   // @ts-ignore
   if ((req as any).ip) return (req as any).ip as string;
 
   return "unknown";
 }
 
-export async function proxy(req: NextRequest) {
+function withCorsHeaders(res: NextResponse, req: NextRequest) {
+  const origin = req.headers.get("origin") || "*";
+
+  res.headers.set("Access-Control-Allow-Origin", origin);
+  res.headers.set("Vary", "Origin");
+  res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.headers.set("Access-Control-Allow-Credentials", "true");
+
+  return res;
+}
+
+export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Only protect /api routes (can expand to others if you want)
   if (!path.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  const ip = getClientIp(req);
+  // 1️⃣ Preflight
+  if (req.method === "OPTIONS") {
+    const preflight = new NextResponse(null, { status: 204 });
+    return withCorsHeaders(preflight, req);
+  }
 
-  // Global limit for all APIs
+  const ip = getClientIp(req);
   const { success, limit, remaining, reset } = await globalLimiter.limit(ip);
 
+  // 2️⃣ Rate limited
   if (!success) {
-    // Optional: add some headers for debugging
-    const res = NextResponse.json(
+    const json = NextResponse.json(
       {
         error: "Too many requests",
         message: "Global API rate limit exceeded. Please try again later.",
@@ -55,23 +66,23 @@ export async function proxy(req: NextRequest) {
       { status: 429 }
     );
 
-    res.headers.set("X-RateLimit-Limit", limit.toString());
-    res.headers.set("X-RateLimit-Remaining", remaining.toString());
-    res.headers.set("X-RateLimit-Reset", reset.toString());
+    json.headers.set("X-RateLimit-Limit", limit.toString());
+    json.headers.set("X-RateLimit-Remaining", remaining.toString());
+    json.headers.set("X-RateLimit-Reset", reset.toString());
 
-    return res;
+    return withCorsHeaders(json, req);
   }
 
-  // Optional response headers for normal requests
+  // 3️⃣ Allowed
   const res = NextResponse.next();
+
   res.headers.set("X-RateLimit-Limit", limit.toString());
   res.headers.set("X-RateLimit-Remaining", remaining.toString());
   res.headers.set("X-RateLimit-Reset", reset.toString());
 
-  return res;
+  return withCorsHeaders(res, req);
 }
 
-// This ensures middleware runs only on /api routes
 export const config = {
   matcher: ["/api/:path*"],
 };
