@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ pnr: string }> }
 ) {
-  const { pnr } = await params;  
+  const { pnr } = await params;
   const cleanPNR = pnr.trim();
-
 
   try {
     const controller = new AbortController();
@@ -18,12 +16,15 @@ export async function GET(
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          Accept: "application/json",
-          Origin: "https://www.redbus.in",
-          Referer: "https://www.redbus.in/pnr-status",
+          accept: "application/json, text/plain, */*",
+          "content-type": "application/json",
+          origin: "https://www.redbus.in",
+          referer:
+            "https://www.redbus.in/railways/pnrStatusDetails?pnrNo=" +
+            cleanPNR,
+          // More realistic UA (similar to what their site uses)
+          "user-agent":
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
         },
         body: JSON.stringify({ pnr: cleanPNR }),
         signal: controller.signal,
@@ -32,23 +33,42 @@ export async function GET(
 
     clearTimeout(timeoutId);
 
+    const raw = await response.text();
+
+    // If upstream returns HTML (bot protection / error page) instead of JSON
+    const trimmed = raw.trim();
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+      return NextResponse.json({
+        success: false,
+        error: "Upstream service returned HTML instead of JSON (likely blocked).",
+      });
+    }
+
     if (!response.ok) {
       return NextResponse.json({
         success: false,
         error: `API request failed with status: ${response.status}`,
-      })
+      });
     }
 
-    const data = await response.json();
+    let data: any;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({
+        success: false,
+        error: "Invalid JSON response from upstream API",
+      });
+    }
 
     if (!data || !data.pnrNo) {
       return NextResponse.json({
         success: false,
         error: "No PNR data found or invalid PNR number",
-      })
+      });
     }
 
-    // Return structured data
+    // Return structured data (kept exactly like you had)
     return NextResponse.json({
       success: true,
       data: {
@@ -81,28 +101,28 @@ export async function GET(
           message: data.chartPrepMsg,
         },
         passengers: data.passengers
-          ? data.passengers.map((p :any) => ({
-            name: p.name,
-            status: p.currentStatus,
-            seat: p.currentSeatDetails,
-            berthType: p.berthType,
-            confirmationProbability: p.confirmProb,
-          }))
+          ? data.passengers.map((p: any) => ({
+              name: p.name,
+              status: p.currentStatus,
+              seat: p.currentSeatDetails,
+              berthType: p.berthType,
+              confirmationProbability: p.confirmProb,
+            }))
           : [],
         lastUpdated: data.pnrLastUpdated,
       },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     if (error.name === "AbortError") {
       return NextResponse.json({
         success: false,
         error: "Request timed out after 10 seconds",
-      })
+      });
     }
 
-    return NextResponse.json( {
+    return NextResponse.json({
       success: false,
       error: `Request failed: ${error.message}`,
-    })
+    });
   }
 }
