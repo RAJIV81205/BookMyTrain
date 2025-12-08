@@ -70,8 +70,6 @@ export async function GET(
 
     // Return structured data (kept exactly like you had)
     return NextResponse.json({
-      success: true,
-      data: {
         pnr: data.pnrNo,
         status: data.overallStatus,
         train: {
@@ -110,7 +108,6 @@ export async function GET(
             }))
           : [],
         lastUpdated: data.pnrLastUpdated,
-      },
     });
   } catch (error: any) {
     if (error.name === "AbortError") {
