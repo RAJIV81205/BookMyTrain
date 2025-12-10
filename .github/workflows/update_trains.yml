@@ -1,0 +1,49 @@
+name: Update Train Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    # runs daily at 02:30 IST (converted to UTC: 21:00 previous day) — adjust as needed
+    - cron: '21 21 * * *'
+
+jobs:
+  fetch-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps (none required but kept for future)
+        run: |
+          cd scripts || exit 0
+          if [ -f package.json ]; then npm ci; fi
+
+      - name: Run fetch & parse script
+        run: |
+          node scripts/fetch_trains.js
+        env:
+          TRAIN_DATA_URL: "https://enquiry.indianrail.gov.in/mntes/javascripts/train_data.js?v=2025121010"
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push if changed
+        run: |
+          if git status --porcelain | grep -q .; then
+            git add lib/constants/trains.json
+            git commit -m "chore: update trains.json (auto)"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git push origin HEAD:${{ github.ref_name || github.ref }}
+          else
+            echo "No changes to commit."
+          fi
+
