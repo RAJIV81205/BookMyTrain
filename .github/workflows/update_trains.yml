@@ -5,7 +5,6 @@ on:
   schedule:
     # runs daily at 02:30 IST (converted to UTC: 21:00 previous day) — adjust as needed
     - cron: '21 21 * * *'
-     workflow_dispatch:  # Allow manual trigger
 
 jobs:
   fetch-and-commit:
