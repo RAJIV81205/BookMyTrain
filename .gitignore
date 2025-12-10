@@ -49,3 +49,4 @@ scripts/node_modules
 scripts/bun.lock
 scripts/captured_headers.json
 scripts/error_screenshot.png
+bun.lock

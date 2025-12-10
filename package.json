@@ -23,6 +23,7 @@
     "mongoose": "^8.19.1",
     "motion": "^12.23.22",
     "next": "^16.0.7",
+    "node-cache": "^5.1.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",

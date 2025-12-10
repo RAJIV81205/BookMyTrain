@@ -1,6 +1,18 @@
+// app/api/live/route.ts (or wherever your route lives)
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { Agent, fetch as undiciFetch } from "undici";
+import NodeCache from "node-cache";
 
+const agent = new Agent({ keepAliveTimeout: 60000, connections: 10 });
+
+// ❌ REMOVE this:
+// const tokenCache = new NodeCache({ stdTTL: 25 });
+
+const parsedCache = new NodeCache({ stdTTL: 30 }); // keep this if you want result caching
+
+
+// --- Your existing parsers (unchanged except small type tweaks) ---
 function parseTrainLiveHTML(html: string) {
   try {
     const $ = cheerio.load(html);
@@ -395,51 +407,82 @@ function parseTrainLiveHTMLwithDate(html: string, trainDate: string) {
   }
 }
 
+// --- generateToken with caching ---
 async function generateToken() {
   const t = Date.now();
-  const res = await fetch(`https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`, {
-    headers: { "x-requested-with": "XMLHttpRequest", "Referer": "https://enquiry.indianrail.gov.in/mntes/" },
-  });
 
-  const html = await res.text();
-  const cookie = res.headers.get("set-cookie") || "";
-  const match = html.match(/name='([^']+)' value='([^']+)'/);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 7000); // 7s timeout
 
-  if (!match) throw new Error("CSRF token not found");
+  try {
+    const res = await undiciFetch(
+      `https://enquiry.indianrail.gov.in/mntes/GetCSRFToken?t=${t}`,
+      {
+        dispatcher: agent,
+        headers: {
+          "x-requested-with": "XMLHttpRequest",
+          Referer: "https://enquiry.indianrail.gov.in/mntes/",
+        },
+        signal: controller.signal as any,
+      }
+    );
 
-  return {
-    cookie,                 // full JSESSIONID + others
-    tokenName: match[1],
-    tokenValue: match[2],
-  };
+    const html = await res.text();
+    const cookie = res.headers.get("set-cookie") || "";
+    const match = html.match(/name='([^']+)' value='([^']+)'/);
+
+    if (!match) throw new Error("CSRF token not found");
+
+    return {
+      cookie,
+      tokenName: match[1],
+      tokenValue: match[2],
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 
+// --- helper: timed fetch wrapper with undici Agent + timeout ---
+async function timedFetch(url: string, opts: any = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  const start = Date.now();
+  try {
+    const res = await undiciFetch(url, { dispatcher: agent, signal: controller.signal as any, ...opts });
+    const elapsed = Date.now() - start;
+    return { res, elapsed };
+  } finally {
+    clearTimeout(id);
+  }
+}
 
+// --- Route handler ---
 export async function GET(request: Request) {
+  const startTotal = Date.now();
   try {
     const { searchParams } = new URL(request.url);
     const trainNumber = searchParams.get("trainNumber");
     const trainDate = searchParams.get("trainDate") || "";
 
     if (!trainNumber) {
-      console.error('❌ [LiveStatus API] Error: Train number is missing');
-      return NextResponse.json(
-        { error: "Train number is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Train number is required" }, { status: 400 });
     }
-
-    // Validate train number format (5 digits)
     if (!/^\d{5}$/.test(trainNumber)) {
-      console.error('❌ [LiveStatus API] Error: Invalid train number format:', trainNumber);
-      return NextResponse.json(
-        { error: "Train number must be exactly 5 digits" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Train number must be exactly 5 digits" }, { status: 400 });
     }
 
-    // Use today's date by default
+    // cache key for parsed response
+    const parsedCacheKey = `parsed:${trainNumber}:${trainDate || "today"}`;
+    const cachedParsed = parsedCache.get(parsedCacheKey);
+    if (cachedParsed) {
+      console.log(`[LiveStatus] cache HIT for ${parsedCacheKey} (serving cached result)`);
+      console.log('[LiveStatus] total ms:', Date.now() - startTotal);
+      return NextResponse.json(cachedParsed as any, { status: 200 });
+    }
+
+    // format today's date if not provided
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -447,73 +490,81 @@ export async function GET(request: Request) {
       year: "numeric",
     }).replace(/ /g, "-");
 
-    // Fetch from Indian Railway API
-    const { cookie, tokenName, tokenValue } = await generateToken();
+    // ensure env vars exist
+    if (!process.env.LIVE_STATUS_LINK || !process.env.LIVE_STATUS_LINK_REFERER) {
+      return NextResponse.json({ error: "Missing environment variables" }, { status: 500 });
+    }
 
-    const formData = new URLSearchParams({
+    // 1) Get token (cached short-term)
+    const t0 = Date.now();
+    const { cookie, tokenName, tokenValue } = await generateToken();
+    console.log('[LiveStatus] token fetch ms:', Date.now() - t0);
+
+    // 2) POST to LIVE_STATUS_LINK
+    const postBodyParams = new URLSearchParams({
       lan: "en",
       jDate: formattedDate,
       trainNo: trainNumber,
       [tokenName]: tokenValue,
     });
 
-    if(!process.env.LIVE_STATUS_LINK || !process.env.LIVE_STATUS_LINK_REFERER) {
-      return NextResponse.json(
-        { error: "Missing environment variables" },
-        { status: 500 }
-      );
-    }
-
-    const response = await fetch(
-      process.env.LIVE_STATUS_LINK as string,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Referer": process.env.LIVE_STATUS_LINK_REFERER as string,
-          "Cookie": cookie,
-        },
-        body: formData.toString(),
-      }
-    );
+    const t1 = Date.now();
+    const { res: response, elapsed: fetchElapsed } = await timedFetch(process.env.LIVE_STATUS_LINK as string, {
+      method: "POST",
+      body: postBodyParams.toString(),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Referer: process.env.LIVE_STATUS_LINK_REFERER as string,
+        Cookie: cookie,
+        // Accept-Encoding is handled by undici
+      },
+    }, 10000); // 10s timeout
+    console.log('[LiveStatus] upstream fetch ms:', fetchElapsed);
 
     if (!response.ok) {
       console.error('❌ [LiveStatus API] HTTP Error:', response.status, response.statusText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    // 3) Read body (we must get full text for cheerio)
+    const t2 = Date.now();
     const html = await response.text();
+    console.log('[LiveStatus] response.text() ms:', Date.now() - t2);
 
-    // Parse the HTML response
+    // 4) Parse
+    const t3 = Date.now();
     let parsedData;
     if (trainDate) {
       parsedData = parseTrainLiveHTMLwithDate(html, trainDate);
     } else {
       parsedData = parseTrainLiveHTML(html);
     }
+    console.log('[LiveStatus] parse ms:', Date.now() - t3);
 
+    // store parsed in cache (short TTL)
+    parsedCache.set(parsedCacheKey, parsedData);
+
+    console.log('[LiveStatus] total ms:', Date.now() - startTotal);
     return NextResponse.json(parsedData, { status: 200 });
+
   } catch (err: any) {
     console.error('❌ [LiveStatus API] Error Type:', err.name);
     console.error('❌ [LiveStatus API] Error Message:', err.message);
     console.error('❌ [LiveStatus API] Error Stack:', err.stack);
 
-    // Provide more specific error messages
     let errorMessage = "Failed to fetch live status";
     let statusCode = 500;
 
-    if (err.message.includes('fetch failed') || err.message.includes('ENOTFOUND')) {
+    const msg = (err.message || "").toLowerCase();
+    if (msg.includes('fetch failed') || msg.includes('enotfound')) {
       errorMessage = "Unable to connect to Indian Railway server. Please try again later.";
       statusCode = 503;
-      console.error('❌ [LiveStatus API] Network Error: Cannot reach Indian Railway API');
-    } else if (err.message.includes('timeout')) {
+    } else if (msg.includes('timeout') || msg.includes('aborted')) {
       errorMessage = "Request timeout. Please try again.";
       statusCode = 504;
-      console.error('❌ [LiveStatus API] Timeout Error');
-    } else if (err.message.includes('HTTP error')) {
+    } else if (msg.includes('http error')) {
       errorMessage = "Indian Railway server returned an error. Please try again.";
       statusCode = 502;
-      console.error('❌ [LiveStatus API] Upstream HTTP Error');
     }
 
     return NextResponse.json(
