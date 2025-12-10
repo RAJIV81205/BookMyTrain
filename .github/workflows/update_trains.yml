@@ -38,7 +38,7 @@ jobs:
         run: |
           node scripts/fetch_trains.js
         env:
-          TRAIN_DATA_URL: "https://enquiry.indianrail.gov.in/mntes/javascripts/train_data.js?v=2025121010"
+          TRAIN_DATA_URL: "https://enquiry.indianrail.gov.in/mntes/javascripts/train_data.js"
 
       - name: Configure git user
         run: |
