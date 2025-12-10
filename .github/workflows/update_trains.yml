@@ -20,10 +20,19 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install deps (none required but kept for future)
+      - name: Install deps (if any)
+        working-directory: scripts
         run: |
-          cd scripts || exit 0
-          if [ -f package.json ]; then npm ci; fi
+          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "Found lockfile — running npm ci"
+            npm ci
+          elif [ -f package.json ]; then
+            echo "No lockfile, but package.json present — running npm install"
+            npm install --no-audit --no-fund
+          else
+            echo "No package.json in scripts/ — nothing to install"
+          fi
+
 
       - name: Run fetch & parse script
         run: |
