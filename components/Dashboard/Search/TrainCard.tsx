@@ -35,6 +35,20 @@ interface TrainCardProps {
   onResetComplete?: () => void
 }
 
+// --- PER-KM RATES (testing/demo) ---
+// Edit these rates to change pricing for each class.
+const PER_KM_RATES: { [key: string]: number } = {
+  SL: 1.2, // Sleeper
+  '3A': 2.5,
+  '2A': 3.5,
+  '1A': 5.0,
+  GEN: 0.8,
+  CC: 1.8,
+  '2S': 0.6,
+  FC: 4.0,
+  EC: 3.0
+}
+
 const TrainCard: React.FC<TrainCardProps> = ({
   data,
   onCheckAvailability,
@@ -135,9 +149,35 @@ const TrainCard: React.FC<TrainCardProps> = ({
     }
   }
 
-  const getFareForClass = (classCode: string) => {
-    if (!faresData?.fare) return null
-    return faresData.fare[classCode]?.GN || null
+  // Parse a distance string like "123 km" or "123 kms" or just "123" to a number (km)
+  const parseDistance = (d: string | number | undefined): number => {
+    if (d === undefined || d === null) return 0
+    if (typeof d === 'number') return d
+    const m = String(d).match(/([0-9]+(?:\.[0-9]+)?)/)
+    return m ? Number(m[1]) : 0
+  }
+
+  // Get fare from fetched fares; if not available, fall back to per-km rate model
+  const getFareForClass = (classCode: string): number | null => {
+    // 1) try remote fares if present (same logic as before)
+    if (faresData?.fare && faresData.fare[classCode]) {
+      // some APIs return object like { GN: 123, RAC: ... } so keep GN as groundfare
+      if (typeof faresData.fare[classCode] === 'object' && faresData.fare[classCode].GN != null) {
+        const val = Number(faresData.fare[classCode].GN)
+        if (!isNaN(val)) return Math.round(val * 100) / 100
+      }
+      if (typeof faresData.fare[classCode] === 'number') {
+        return Math.round(Number(faresData.fare[classCode]) * 100) / 100
+      }
+    }
+
+    // 2) fallback: per-km rate × distance (use data.distance if present, else compute from stops dist_km if available)
+    const dist = parseDistance(data.distance)
+    const rate = PER_KM_RATES[classCode] ?? null
+    if (rate === null || rate === undefined) return null
+    const fare = dist * rate
+    // round to 2 decimal places, but for display round to nearest rupee optionally
+    return Math.round(fare * 100) / 100
   }
 
   const getAvailabilityBoxColor = (availability: string | number) => {
@@ -284,7 +324,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <div className="text-center flex-shrink-0">
+          <div className="text-center shrink-0">
             <div className="text-xs text-gray-500 mb-1">{data.from_stn_code}</div>
             <div className="text-xl font-bold text-gray-900 mb-1">{formatTime(data.from_time)}</div>
             <div className="text-sm text-gray-600 max-w-20 sm:max-w-none truncate">{data.from_stn_name}</div>
@@ -300,7 +340,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
             <div className="text-xs text-gray-500">{data.halts} halts | {data.distance} kms</div>
           </div>
 
-          <div className="text-center flex-shrink-0">
+          <div className="text-center shrink-0">
             <div className="text-xs text-gray-500 mb-1">{data.to_stn_code}</div>
             <div className="text-xl font-bold text-gray-900 mb-1">{formatTime(data.to_time)}</div>
             <div className="text-sm text-gray-600 max-w-20 sm:max-w-none truncate">{data.to_stn_name}</div>
@@ -384,7 +424,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                   return (
                     <div
                       key={index}
-                      className={`availability-card flex-shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
+                      className={`availability-card shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-3">
@@ -422,7 +462,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                                   repeat: 1,
                                   ease: "power2.out"
                                 })
-                                handleBookNow(seatClass.classCode, fare)
+                                handleBookNow(seatClass.classCode, String(fare))
                               }}
                               className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
                             >
@@ -484,7 +524,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
                                     repeat: 1,
                                     ease: "power2.out"
                                   })
-                                  handleBookNow(seatClass.classCode, fare)
+                                  handleBookNow(seatClass.classCode, String(fare))
                                 }}
                                 className="w-full px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-all duration-200"
                               >
