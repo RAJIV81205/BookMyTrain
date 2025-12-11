@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
 import { Train, Clock, MapPin, Users, Calendar, CreditCard } from "lucide-react";
+import { load } from "@cashfreepayments/cashfree-js";
 
 
 
@@ -61,7 +62,9 @@ export default function Checkout() {
     };
 
 
-    console.table(bookingData)
+    const createOrder = async () =>{ 
+
+    }
 
 
     return (
@@ -289,7 +292,8 @@ export default function Checkout() {
                                 ₹{bookingData.fare ? (Number(bookingData.fare) * bookingData.passengers.length) : 0}
                             </span>
                         </div>
-                        <button className="w-full bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200">
+                        <button className="w-full bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
+                        onClick={createOrder}>
                             Proceed to Payment
                         </button>
                     </div>
