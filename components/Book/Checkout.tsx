@@ -114,31 +114,13 @@ export default function Checkout() {
 const createOrderAndCheckout = async () => {
   setError(null);
 
-  // compute amount (total fare * passengers)
-  if (!bookingData.fare) {
-    setError("Fare not selected.");
-    return;
-  }
-  if (!bookingData.passengers || bookingData.passengers.length === 0) {
-    setError("Add passenger details before proceeding to payment.");
-    return;
-  }
+  if (!bookingData.fare) return setError("Fare not selected.");
+  if (!bookingData.passengers?.length) return setError("Add passengers first.");
 
-  const perPassengerFare = Number(bookingData.fare);
-  if (Number.isNaN(perPassengerFare)) {
-    setError("Invalid fare value.");
-    return;
-  }
-
-  const amount = Math.round(perPassengerFare * bookingData.passengers.length); // integer rupees
-  if (amount <= 0) {
-    setError("Total amount must be greater than 0.");
-    return;
-  }
+  const amount = Math.round(Number(bookingData.fare) * bookingData.passengers.length);
 
   const token = getToken();
   if (!token) {
-    setError("You are not logged in. Please login and try again.");
     router.push("/login");
     return;
   }
@@ -146,7 +128,7 @@ const createOrderAndCheckout = async () => {
   setLoading(true);
 
   try {
-    // 1) Create order on backend
+    // 1) Create order in backend
     const resp = await fetch("/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -154,80 +136,55 @@ const createOrderAndCheckout = async () => {
     });
 
     const data = await resp.json();
-
     if (!resp.ok) {
-      const msg = data?.error || data?.message || `Server responded with ${resp.status}`;
-      setError(msg);
-      console.error("Order creation failed:", data);
+      setError(data?.error || "Order creation failed");
       setLoading(false);
       return;
     }
 
-    // 2) Parse Cashfree response (defensive)
-    const cashfreeResp = data?.cashfree || data;
-    // screenshot showed `payment_session_id` as the key
-    const paymentSessionId =
-      cashfreeResp?.payment_session_id ||
-      cashfreeResp?.data?.payment_session_id ||
-      cashfreeResp?.paymentSessionId ||
-      cashfreeResp?.data?.paymentSessionId;
-
-    // If backend returned a direct redirection URL, open it
-    const possibleRedirectUrl = data?.paymentUrl || data?.redirectUrl || cashfreeResp?.payment_url || cashfreeResp?.data?.payment_url;
-    if (!paymentSessionId && possibleRedirectUrl) {
-      // fallback: redirect to link if no session id available
-      window.location.href = possibleRedirectUrl;
-      return;
-    }
+    const cashfreeResp = data.cashfree;
+    const paymentSessionId = cashfreeResp?.payment_session_id;
 
     if (!paymentSessionId) {
-      // Nothing usable returned from backend
-      console.error("No payment session id or redirect url returned by backend:", data);
-      setError("Unable to start payment — missing payment session. Please contact support.");
+      setError("Payment session not returned from backend");
       setLoading(false);
       return;
     }
 
-    // 3) Load cashfree-js (client) and open checkout modal
-    // Provide mode and clientId via NEXT_PUBLIC env vars (set these in your build)
+    // 2) Load Cashfree SDK
     const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_MODE as "TEST" | "PROD") || "TEST";
-    const cfClientId = process.env.NEXT_PUBLIC_CASHFREE_CLIENT_ID || (window as any).__NEXT_PUBLIC_CASHFREE_CLIENT_ID;
+    const cfClientId = process.env.NEXT_PUBLIC_CASHFREE_CLIENT_ID;
 
-    // load() returns a cashfree instance
-    const cashfree = await load({ mode: cfMode, clientId: cfClientId });
+    const cashfree = await load({
+      mode: cfMode,
+      clientId: cfClientId,
+    });
 
+    // 3) Open payment modal
     const checkoutOptions = {
       paymentSessionId,
-      redirectTarget: "_modal", // modal popup
-      // you can add other options here if needed
+      redirectTarget: "_modal",
+      mode: cfMode, // 🔥 IMPORTANT — REQUIRED by Cashfree SDK
     };
 
-    // open checkout
     const result = await cashfree.checkout(checkoutOptions);
 
-    // 4) Handle checkout result
-    if (result?.error) {
-      console.log("Cashfree checkout error/closed:", result.error);
-      // user closed modal or some error happened — show friendly message
-      setError("Payment was interrupted or failed. Please try again.");
-      // optionally you can poll / verify payment status on backend here
-    } else if (result?.redirect) {
-      console.log("Cashfree requires redirect flow:", result.redirect);
-      // In rare cases the SDK may instruct a redirect; the return_url in backend order_meta will handle final status
-    } else if (result?.paymentDetails) {
-      console.log("Payment completed (client):", result.paymentDetails);
-      // You should verify payment status on backend. For now, navigate to a payment status or bookings page:
+    if (result.error) {
+      console.log("Cashfree checkout closed/error:", result.error);
+      setError("Payment cancelled or failed.");
+    } else if (result.paymentDetails) {
+      console.log("Payment completed:", result.paymentDetails);
     //   router.push("/bookings");
-    } else {
-      console.log("Unknown checkout result:", result);
     }
+
   } catch (err) {
-    console.error("Network or unexpected error creating order / opening checkout:", err);
-    setError("Failed to create order or start payment. Please try again later.");
+    console.error("Checkout error:", err);
+    setError("Something went wrong.");
   } finally {
     setLoading(false);
   }
 };
+
 
   return (
     <div>
