@@ -740,7 +740,7 @@ const Livemap = () => {
 
             <div className="space-y-3">
               {/* Train Name & Number with Type Tag */}
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
+              <div className="bg-linear-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
                 <div className="flex flex-col gap-2">
                   <div className=" w-full flex flex-row justify-between text-center items-center">
                     <div className="text-sm text-blue-700 font-medium">
@@ -757,7 +757,7 @@ const Livemap = () => {
               </div>
 
               {/* Journey Progress from Source */}
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
+              <div className="bg-linear-to-r from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
@@ -805,7 +805,7 @@ const Livemap = () => {
               </div>
 
               {/* Current & Next Station */}
-              <div className="bg-gradient-to-r from-green-50 to-orange-50 p-3 rounded-lg border border-gray-200">
+              <div className="bg-linear-to-r from-green-50 to-orange-50 p-3 rounded-lg border border-gray-200">
                 {/* Crossed Station (previous) */}
                 <div className="mb-3 pb-3 border-b border-gray-200">
                   <div className="flex items-center gap-2 mb-1">

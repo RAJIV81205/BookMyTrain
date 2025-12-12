@@ -109,7 +109,7 @@ const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ selectedSea
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl my-8">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-200">
+        <div className="bg-linear-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">Passenger Details</h2>
           <p className="text-sm text-gray-600 mt-1">Fill in the details for all passengers</p>
         </div>

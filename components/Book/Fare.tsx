@@ -161,7 +161,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
   if (!bookingData.trainNo) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-8">
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+        <div className="bg-linear-to-r from-gray-900 to-gray-800 px-6 py-4">
           <div className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-white" />
             <h2 className="text-lg font-semibold text-white">Payment Summary</h2>
@@ -180,7 +180,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-8">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+      <div className="bg-linear-to-r from-gray-900 to-gray-800 px-6 py-4">
         <div className="flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-white" />
           <h2 className="text-lg font-semibold text-white">Payment Summary</h2>
