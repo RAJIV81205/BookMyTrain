@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { load } from "@cashfreepayments/cashfree-js";
 import { useBooking } from "@/context/BookingContext";
-import { Receipt, CreditCard } from "lucide-react";
+import { CreditCard, Shield, ArrowRight } from "lucide-react";
 
 interface FareProps {
   onPay?: () => void;
@@ -160,77 +160,96 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
 
   if (!bookingData.trainNo) {
     return (
-      <aside className="bg-white rounded-xl border p-4 shadow">
-        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-600 to-sky-600 text-white rounded">
-          <Receipt className="w-5 h-5" />
-          <div>
-            <div className="font-semibold">Fare Summary</div>
-            <div className="text-xs opacity-90">Select a train to see fare details</div>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-8">
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-white" />
+            <h2 className="text-lg font-semibold text-white">Payment Summary</h2>
           </div>
         </div>
 
-        <div className="p-4 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto flex items-center justify-center mb-3">
-            <CreditCard className="w-6 h-6 text-slate-400" />
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 mx-auto flex items-center justify-center mb-3">
+            <CreditCard className="w-6 h-6 text-gray-400" />
           </div>
-          <div className="text-sm text-slate-500">Pick a train to display fares</div>
+          <p className="text-sm text-gray-500">Select a train to see fare details</p>
         </div>
-      </aside>
+      </div>
     );
   }
 
   return (
-    <aside className="bg-white rounded-xl border p-4 shadow sticky top-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-gradient-to-r from-indigo-600 to-sky-600 text-white">
-            <Receipt className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="font-semibold">Fare Summary</div>
-            <div className="text-xs text-gray-500">{pax} passenger{pax > 1 ? "s" : ""}</div>
-          </div>
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-8">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+        <div className="flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-white" />
+          <h2 className="text-lg font-semibold text-white">Payment Summary</h2>
         </div>
+        <p className="text-xs text-gray-300 mt-1">{pax} passenger{pax > 1 ? "s" : ""}</p>
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="flex justify-between">
-          <div className="text-sm text-gray-600">Base Fare</div>
-          <div className="font-medium">₹{baseFare}</div>
+      <div className="p-6">
+        <div className="space-y-4 mb-6">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Base Fare</span>
+            <span className="font-medium text-gray-900">₹{baseFare}</span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Passengers</span>
+            <span className="font-medium text-gray-900">₹{baseFare} × {pax}</span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Subtotal</span>
+            <span className="font-semibold text-gray-900">₹{subtotal}</span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Gateway Charges</span>
+            <span className="font-medium text-gray-900">₹{gatewayFee}</span>
+          </div>
+
+          <div className="pt-4 border-t-2 border-gray-200">
+            <div className="flex justify-between items-center">
+              <span className="text-base font-semibold text-gray-900">Total Amount</span>
+              <span className="text-2xl font-bold text-gray-900">₹{total}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-between">
-          <div className="text-sm text-gray-600">Passengers</div>
-          <div className="font-medium">₹{baseFare} × {pax}</div>
-        </div>
-
-        <div className="flex justify-between">
-          <div className="text-sm text-gray-600">Subtotal</div>
-          <div className="font-semibold">₹{subtotal}</div>
-        </div>
-
-        <div className="flex justify-between">
-          <div className="text-sm text-gray-600">Gateway Charges</div>
-          <div className="font-medium">₹{gatewayFee}</div>
-        </div>
-
-        <div className="border-t mt-3 pt-3 flex justify-between items-center">
-          <div className="text-lg font-bold">Total</div>
-          <div className="text-xl font-extrabold text-emerald-600">₹{total}</div>
-        </div>
-
-        <button 
-          onClick={createOrderAndCheckout} 
-          disabled={!bookingData.passengers.length || loading || sdkLoading} 
-          className="w-full mt-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold disabled:opacity-50"
+        <button
+          onClick={createOrderAndCheckout}
+          disabled={!bookingData.passengers.length || loading || sdkLoading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <CreditCard className="w-4 h-4 inline-block mr-2" /> 
-          {sdkLoading ? "Loading Payment..." : loading ? "Processing..." : "Pay Now"}
+          {sdkLoading ? (
+            "Loading Payment..."
+          ) : loading ? (
+            "Processing..."
+          ) : (
+            <>
+              Proceed to Payment
+              <ArrowRight className="w-5 h-5" />
+            </>
+          )}
         </button>
-        
-        {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
+
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        <div className="mt-6 flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-900">Secure Payment</p>
+            <p className="text-xs text-blue-700 mt-1">Your payment information is encrypted and secure</p>
+          </div>
+        </div>
       </div>
-    </aside>
+    </div>
   );
 };
 

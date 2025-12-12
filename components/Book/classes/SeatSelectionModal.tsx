@@ -19,39 +19,31 @@ const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   onSeatsSelected,
 }) => {
   const { bookingData } = useBooking();
-
   if (!isOpen) return null;
 
   const renderClassComponent = () => {
     switch (bookingData.classCode) {
       case "3A":
-        return <ThirdAC onSeatsSelected={onSeatsSelected} onClose={onClose} />;
+        return <ThirdAC onSeatsSelected={onSeatsSelected} />;
       case "2A":
-        return <SecondAC onSeatsSelected={onSeatsSelected} onClose={onClose} />;
+        return <SecondAC onSeatsSelected={onSeatsSelected} />;
       case "1A":
-        return <FirstAC onSeatsSelected={onSeatsSelected} onClose={onClose} />;
+        return <FirstAC onSeatsSelected={onSeatsSelected} />;
       case "SL":
-        return <SL onSeatsSelected={onSeatsSelected} onClose={onClose} />;
+        return <SL onSeatsSelected={onSeatsSelected} />;
       default:
-        return <ThirdAC onSeatsSelected={onSeatsSelected} onClose={onClose} />;
+        return <ThirdAC onSeatsSelected={onSeatsSelected} />;
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">
-            Select Seats - {bookingData.classCode} Class
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-          >
-            ×
-          </button>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold">Select Seats - {bookingData.classCode} Class</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
-        <div className="p-4">
+        <div className="p-6">
           {renderClassComponent()}
         </div>
       </div>

@@ -77,7 +77,7 @@ export default function checkoutLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-poppins">
+    <div className="min-h-screen bg-gray-50 font-sans3 ">
       <div className="max-w-7xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6">

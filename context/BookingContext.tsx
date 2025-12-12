@@ -1,7 +1,9 @@
 "use client";
+
 import React, { createContext, useContext, useState } from "react";
 
 export type Gender = "Male" | "Female" | "Other";
+export type BerthType = "LB" | "MB" | "UB" | "SL" | "SU";
 
 export interface PassengerDetails {
   id: string;
@@ -9,6 +11,8 @@ export interface PassengerDetails {
   age: number;
   gender: Gender;
   seatNumber: number;
+  seatType: BerthType;
+  berthType?: BerthType; // Alias for compatibility
 }
 
 export interface BookingData {
