@@ -2,14 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { load } from "@cashfreepayments/cashfree-js";
 import { useBooking } from "@/context/BookingContext";
-import { Receipt, CreditCard, AlertCircle } from "lucide-react";
+import { Receipt, CreditCard } from "lucide-react";
 
 interface FareProps {
   onPay?: () => void;
 }
 
 const Fare: React.FC<FareProps> = ({ onPay }) => {
-  const { bookingData, canProceedToPayment } = useBooking();
+  const { bookingData } = useBooking();
   const router = useRouter();
   const [gatewayFee] = useState(20);
   const [loading, setLoading] = useState(false);
@@ -160,117 +160,75 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
 
   if (!bookingData.trainNo) {
     return (
-      <aside className="bg-white rounded-lg border border-gray-300 shadow-sm sticky top-4">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Receipt className="w-5 h-5 text-gray-700" />
-            <div>
-              <div className="font-semibold text-gray-900 text-base">Payment Summary</div>
-              <div className="text-xs text-gray-500 mt-0.5">Select a train to see fare details</div>
-            </div>
+      <aside className="bg-white rounded-xl border p-4 shadow">
+        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-600 to-sky-600 text-white rounded">
+          <Receipt className="w-5 h-5" />
+          <div>
+            <div className="font-semibold">Fare Summary</div>
+            <div className="text-xs opacity-90">Select a train to see fare details</div>
           </div>
         </div>
 
-        <div className="p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-100 mx-auto flex items-center justify-center mb-4">
-            <CreditCard className="w-6 h-6 text-gray-400" />
+        <div className="p-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto flex items-center justify-center mb-3">
+            <CreditCard className="w-6 h-6 text-slate-400" />
           </div>
-          <div className="text-sm font-medium text-gray-500">Pick a train to display fares</div>
+          <div className="text-sm text-slate-500">Pick a train to display fares</div>
         </div>
       </aside>
     );
   }
 
   return (
-    <aside className="bg-white rounded-lg border border-gray-300 shadow-sm sticky top-4 overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Receipt className="w-5 h-5 text-gray-700" />
-            <div>
-              <div className="font-semibold text-gray-900 text-base">Payment Summary</div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {pax} passenger{pax > 1 ? "s" : ""} • {bookingData.classCode} Class
-              </div>
-            </div>
+    <aside className="bg-white rounded-xl border p-4 shadow sticky top-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded bg-gradient-to-r from-indigo-600 to-sky-600 text-white">
+            <Receipt className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="font-semibold">Fare Summary</div>
+            <div className="text-xs text-gray-500">{pax} passenger{pax > 1 ? "s" : ""}</div>
           </div>
         </div>
       </div>
 
-      {/* Fare Breakdown */}
-      <div className="p-6 bg-white">
-        <div className="space-y-3.5">
-          <div className="flex justify-between items-center py-1.5">
-            <div className="text-sm text-gray-600">Base Fare (per person)</div>
-            <div className="font-medium text-gray-900">₹{baseFare.toLocaleString("en-IN")}</div>
-          </div>
-
-          <div className="flex justify-between items-center bg-gray-50 rounded px-3 py-2 border border-gray-200">
-            <div className="text-sm text-gray-700">
-              <span className="text-gray-600">Passengers</span>
-              <span className="ml-2 text-xs text-gray-500">({pax} × ₹{baseFare.toLocaleString("en-IN")})</span>
-            </div>
-            <div className="font-semibold text-gray-900">₹{subtotal.toLocaleString("en-IN")}</div>
-          </div>
-
-          <div className="flex justify-between items-center py-1.5">
-            <div className="text-sm text-gray-600">Gateway Charges</div>
-            <div className="font-medium text-gray-700">₹{gatewayFee.toLocaleString("en-IN")}</div>
-          </div>
-
-          <div className="border-t-2 border-gray-300 mt-4 pt-4">
-            <div className="flex justify-between items-center">
-              <div className="text-base font-semibold text-gray-900">Total Amount</div>
-              <div className="text-xl font-bold text-gray-900">
-                ₹{total.toLocaleString("en-IN")}
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Button */}
-          <button
-            onClick={createOrderAndCheckout}
-            disabled={!bookingData.passengers.length || loading || sdkLoading || !canProceedToPayment()}
-            className="w-full mt-5 py-3 rounded-md bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {sdkLoading ? (
-              <>
-                <div className="loader"></div>
-                <span>Loading Payment Gateway...</span>
-              </>
-            ) : loading ? (
-              <>
-                <div className="loader"></div>
-                <span>Processing Payment...</span>
-              </>
-            ) : (
-              <>
-                <CreditCard className="w-4 h-4" />
-                <span>Proceed to Payment</span>
-              </>
-            )}
-          </button>
-
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-300 rounded-md">
-              <div className="flex items-center gap-2 text-sm text-red-700">
-                <AlertCircle className="w-4 h-4" />
-                <span className="font-medium">{error}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Security Badge */}
-          <div className="mt-5 pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>Secure Payment • SSL Encrypted</span>
-            </div>
-          </div>
+      <div className="mt-4 space-y-3">
+        <div className="flex justify-between">
+          <div className="text-sm text-gray-600">Base Fare</div>
+          <div className="font-medium">₹{baseFare}</div>
         </div>
+
+        <div className="flex justify-between">
+          <div className="text-sm text-gray-600">Passengers</div>
+          <div className="font-medium">₹{baseFare} × {pax}</div>
+        </div>
+
+        <div className="flex justify-between">
+          <div className="text-sm text-gray-600">Subtotal</div>
+          <div className="font-semibold">₹{subtotal}</div>
+        </div>
+
+        <div className="flex justify-between">
+          <div className="text-sm text-gray-600">Gateway Charges</div>
+          <div className="font-medium">₹{gatewayFee}</div>
+        </div>
+
+        <div className="border-t mt-3 pt-3 flex justify-between items-center">
+          <div className="text-lg font-bold">Total</div>
+          <div className="text-xl font-extrabold text-emerald-600">₹{total}</div>
+        </div>
+
+        <button 
+          onClick={createOrderAndCheckout} 
+          disabled={!bookingData.passengers.length || loading || sdkLoading} 
+          className="w-full mt-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold disabled:opacity-50"
+        >
+          <CreditCard className="w-4 h-4 inline-block mr-2" /> 
+          {sdkLoading ? "Loading Payment..." : loading ? "Processing..." : "Pay Now"}
+        </button>
+        
+        {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
       </div>
     </aside>
   );
