@@ -4,7 +4,7 @@ import verifyToken from "@/lib/db/middleware/verifyToken";
 
 const cashfree = new Cashfree(
   CFEnvironment.SANDBOX,
-  process.env.APP_ID as string,
+  process.env.NEXT_PUBLIC_APP_ID as string,
   process.env.SECRET_KEY as string
 );
 

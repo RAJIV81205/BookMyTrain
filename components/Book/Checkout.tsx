@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { load } from "@cashfreepayments/cashfree-js";
 import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
+import Fare from "./Fare";
 import { useBooking } from "@/context/BookingContext";
 import { Train, Clock } from "lucide-react";
 
@@ -13,48 +13,6 @@ export default function Checkout() {
   const router = useRouter();
   const [showSeatSelection, setShowSeatSelection] = useState(false);
   const [showPassengerForm, setShowPassengerForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [cashfree, setCashfree] = useState<any>(null);
-
-  // helper to map env mode to SDK mode strings
-  const normalizeMode = (envMode?: string) => {
-    if (!envMode) return "sandbox";
-    const m = envMode.toLowerCase();
-    if (m === "test" || m === "sandbox") return "sandbox";
-    if (m === "prod" || m === "production" || m === "prod") return "production";
-    // fallback
-    return "sandbox";
-  };
-
-  // Initialize Cashfree once (client SDK)
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const rawMode = process.env.NEXT_PUBLIC_CASHFREE_MODE as string | undefined;
-        const sdkMode = normalizeMode(rawMode);
-        const cfClientId = process.env.NEXT_PUBLIC_CASHFREE_CLIENT_ID;
-        if (!cfClientId) {
-          console.error("NEXT_PUBLIC_CASHFREE_CLIENT_ID is not set. Set this in .env.local and restart.");
-          return;
-        }
-        console.info(`Loading Cashfree SDK (mode=${sdkMode}) with clientId=${cfClientId}`);
-        const sdk = await load({ mode: sdkMode, clientId: cfClientId });
-        if (mounted) {
-          setCashfree(sdk);
-          console.info("Cashfree SDK loaded", sdk);
-        }
-      } catch (e) {
-        console.warn("Failed to load Cashfree SDK", e);
-        // surfacing to user but keep message friendly:
-        setError("Payment SDK failed to load. Check console for details.");
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   // Redirect if no booking data
   useEffect(() => {
@@ -74,17 +32,7 @@ export default function Checkout() {
     }
   }, [bookingData.trainNo, bookingData.classCode, bookingData.selectedSeats.length, bookingData.passengers.length]);
 
-  const token = useMemo(() => {
-    try {
-      if (typeof window === "undefined") return null;
-      const ls = localStorage.getItem("token");
-      if (ls) return ls;
-      const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
-      return match ? decodeURIComponent(match[1]) : null;
-    } catch (e) {
-      return null;
-    }
-  }, []);
+
 
   const handleSeatsSelected = (seats: number[]) => {
     setBookingData({ selectedSeats: seats, currentStep: "passengers" });
@@ -103,88 +51,6 @@ export default function Checkout() {
     setShowSeatSelection(true);
   };
 
-  // inside your Checkout component (replace createOrderAndCheckout function)
-const createOrderAndCheckout = async () => {
-  setError(null);
-  if (!bookingData.fare) return setError("Fare not selected.");
-  if (!bookingData.passengers?.length) return setError("Add passenger details first.");
-
-  const amount = Math.round(Number(bookingData.fare) * bookingData.passengers.length);
-  if (!token) {
-    router.push("/login");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    console.info("Creating order, amount:", amount);
-    const resp = await fetch("/api/payment/create-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, token }),
-    });
-
-    const data = await resp.json().catch(() => ({}));
-    console.info("Create-order response:", resp.status, data);
-
-    if (!resp.ok) {
-      setError(data?.error || "Order creation failed on server.");
-      setLoading(false);
-      return;
-    }
-
-    // grab the session id
-    const paymentSessionId = data?.cashfree?.payment_session_id || data?.payment_session_id;
-    if (!paymentSessionId || typeof paymentSessionId !== "string") {
-      console.error("No valid payment_session_id returned. Full response:", data);
-      setError("Payment session not returned from backend. Check server logs.");
-      setLoading(false);
-      return;
-    }
-
-    // Sanity-check: session id shouldn't contain unexpected substrings
-    if (paymentSessionId.includes("paymentpayment") || paymentSessionId.length > 400) {
-      console.warn("Payment session id looks odd — verify backend isn't concatenating values:", paymentSessionId);
-    }
-
-    if (!cashfree) {
-      console.error("cashfree SDK not ready when trying to checkout");
-      setError("Payment SDK not loaded. Try again.");
-      setLoading(false);
-      return;
-    }
-
-    // Pass mode explicitly (normalize the env value you used in load())
-    const rawMode = process.env.NEXT_PUBLIC_CASHFREE_MODE as string | undefined;
-    const sdkMode = (rawMode || "sandbox").toLowerCase();
-    const normalizedMode = sdkMode === "prod" || sdkMode === "production" ? "production" : "sandbox";
-
-    const options = {
-      paymentSessionId,
-      redirectTarget: "_modal", // try "_self" if modal causes issues
-      mode: normalizedMode,     // <- <--- important fix
-    };
-
-    console.info("Opening Cashfree checkout with session:", paymentSessionId, "mode:", normalizedMode);
-    const result = await cashfree.checkout(options);
-
-    console.info("Cashfree checkout result:", result);
-
-    if (result?.error) {
-      setError("Payment cancelled or failed.");
-    } else if (result?.paymentDetails || result?.status === "SUCCESS") {
-      router.push("/bookings");
-    } else {
-      console.warn("Unexpected checkout result:", result);
-      router.push("/bookings");
-    }
-  } catch (err) {
-    console.error("Checkout error:", err);
-    setError("Something went wrong during checkout. Check console for details.");
-  } finally {
-    setLoading(false);
-  }
-};
 
 
   return (
@@ -258,22 +124,17 @@ const createOrderAndCheckout = async () => {
             </div>
 
             <div>
-              <div className="bg-white p-4 rounded border shadow-sm">
-                <div className="text-sm text-gray-500">Fare</div>
-                <div className="mt-2 text-xl font-bold">{bookingData.fare ? `₹${bookingData.fare}` : "-"}</div>
-
-                <div className="mt-6">
-                  {bookingData.selectedSeats.length === 0 ? (
-                    <button onClick={() => setShowSeatSelection(true)} className="w-full bg-sky-600 text-white py-2 rounded-lg">Select Seats</button>
-                  ) : bookingData.passengers.length === 0 ? (
-                    <button onClick={() => setShowPassengerForm(true)} className="w-full bg-sky-600 text-white py-2 rounded-lg">Add Passengers</button>
-                  ) : (
-                    <button disabled={loading} onClick={createOrderAndCheckout} className="w-full py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold">{loading ? "Processing..." : "Proceed to Payment"}</button>
-                  )}
+              {bookingData.selectedSeats.length === 0 ? (
+                <div className="bg-white p-4 rounded border shadow-sm">
+                  <button onClick={() => setShowSeatSelection(true)} className="w-full bg-sky-600 text-white py-2 rounded-lg">Select Seats</button>
                 </div>
-
-                {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
-              </div>
+              ) : bookingData.passengers.length === 0 ? (
+                <div className="bg-white p-4 rounded border shadow-sm">
+                  <button onClick={() => setShowPassengerForm(true)} className="w-full bg-sky-600 text-white py-2 rounded-lg">Add Passengers</button>
+                </div>
+              ) : (
+                <Fare />
+              )}
 
               <div className="mt-4 text-xs text-gray-500">Secure payments · 99.9% uptime</div>
             </div>
