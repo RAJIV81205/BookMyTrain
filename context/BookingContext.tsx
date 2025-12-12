@@ -1,16 +1,17 @@
-// context/BookingContext.tsx
 "use client";
 import React, { createContext, useContext, useState } from "react";
 
-interface PassengerDetails {
+export type Gender = "Male" | "Female" | "Other";
+
+export interface PassengerDetails {
   id: string;
   name: string;
   age: number;
-  gender: "Male" | "Female" | "Other";
+  gender: Gender;
   seatNumber: number;
 }
 
-interface BookingData {
+export interface BookingData {
   fromCode: string;
   toCode: string;
   fromStnName: string;
@@ -27,12 +28,13 @@ interface BookingData {
   currentStep: "seats" | "passengers" | "payment";
 }
 
-interface BookingContextType {
+export interface BookingContextType {
   bookingData: BookingData;
   setBookingData: (data: Partial<BookingData>) => void;
-  addPassenger: (passenger: PassengerDetails) => void;
+  addPassenger: (p: PassengerDetails) => void;
   updatePassenger: (id: string, updates: Partial<PassengerDetails>) => void;
   removePassenger: (id: string) => void;
+  resetBooking: () => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -55,48 +57,48 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentStep: "seats",
   });
 
-  const setBookingData = (data: Partial<BookingData>) => {
-    setBookingDataState((prev) => ({ ...prev, ...data }));
-  };
+  const setBookingData = (data: Partial<BookingData>) => setBookingDataState((prev) => ({ ...prev, ...data }));
 
-  const addPassenger = (passenger: PassengerDetails) => {
-    setBookingDataState((prev) => ({
-      ...prev,
-      passengers: [...prev.passengers, passenger],
-    }));
+  const addPassenger = (p: PassengerDetails) => {
+    setBookingDataState((prev) => ({ ...prev, passengers: [...prev.passengers, p] }));
   };
 
   const updatePassenger = (id: string, updates: Partial<PassengerDetails>) => {
-    setBookingDataState((prev) => ({
-      ...prev,
-      passengers: prev.passengers.map((p) =>
-        p.id === id ? { ...p, ...updates } : p
-      ),
-    }));
+    setBookingDataState((prev) => ({ ...prev, passengers: prev.passengers.map((x) => (x.id === id ? { ...x, ...updates } : x)) }));
   };
 
   const removePassenger = (id: string) => {
-    setBookingDataState((prev) => ({
-      ...prev,
-      passengers: prev.passengers.filter((p) => p.id !== id),
-    }));
+    setBookingDataState((prev) => ({ ...prev, passengers: prev.passengers.filter((p) => p.id !== id) }));
+  };
+
+  const resetBooking = () => {
+    setBookingDataState({
+      fromCode: "",
+      toCode: "",
+      fromStnName: "",
+      toStnName: "",
+      date: "",
+      trainNo: "",
+      trainName: "",
+      classCode: "",
+      fare: "",
+      fromTime: "",
+      toTime: "",
+      selectedSeats: [],
+      passengers: [],
+      currentStep: "seats",
+    });
   };
 
   return (
-    <BookingContext.Provider value={{
-      bookingData,
-      setBookingData,
-      addPassenger,
-      updatePassenger,
-      removePassenger
-    }}>
+    <BookingContext.Provider value={{ bookingData, setBookingData, addPassenger, updatePassenger, removePassenger, resetBooking }}>
       {children}
     </BookingContext.Provider>
   );
 };
 
 export const useBooking = () => {
-  const context = useContext(BookingContext);
-  if (!context) throw new Error("useBooking must be used within BookingProvider");
-  return context;
+  const ctx = useContext(BookingContext);
+  if (!ctx) throw new Error("useBooking must be used within BookingProvider");
+  return ctx;
 };

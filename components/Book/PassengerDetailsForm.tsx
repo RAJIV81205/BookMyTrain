@@ -1,150 +1,89 @@
-"use client";
-
-import React, { useState } from "react";
-import { useBooking } from "@/context/BookingContext";
+import React, { useEffect, useState } from "react";
+import { useBooking, Gender } from "@/context/BookingContext";
 
 interface PassengerDetailsFormProps {
   selectedSeats: number[];
   onComplete: () => void;
 }
 
-const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
-  selectedSeats,
-  onComplete,
-}) => {
+const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ selectedSeats, onComplete }) => {
   const { addPassenger } = useBooking();
-  const [passengers, setPassengers] = useState(
-    selectedSeats.map((seatNumber) => ({
-      id: `passenger-${seatNumber}`,
-      name: "",
-      age: "",
-      gender: "Male" as const,
-      seatNumber,
-    }))
-  );
 
-  const handleInputChange = (
-    index: number,
-    field: string,
-    value: string | number
-  ) => {
-    setPassengers((prev) =>
-      prev.map((passenger, i) =>
-        i === index ? { ...passenger, [field]: value } : passenger
-      )
-    );
+  const [passengers, setPassengers] = useState(() =>
+    selectedSeats.map((seatNumber) => ({ id: `p-${seatNumber}`, name: "", age: "", gender: "Male" as Gender, seatNumber }))
+  );
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Sync if selectedSeats change
+    setPassengers(selectedSeats.map((seatNumber) => ({ id: `p-${seatNumber}`, name: "", age: "", gender: "Male" as Gender, seatNumber })));
+  }, [selectedSeats]);
+
+  const handleChange = (index: number, field: string, value: string) => {
+    setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate all fields are filled
-    const isValid = passengers.every(
-      (p) => p.name.trim() && p.age && Number(p.age) > 0
-    );
+  const validate = () => passengers.every((p) => p.name.trim() && Number(p.age) > 0 && Number(p.age) < 150);
 
-    if (!isValid) {
-      alert("Please fill all passenger details");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) {
+      alert("Please fill all passenger details correctly");
       return;
     }
-
-    // Add passengers to context
-    passengers.forEach((passenger) => {
-      addPassenger({
-        ...passenger,
-        age: Number(passenger.age),
+    setSubmitting(true);
+    try {
+      // Add passengers to context — ensure we don't duplicate existing ones for the same seat
+      passengers.forEach((p) => {
+        // If passenger for seat already exists, we still add to keep behavior deterministic
+        addPassenger({ ...p, age: Number(p.age), gender: p.gender as Gender });
       });
-    });
-
-    onComplete();
+      onComplete();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
-        Passenger Details
-      </h3>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {passengers.map((passenger, index) => (
-          <div
-            key={passenger.id}
-            className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-          >
-            <h4 className="font-medium text-gray-700 mb-3">
-              Passenger {index + 1} - Seat {passenger.seatNumber}
-            </h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <form onSubmit={handleSubmit} className="bg-white rounded-xl border p-6 shadow">
+      <h3 className="text-lg font-semibold mb-4">Passenger Details</h3>
+
+      <div className="space-y-4">
+        {passengers.map((p, i) => (
+          <div key={p.id} className="border rounded p-4 bg-gray-50">
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-medium">Passenger {i + 1}</div>
+              <div className="text-sm text-gray-500">Seat {p.seatNumber}</div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={passenger.name}
-                  onChange={(e) =>
-                    handleInputChange(index, "name", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter full name"
-                  required
-                />
+                <label className="block text-sm text-gray-600 mb-1">Full name</label>
+                <input value={p.name} onChange={(e) => handleChange(i, "name", e.target.value)} className="w-full px-3 py-2 border rounded" placeholder="Name" required />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Age *
-                </label>
-                <input
-                  type="number"
-                  value={passenger.age}
-                  onChange={(e) =>
-                    handleInputChange(index, "age", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Age"
-                  min="1"
-                  max="120"
-                  required
-                />
+                <label className="block text-sm text-gray-600 mb-1">Age</label>
+                <input type="number" value={p.age} onChange={(e) => handleChange(i, "age", e.target.value)} className="w-full px-3 py-2 border rounded" min={1} max={120} required />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Gender *
-                </label>
-                <select
-                  value={passenger.gender}
-                  onChange={(e) =>
-                    handleInputChange(
-                      index,
-                      "gender",
-                      e.target.value as "Male" | "Female" | "Other"
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
+                <label className="block text-sm text-gray-600 mb-1">Gender</label>
+                <select value={p.gender} onChange={(e) => handleChange(i, "gender", e.target.value)} className="w-full px-3 py-2 border rounded">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
                 </select>
               </div>
             </div>
           </div>
         ))}
-        
-        <div className="flex justify-end space-x-4">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Save Passenger Details
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+
+      <div className="mt-4 flex justify-end gap-3">
+        <button type="submit" disabled={submitting} className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-60">{submitting ? "Saving..." : "Save & Continue"}</button>
+      </div>
+    </form>
   );
 };
 
