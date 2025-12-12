@@ -7,7 +7,7 @@ const PassengerSchema = new mongoose.Schema({
   seatNumber: { type: String, required: true }, // e.g., "B2-23"
   seatType: { 
     type: String, 
-    enum: ["Lower", "Middle", "Upper", "Side Lower", "Side Upper"], 
+    enum: ["Lower", "Middle", "Upper", "Side Lower", "Side Upper" , "-"], 
     required: true 
   }
 }, { _id: false });
@@ -24,7 +24,7 @@ const BookingSchema = new mongoose.Schema({
   trainNumber: { type: String, required: true },
   trainName: { type: String, required: true },
   dateOfJourney: { type: Date, required: true },
-  coach: { type: String, required: true }, // e.g., "B2"
+
 
   passengers: { type: [PassengerSchema], required: true }, // List of passengers
 
