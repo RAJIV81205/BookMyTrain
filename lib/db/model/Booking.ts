@@ -15,15 +15,15 @@ const PassengerSchema = new mongoose.Schema({
 const JourneySchema = new mongoose.Schema({
   from: { type: String, required: true },
   to: { type: String, required: true },
-  departureTime: { type: Date, required: true },
-  arrivalTime: { type: Date, required: true },
+  departureTime: { type: String, required: true },
+  arrivalTime: { type: String, required: true },
 }, { _id: false });
 
 const BookingSchema = new mongoose.Schema({
   pnr: { type: String, required: true, unique: true }, // Always string for consistency
   trainNumber: { type: String, required: true },
   trainName: { type: String, required: true },
-  dateOfJourney: { type: Date, required: true },
+  dateOfJourney: { type: String, required: true },
 
 
   passengers: { type: [PassengerSchema], required: true }, // List of passengers
