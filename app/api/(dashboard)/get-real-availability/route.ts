@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     if (!d) {
       console.log(raw)
       return NextResponse.json(
-        { success: false, error: "Invalid API response" },
+        { success: false, error: raw?.error?.message || "Invalid API Response"},
         { status: 500 }
       );
     }
