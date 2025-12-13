@@ -65,7 +65,6 @@ export async function POST(request: Request) {
         ApiKey: "ct-mweb!2$",
         ClientId: "ct-mweb",
         "Content-Type": "application/json",
-        DeviceId: "45656870-5c0a-439c-a375-aa4763410b28",
         Origin: "https://www.confirmtkt.com",
         Referer: "https://www.confirmtkt.com/",
         "User-Agent":
