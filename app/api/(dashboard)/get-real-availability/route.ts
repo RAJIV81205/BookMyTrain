@@ -117,9 +117,7 @@ export async function POST(request: Request) {
         reservationCharge: d.fareInfo?.reservationCharge ?? 0,
         superfastCharge: d.fareInfo?.superfastCharge ?? 0,
         serviceTax: d.fareInfo?.serviceTax ?? 0,
-        wpServiceCharge: d.fareInfo?.wpServiceCharge ?? 0,
         totalFare: d.fareInfo?.totalFare ?? 0,
-        totalPayable: d.fareInfo?.totalCollectibleAmount ?? 0,
       },
 
       availability: Array.isArray(d.avlDayList)
@@ -131,20 +129,10 @@ export async function POST(request: Request) {
             rawStatus: day.availablityStatus,
             prediction: day.prediction || null,
             predictionPercentage: Number(day.predictionPercentage || 0),
-            confirmStatus: day.confirmTktStatus,
             canBook: day.enableBookButton,
           }))
         : [],
 
-      bookingRules: {
-        maxPassengers: Number(d.bkgCfg?.maxPassengers || 0),
-        minPassengerAge: Number(d.bkgCfg?.minPassengerAge || 0),
-        maxChildAge: Number(d.bkgCfg?.maxChildAge || 0),
-        genders: d.bkgCfg?.genders || {},
-        berthTypes: d.bkgCfg?.applicableBerthTypesDictionary || {},
-        seniorCitizenAllowed: d.bkgCfg?.seniorCitizenApplicable || false,
-        travelInsuranceEnabled: d.bkgCfg?.travelInsuranceEnabled || false,
-      },
     };
 
     /**
