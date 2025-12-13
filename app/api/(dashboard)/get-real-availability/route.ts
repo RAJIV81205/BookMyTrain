@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const d = raw?.data;
 
     if (!d) {
-      console.log(d)
+      console.log(raw)
       return NextResponse.json(
         { success: false, error: "Invalid API response" },
         { status: 500 }
