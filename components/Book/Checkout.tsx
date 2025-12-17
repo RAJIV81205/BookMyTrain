@@ -6,13 +6,14 @@ import SeatSelectionModal from "./classes/SeatSelectionModal";
 import PassengerDetailsForm from "./PassengerDetailsForm";
 import Fare from "./Fare";
 import { useBooking } from "@/context/BookingContext";
-import { Train, Clock, User, Calendar } from "lucide-react";
+import { Train, Clock, User, Calendar, Loader2 } from "lucide-react";
 
 export default function Checkout() {
   const { bookingData, setBookingData, removePassenger } = useBooking();
   const router = useRouter();
   const [showSeatSelection, setShowSeatSelection] = useState(false);
   const [showPassengerForm, setShowPassengerForm] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   // Redirect if no booking data
   useEffect(() => {
@@ -49,6 +50,18 @@ export default function Checkout() {
     setShowSeatSelection(true);
   };
 
+  const handlePaymentStatusChange = (isProcessing: boolean) => {
+    setPaymentProcessing(isProcessing);
+  };
+
+  const handlePaymentComplete = (success: boolean) => {
+    if (success) {
+      router.push("/profile/bookings");
+    } else {
+      router.push("/failed");
+    }
+  };
+
   const getBerthTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       LB: "Lower Berth",
@@ -61,7 +74,20 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Payment Processing Loader */}
+      {paymentProcessing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4 shadow-xl">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Processing Payment</h3>
+              <p className="text-sm text-gray-600">Please wait while we confirm your payment...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SeatSelectionModal isOpen={showSeatSelection} onClose={() => setShowSeatSelection(false)} onSeatsSelected={handleSeatsSelected} />
 
       {showPassengerForm && <PassengerDetailsForm selectedSeats={bookingData.selectedSeats} onComplete={handlePassengerDetailsComplete} />}
@@ -184,7 +210,10 @@ export default function Checkout() {
 
             {/* Right Column - Payment Summary */}
             <div className="lg:col-span-1">
-              <Fare />
+              <Fare 
+                onPaymentStatusChange={handlePaymentStatusChange}
+                onPaymentComplete={handlePaymentComplete}
+              />
             </div>
           </div>
         </div>

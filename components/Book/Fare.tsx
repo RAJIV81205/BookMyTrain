@@ -6,9 +6,11 @@ import { CreditCard, Shield, ArrowRight } from "lucide-react";
 
 interface FareProps {
   onPay?: () => void;
+  onPaymentStatusChange?: (isProcessing: boolean) => void;
+  onPaymentComplete?: (success: boolean) => void;
 }
 
-const Fare: React.FC<FareProps> = ({ onPay }) => {
+const Fare: React.FC<FareProps> = ({ onPay, onPaymentStatusChange, onPaymentComplete }) => {
   const { bookingData } = useBooking();
   const router = useRouter();
   const [gatewayFee] = useState(20);
@@ -91,7 +93,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
     );
     const data = await resp.json().catch(() => ({}));
     console.info("Get-order-info response:", resp.status, data);
-    return data;
+    return { status: resp.status, data };
   };
 
   const createOrderAndCheckout = async () => {
@@ -109,6 +111,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
     }
 
     setLoading(true);
+    onPaymentStatusChange?.(true);
     try {
       console.info("Creating order, amount:", amount);
       const resp = await fetch("/api/payment/create-order", {
@@ -123,6 +126,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
       if (!resp.ok) {
         setError(data?.error || "Order creation failed on server.");
         setLoading(false);
+        onPaymentStatusChange?.(false);
         return;
       }
 
@@ -138,6 +142,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
           "Payment session not returned from backend. Check server logs."
         );
         setLoading(false);
+        onPaymentStatusChange?.(false);
         return;
       }
 
@@ -156,6 +161,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
         console.error("cashfree SDK not ready when trying to checkout");
         setError("Payment SDK not loaded. Try again.");
         setLoading(false);
+        onPaymentStatusChange?.(false);
         return;
       }
 
@@ -187,14 +193,28 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
 
       if (result?.error) {
         setError("Payment cancelled or failed.");
+        onPaymentStatusChange?.(false);
+        onPaymentComplete?.(false);
       } else {
-        await getOrderInfo(data.orderId);
+        // Payment completed, fetch order details
+        onPaymentStatusChange?.(true);
+        const orderResponse = await getOrderInfo(data.orderId);
+        
+        // Check if payment was successful (status 201 = success, others = failed)
+        if (orderResponse.status === 201) {
+          onPaymentComplete?.(true);
+        } else {
+          onPaymentComplete?.(false);
+        }
+        onPaymentStatusChange?.(false);
       }
     } catch (err) {
       console.error("Checkout error:", err);
       setError(
         "Something went wrong during checkout. Check console for details."
       );
+      onPaymentStatusChange?.(false);
+      onPaymentComplete?.(false);
     } finally {
       setLoading(false);
     }
@@ -305,7 +325,7 @@ const Fare: React.FC<FareProps> = ({ onPay }) => {
         )}
 
         <div className="mt-6 flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-          <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-blue-900">Secure Payment</p>
             <p className="text-xs text-blue-700 mt-1">
