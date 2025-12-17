@@ -86,6 +86,7 @@ async function buildBookingDocument(
 
   const doc: any = {
     pnr: "", // to be filled after uniqueness check
+    orderId: orderId, // Store orderId for refund processing
     trainNumber: bookingdata.trainNo ?? bookingdata.trainNumber ?? "UNKNOWN",
     trainName: bookingdata.trainName ?? bookingdata.train ?? "UNKNOWN",
     dateOfJourney: dateOfJourneyStr, // store as string (no Date conversion)

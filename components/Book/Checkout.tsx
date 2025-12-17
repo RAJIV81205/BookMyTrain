@@ -77,7 +77,7 @@ export default function Checkout() {
     <div className="min-h-screen bg-gray-50 relative">
       {/* Payment Processing Loader */}
       {paymentProcessing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4 shadow-xl">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
             <div className="text-center">

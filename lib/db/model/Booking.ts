@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import { required } from "zod/mini";
-import User from "./User";
+
 
 const PassengerSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -27,10 +26,10 @@ const BookingSchema = new mongoose.Schema({
   trainName: { type: String, required: true },
   dateOfJourney: { type: String, required: true },
   userId:{type:String , required:true},
+  orderId:{type:String , required:true , unique:true },
 
 
   passengers: { type: [PassengerSchema], required: true }, // List of passengers
-
   journey: { type: JourneySchema, required: true }, // Full journey info
 
   fare: { type: Number, required: true },

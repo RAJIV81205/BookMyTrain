@@ -27,6 +27,7 @@ interface PaymentDetails {
 interface Booking {
   _id: string;
   pnr: string;
+  orderId: string;
   trainNumber: string;
   trainName: string;
   dateOfJourney: string;
@@ -159,10 +160,46 @@ const Bookings = () => {
   const handleCancelBooking = async (bookingId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent expanding/collapsing when clicking cancel
     
-    // User will handle backend, so we'll just show a placeholder
-    if (window.confirm("Are you sure you want to cancel this booking?")) {
-      // TODO: Call cancel API endpoint
-      console.log("Cancel booking:", bookingId);
+    if (!window.confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please login to cancel bookings.");
+        return;
+      }
+
+      const res = await fetch("/api/payment/cancel-booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to cancel booking");
+      }
+
+      // Update the booking in the local state
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking._id === bookingId
+            ? { ...booking, bookingStatus: "CANCELLED" as const }
+            : booking
+        )
+      );
+
+      // Show success message
+      alert("Booking cancelled successfully!");
+    } catch (err: any) {
+      alert(err.message || "Failed to cancel booking. Please try again.");
+      console.error("Cancel booking error:", err);
     }
   };
 
