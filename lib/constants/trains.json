@@ -8,6 +8,10 @@
     "trainName": "DSJ-DSJ GOLDEN TRIANGLE"
   },
   {
+    "trainNo": "00102",
+    "trainName": "DSJ SPIRITUAL ODYSSEY"
+  },
+  {
     "trainNo": "00111",
     "trainName": "BIRD-SGTY RAPID CARGO"
   },
@@ -20,20 +24,40 @@
     "trainName": "MDP-PUNE SPL"
   },
   {
+    "trainNo": "00123",
+    "trainName": "KK-UJN FTR SPL"
+  },
+  {
+    "trainNo": "00124",
+    "trainName": "KK-UJN FTR SPL"
+  },
+  {
+    "trainNo": "00125",
+    "trainName": "KK-UJN FTR SPL"
+  },
+  {
+    "trainNo": "00126",
+    "trainName": "HDP-BSB FTR SPL"
+  },
+  {
+    "trainNo": "00127",
+    "trainName": "KK-UJN FTR SPL"
+  },
+  {
+    "trainNo": "00128",
+    "trainName": "HDP-BSB FTR SPL"
+  },
+  {
+    "trainNo": "00129",
+    "trainName": "KK-UJN FTR SPL"
+  },
+  {
     "trainNo": "00131",
     "trainName": "SGAM-DWK-SMNH BHARAT G SP"
   },
   {
     "trainNo": "00132",
     "trainName": "VRL-SGAM BHARAT GURAV SPL"
-  },
-  {
-    "trainNo": "00133",
-    "trainName": "MML-AY FTR SPECIAL"
-  },
-  {
-    "trainNo": "00134",
-    "trainName": "AY-MML FTR SPECIAL"
   },
   {
     "trainNo": "00135",
@@ -50,10 +74,6 @@
   {
     "trainNo": "00290",
     "trainName": "PALACE ON WHEEL"
-  },
-  {
-    "trainNo": "00351",
-    "trainName": "FTR SPL"
   },
   {
     "trainNo": "00391",
@@ -88,8 +108,16 @@
     "trainName": "BDGM-ANDI PEXP SPL"
   },
   {
-    "trainNo": "00478",
-    "trainName": "KOAA-BKN BH GOURAV SPL"
+    "trainNo": "00463",
+    "trainName": "JAT-VRL FTR SPL"
+  },
+  {
+    "trainNo": "00464",
+    "trainName": "JND-JAT SPL"
+  },
+  {
+    "trainNo": "00473",
+    "trainName": "KON-HMH BH GOURAV SPL"
   },
   {
     "trainNo": "00629",
@@ -152,6 +180,10 @@
     "trainName": "SNL-AGTL PCET EXPRESS"
   },
   {
+    "trainNo": "00843",
+    "trainName": "BSP-CAPE FTR SPECIAL"
+  },
+  {
     "trainNo": "00901",
     "trainName": "ST-NRPA PARCEL SPL"
   },
@@ -177,11 +209,7 @@
   },
   {
     "trainNo": "00909",
-    "trainName": "TOURIST FTR SPECIAL"
-  },
-  {
-    "trainNo": "00947",
-    "trainName": "TOURIST SPECIAL TRAIN"
+    "trainName": "LOCAL TRAIN TOURIST SPL"
   },
   {
     "trainNo": "00951",
@@ -196,14 +224,6 @@
     "trainName": "VALLEY QUEEN SPL"
   },
   {
-    "trainNo": "00969",
-    "trainName": "RPZ-KOAA-RPZ BGT"
-  },
-  {
-    "trainNo": "01003",
-    "trainName": "LTT PRYJ SPL"
-  },
-  {
     "trainNo": "01005",
     "trainName": "CSMT- NGP SPL"
   },
@@ -213,39 +233,11 @@
   },
   {
     "trainNo": "01011",
-    "trainName": "CSMT NGP SF SPL"
+    "trainName": "CSMT NGP SPECIAL"
   },
   {
     "trainNo": "01012",
-    "trainName": "NGP-CSMT SPL"
-  },
-  {
-    "trainNo": "01013",
-    "trainName": "LTT MAO SPL"
-  },
-  {
-    "trainNo": "01014",
-    "trainName": "MAO LTT SPL"
-  },
-  {
-    "trainNo": "01015",
-    "trainName": "LTT LKO SPL"
-  },
-  {
-    "trainNo": "01016",
-    "trainName": "LKO LTT SPL"
-  },
-  {
-    "trainNo": "01018",
-    "trainName": "DNR LTT SPL"
-  },
-  {
-    "trainNo": "01019",
-    "trainName": "CSMT NZM SPECIAL"
-  },
-  {
-    "trainNo": "01020",
-    "trainName": "NZM CSMT SF SPL"
+    "trainName": "NGP CSMT SPECIAL"
   },
   {
     "trainNo": "01023",
@@ -272,10 +264,6 @@
     "trainName": "GKP DR SPL"
   },
   {
-    "trainNo": "01049",
-    "trainName": "CSMT-NGP SPL"
-  },
-  {
     "trainNo": "01053",
     "trainName": "DVL-DNR SPL"
   },
@@ -289,7 +277,7 @@
   },
   {
     "trainNo": "01082",
-    "trainName": "BNRS LTT SPECIAL"
+    "trainName": "BNRS-LTT SPL TOD"
   },
   {
     "trainNo": "01139",
@@ -325,15 +313,11 @@
   },
   {
     "trainNo": "01181",
-    "trainName": "LTT-BNRS SPL TOD"
-  },
-  {
-    "trainNo": "01182",
-    "trainName": "BNRS-LTT SPL TOD"
+    "trainName": "LTT BNRS SPL"
   },
   {
     "trainNo": "01185",
-    "trainName": "LTT-MAJN SPL"
+    "trainName": "LTT MAJN SPECIAL"
   },
   {
     "trainNo": "01186",
@@ -348,56 +332,16 @@
     "trainName": "NK-AMI SPL"
   },
   {
-    "trainNo": "01217",
-    "trainName": "CSMT-AMI SPL"
+    "trainNo": "01213",
+    "trainName": "BSL PRYJ SPL"
   },
   {
-    "trainNo": "01218",
-    "trainName": "AMI-CSMT SF SPL"
+    "trainNo": "01215",
+    "trainName": "NGP-PRYJ ONE WAY SPL"
   },
   {
-    "trainNo": "01245",
-    "trainName": "KLBG-CSMT SPL"
-  },
-  {
-    "trainNo": "01246",
-    "trainName": "CSMT-KLBG SPL TOD"
-  },
-  {
-    "trainNo": "01249",
-    "trainName": "CSMT-NGP SPL"
-  },
-  {
-    "trainNo": "01251",
-    "trainName": "CSMT-NGP SPL"
-  },
-  {
-    "trainNo": "01253",
-    "trainName": "DR-NGP SPL"
-  },
-  {
-    "trainNo": "01255",
-    "trainName": "CSMT-NGP SPL"
-  },
-  {
-    "trainNo": "01257",
-    "trainName": "CSMT-NGP SPL"
-  },
-  {
-    "trainNo": "01260",
-    "trainName": "NGP-CSMT SPL"
-  },
-  {
-    "trainNo": "01262",
-    "trainName": "NGP-CSMT SPL"
-  },
-  {
-    "trainNo": "01264",
-    "trainName": "NGP-CSMT SPL"
-  },
-  {
-    "trainNo": "01266",
-    "trainName": "NGP-CSMT SPL"
+    "trainNo": "01219",
+    "trainName": "NGP-PRYJ ONE WAY SPL"
   },
   {
     "trainNo": "01401",
@@ -422,22 +366,6 @@
   {
     "trainNo": "01406",
     "trainName": "SNGN-PUNE SPL"
-  },
-  {
-    "trainNo": "01409",
-    "trainName": "PUNE NZM SPECIAL"
-  },
-  {
-    "trainNo": "01410",
-    "trainName": "NZM PUNE SPECIAL"
-  },
-  {
-    "trainNo": "01413",
-    "trainName": "PUNE SBC SPL"
-  },
-  {
-    "trainNo": "01414",
-    "trainName": "SBC PUNE SPL"
   },
   {
     "trainNo": "01421",
@@ -488,10 +416,6 @@
     "trainName": "AKP SUR SPL"
   },
   {
-    "trainNo": "01482",
-    "trainName": "DNR PUNE SPL"
-  },
-  {
     "trainNo": "01487",
     "trainName": "PUNE HARANGUL EX"
   },
@@ -516,14 +440,6 @@
     "trainName": "AGTL RKMP SPL"
   },
   {
-    "trainNo": "01701",
-    "trainName": "JBP NZM SPL"
-  },
-  {
-    "trainNo": "01702",
-    "trainName": "NZM JBP SPL"
-  },
-  {
     "trainNo": "02131",
     "trainName": "PUNE JBP SF SPL"
   },
@@ -538,14 +454,6 @@
   {
     "trainNo": "02134",
     "trainName": "JBP BDTS SF SPL"
-  },
-  {
-    "trainNo": "02185",
-    "trainName": "RKMP CSMT SPL"
-  },
-  {
-    "trainNo": "02186",
-    "trainName": "CSMT REWA SF SPL"
   },
   {
     "trainNo": "02187",
@@ -572,20 +480,12 @@
     "trainName": "BDTS VGLJ SPL"
   },
   {
-    "trainNo": "02275",
-    "trainName": "PRYJ-NDLS SPL"
-  },
-  {
-    "trainNo": "02276",
-    "trainName": "NDLS PRYJ SPL"
-  },
-  {
     "trainNo": "02309",
-    "trainName": "PNBE-ANVT SPECIAL"
+    "trainName": "PNBE ANVT SPL"
   },
   {
     "trainNo": "02310",
-    "trainName": "ANVT-PNBE SPECIAL"
+    "trainName": "ANVT PNBE AC SP"
   },
   {
     "trainNo": "02395",
@@ -593,7 +493,7 @@
   },
   {
     "trainNo": "02396",
-    "trainName": "ANVT-PNBE SPECIAL"
+    "trainName": "PNBE SPL"
   },
   {
     "trainNo": "02417",
@@ -602,14 +502,6 @@
   {
     "trainNo": "02418",
     "trainName": "NDLS PRYJ SPL"
-  },
-  {
-    "trainNo": "02439",
-    "trainName": "VANDE BHARAT SPL"
-  },
-  {
-    "trainNo": "02440",
-    "trainName": "VANDE BHARAT SPL"
   },
   {
     "trainNo": "02540",
@@ -634,14 +526,6 @@
   {
     "trainNo": "02550",
     "trainName": "JOYRIDE SPECIAL"
-  },
-  {
-    "trainNo": "02559",
-    "trainName": "BNRS ANVT SPL"
-  },
-  {
-    "trainNo": "02560",
-    "trainName": "ANVT BNRS SPL"
   },
   {
     "trainNo": "02563",
@@ -709,11 +593,11 @@
   },
   {
     "trainNo": "02869",
-    "trainName": "CSMT-HWH SPECIAL"
+    "trainName": "CSMT HOWRAH SPL"
   },
   {
     "trainNo": "02870",
-    "trainName": "HWH-CSMT SPECIAL"
+    "trainName": "HWH CSMT SPL"
   },
   {
     "trainNo": "02897",
@@ -724,12 +608,8 @@
     "trainName": "DGHA SRC SPL"
   },
   {
-    "trainNo": "03009",
-    "trainName": "HWH NDLS SPL"
-  },
-  {
     "trainNo": "03010",
-    "trainName": "NDLS-HWH SPL"
+    "trainName": "NDLS HWH SPL"
   },
   {
     "trainNo": "03037",
@@ -740,12 +620,8 @@
     "trainName": "AMP-KWAE MEMU SPL"
   },
   {
-    "trainNo": "03127",
-    "trainName": "SDAH LTT SPL"
-  },
-  {
     "trainNo": "03128",
-    "trainName": "LTT-SDAH SPL"
+    "trainName": "LTT SDAH SPL"
   },
   {
     "trainNo": "03223",
@@ -808,14 +684,6 @@
     "trainName": "PNBE CHZ SPL"
   },
   {
-    "trainNo": "03255",
-    "trainName": "PNBE ANVT SPL"
-  },
-  {
-    "trainNo": "03256",
-    "trainName": "ANVT PNBE SPL"
-  },
-  {
     "trainNo": "03259",
     "trainName": "DNR SMVB SPL"
   },
@@ -833,7 +701,7 @@
   },
   {
     "trainNo": "03309",
-    "trainName": "DHN-DLI EXPRESS SPL"
+    "trainName": "DHN DLI SPL"
   },
   {
     "trainNo": "03310",
@@ -841,7 +709,7 @@
   },
   {
     "trainNo": "03311",
-    "trainName": "DHN -CDG SPECIAL"
+    "trainName": "DHN CDG SPL"
   },
   {
     "trainNo": "03312",
@@ -849,7 +717,7 @@
   },
   {
     "trainNo": "03379",
-    "trainName": "DHN-LTT EXPRESS SPL"
+    "trainName": "DHN LTT SPL EXP"
   },
   {
     "trainNo": "03380",
@@ -865,15 +733,15 @@
   },
   {
     "trainNo": "03465",
-    "trainName": "MLDT-DGHA SPL"
+    "trainName": "MLDT DGHA SPL"
   },
   {
     "trainNo": "03466",
-    "trainName": "DGHA-MLDT SPL"
+    "trainName": "DGHA MLDT SPL"
   },
   {
     "trainNo": "03677",
-    "trainName": "DHN-GKP EXPRESS SPL"
+    "trainName": "DHN GKP SPL"
   },
   {
     "trainNo": "03678",
@@ -888,24 +756,20 @@
     "trainName": "CBE DHN SPL"
   },
   {
-    "trainNo": "04001",
-    "trainName": "MMCT NDLS SF SPL"
+    "trainNo": "04005",
+    "trainName": "BDTS NZM SF SPL"
   },
   {
-    "trainNo": "04002",
-    "trainName": "NDLS MMCT SPL"
+    "trainNo": "04006",
+    "trainName": "NZM BDTS SPL"
   },
   {
-    "trainNo": "04003",
-    "trainName": "MMCT NDLS SF SPL"
-  },
-  {
-    "trainNo": "04004",
-    "trainName": "NDLS MMCT SPL"
+    "trainNo": "04033",
+    "trainName": "SBIB NDLS SPL"
   },
   {
     "trainNo": "04034",
-    "trainName": "NDLS-SBIB SPL"
+    "trainName": "NDLS SBIB SPL"
   },
   {
     "trainNo": "04055",
@@ -917,15 +781,23 @@
   },
   {
     "trainNo": "04061",
-    "trainName": "SBIB DEE SPL"
+    "trainName": "SBIB-DEE SPL"
   },
   {
     "trainNo": "04062",
-    "trainName": "DEE SBIB SPL"
+    "trainName": "DEE-SBIB SPL"
   },
   {
-    "trainNo": "04080",
-    "trainName": "NZM TVC SPL"
+    "trainNo": "04081",
+    "trainName": "NDLS SVDK SPL"
+  },
+  {
+    "trainNo": "04082",
+    "trainName": "SVDK NDLS SPL"
+  },
+  {
+    "trainNo": "04103",
+    "trainName": "PRYJ-LGH ONE WAY TOD"
   },
   {
     "trainNo": "04115",
@@ -944,10 +816,6 @@
     "trainName": "BDTS SFG SF SPL"
   },
   {
-    "trainNo": "04132",
-    "trainName": "SMVB CNB SPL"
-  },
-  {
     "trainNo": "04137",
     "trainName": "GWL BJU S SPL"
   },
@@ -961,7 +829,7 @@
   },
   {
     "trainNo": "04152",
-    "trainName": "LTT CNB SF SPL"
+    "trainName": "LTT-CNB SUF SPL"
   },
   {
     "trainNo": "04155",
@@ -980,22 +848,6 @@
     "trainName": "ALJN-GOY MEMU SPL"
   },
   {
-    "trainNo": "04205",
-    "trainName": "NDLS BSB SPL"
-  },
-  {
-    "trainNo": "04206",
-    "trainName": "BSB NDLS SPL"
-  },
-  {
-    "trainNo": "04207",
-    "trainName": "BSB-NDLS SPL"
-  },
-  {
-    "trainNo": "04208",
-    "trainName": "NDLS BSB SPL"
-  },
-  {
     "trainNo": "04217",
     "trainName": "BSB-LKO SPL"
   },
@@ -1009,7 +861,7 @@
   },
   {
     "trainNo": "04302",
-    "trainName": "DDN-HW EXAM SPL"
+    "trainName": "DDN-MB EXAM SPL"
   },
   {
     "trainNo": "04451",
@@ -1020,64 +872,12 @@
     "trainName": "HWH FESTIVAL SPL"
   },
   {
-    "trainNo": "04459",
+    "trainNo": "04461",
     "trainName": "HWH NDLS SPL"
   },
   {
-    "trainNo": "04460",
-    "trainName": "NDLS HWH SPL"
-  },
-  {
-    "trainNo": "04461",
-    "trainName": "HWH-NDLS SPL"
-  },
-  {
     "trainNo": "04462",
-    "trainName": "NDLS-HWH SPL"
-  },
-  {
-    "trainNo": "04473",
-    "trainName": "SRE-GZB SPL"
-  },
-  {
-    "trainNo": "04474",
-    "trainName": "GZB-SRE SPL"
-  },
-  {
-    "trainNo": "04475",
-    "trainName": "SRE-GZB SPL"
-  },
-  {
-    "trainNo": "04476",
-    "trainName": "GZB-SRE SPL"
-  },
-  {
-    "trainNo": "04481",
-    "trainName": "KKDE-JIND SPL"
-  },
-  {
-    "trainNo": "04482",
-    "trainName": "JIND-KKDE SPL"
-  },
-  {
-    "trainNo": "04483",
-    "trainName": "BHD-KKDE SPL"
-  },
-  {
-    "trainNo": "04484",
-    "trainName": "PNP-BHD SPL"
-  },
-  {
-    "trainNo": "04486",
-    "trainName": "KKDE-PNP SPL"
-  },
-  {
-    "trainNo": "04499",
-    "trainName": "KKDE-PNP"
-  },
-  {
-    "trainNo": "04580",
-    "trainName": "CDG TVC SPL"
+    "trainName": "NDLS HWH SPL"
   },
   {
     "trainNo": "04611",
@@ -1152,14 +952,6 @@
     "trainName": "TPTY HSR SPL"
   },
   {
-    "trainNo": "04725",
-    "trainName": "HSR KK SF SPL"
-  },
-  {
-    "trainNo": "04726",
-    "trainName": "KK HSR SF SPL"
-  },
-  {
     "trainNo": "04771",
     "trainName": "BTI-APH PASSENGER"
   },
@@ -1216,18 +1008,6 @@
     "trainName": "JP-SIKR DMU"
   },
   {
-    "trainNo": "04805",
-    "trainName": "JSM SSB ING SPL"
-  },
-  {
-    "trainNo": "04808",
-    "trainName": "HWH JU SPL"
-  },
-  {
-    "trainNo": "04809",
-    "trainName": "JU HWH SPL"
-  },
-  {
     "trainNo": "04827",
     "trainName": "BGKT BDTS SPL"
   },
@@ -1272,20 +1052,8 @@
     "trainName": "INAUGURAL SPECIAL"
   },
   {
-    "trainNo": "05029",
-    "trainName": "BNRS-ANVT SPE TOD"
-  },
-  {
     "trainNo": "05030",
-    "trainName": "ANVT-BNRS SPL TOD"
-  },
-  {
-    "trainNo": "05049",
-    "trainName": "ASR PUJA SPL"
-  },
-  {
-    "trainNo": "05050",
-    "trainName": "ASR CPR SPL"
+    "trainName": "ANVT BNRS SPL"
   },
   {
     "trainNo": "05053",
@@ -1344,20 +1112,16 @@
     "trainName": "SGAC BJU SPL"
   },
   {
-    "trainNo": "05289",
-    "trainName": "MFP PUNE AC SPL"
-  },
-  {
-    "trainNo": "05290",
-    "trainName": "PUNE MFP SF SPL"
-  },
-  {
     "trainNo": "05401",
     "trainName": "BC-KPV DEMU SPL PASSENGER"
   },
   {
     "trainNo": "05402",
     "trainName": "KPV-BC DEMU SPL PASSENGER"
+  },
+  {
+    "trainNo": "05483",
+    "trainName": "APDJ DLI SPECIAL"
   },
   {
     "trainNo": "05505",
@@ -1393,11 +1157,11 @@
   },
   {
     "trainNo": "05563",
-    "trainName": "DBG-ANVT SPECIAL"
+    "trainName": "DBG ANVT SPL"
   },
   {
     "trainNo": "05564",
-    "trainName": "ANVT-DBG SPECIAL"
+    "trainName": "ANVT DBG SPL"
   },
   {
     "trainNo": "05565",
@@ -1405,7 +1169,7 @@
   },
   {
     "trainNo": "05566",
-    "trainName": "ANVT-DBG SPECIAL"
+    "trainName": "ANVT DBG SPL"
   },
   {
     "trainNo": "05575",
@@ -1424,32 +1188,12 @@
     "trainName": "PRNC FESTVL SPL"
   },
   {
-    "trainNo": "05581",
-    "trainName": "GKP-LTT SPL"
-  },
-  {
     "trainNo": "05582",
-    "trainName": "LTT-GKP SPECIAL"
-  },
-  {
-    "trainNo": "05587",
-    "trainName": "GKP-LTT SPL"
-  },
-  {
-    "trainNo": "05588",
     "trainName": "LTT GKP SPL"
   },
   {
-    "trainNo": "05591",
-    "trainName": "GKP ANVT SPL"
-  },
-  {
-    "trainNo": "05592",
-    "trainName": "ANVT GKP SPL"
-  },
-  {
     "trainNo": "05599",
-    "trainName": "DBG-ADI SPL"
+    "trainName": "DBG ADI SPL"
   },
   {
     "trainNo": "05627",
@@ -1468,104 +1212,52 @@
     "trainName": "SCL NHLN SPECIAL"
   },
   {
+    "trainNo": "05650",
+    "trainName": "SCL-KOAA TOD SPECIAL"
+  },
+  {
+    "trainNo": "05653",
+    "trainName": "AGTL KOAA SPL"
+  },
+  {
     "trainNo": "05690",
-    "trainName": "GHY-DMV TOD SPECIAL"
+    "trainName": "GHY DMV SPECIAL"
   },
   {
     "trainNo": "05691",
-    "trainName": "DMV-SANG TOD SPECIAL"
+    "trainName": "DMV SANG SPECIAL"
   },
   {
     "trainNo": "05692",
-    "trainName": "SANG-GHY TOD SPECIAL"
-  },
-  {
-    "trainNo": "05694",
-    "trainName": "KYQ KOAA SPECIAL"
-  },
-  {
-    "trainNo": "05695",
-    "trainName": "KOAA KYQ SPL"
-  },
-  {
-    "trainNo": "05903",
-    "trainName": "DBRG ANVT SPL"
+    "trainName": "SANG GHY SPECIAL"
   },
   {
     "trainNo": "05904",
-    "trainName": "ANVT-DBRG TOD SPECIAL"
+    "trainName": "DBRG SPL"
   },
   {
-    "trainNo": "06002",
-    "trainName": "BSBS CAPE KTSPL"
-  },
-  {
-    "trainNo": "06004",
-    "trainName": "BSBS MAS KTS SPL"
-  },
-  {
-    "trainNo": "06005",
-    "trainName": "CBE BNRS KTS SPL"
-  },
-  {
-    "trainNo": "06006",
-    "trainName": "BSBS CBE KTS SPL"
-  },
-  {
-    "trainNo": "06007",
-    "trainName": "MAS BNRS KTS SPL"
+    "trainNo": "05936",
+    "trainName": "DBRG KOAA SPL"
   },
   {
     "trainNo": "06008",
-    "trainName": "BSBS-MAS TOD SPL"
-  },
-  {
-    "trainNo": "06009",
-    "trainName": "CAPE BNRS KTSSPL"
+    "trainName": "BSBS MAS KTS SPL"
   },
   {
     "trainNo": "06010",
-    "trainName": "BSBS-CAPE TOD SPL"
-  },
-  {
-    "trainNo": "06011",
-    "trainName": "TBM NCJ SF SPL"
-  },
-  {
-    "trainNo": "06012",
-    "trainName": "NCJ TBM SF SPL"
-  },
-  {
-    "trainNo": "06013",
-    "trainName": "CBE BNRS KTS SPL"
+    "trainName": "BSBS CAPE KTSSPL"
   },
   {
     "trainNo": "06014",
-    "trainName": "BSBS-CBE TOD SPL"
+    "trainName": "BSBS CBE KTS SPL"
   },
   {
     "trainNo": "06015",
-    "trainName": "MAS-BSBS TOD SPL"
+    "trainName": "MAS BNRS KTS SPL"
   },
   {
     "trainNo": "06016",
     "trainName": "BSBS-MAS TOD SPL"
-  },
-  {
-    "trainNo": "06019",
-    "trainName": "MS CHZ SPECIAL"
-  },
-  {
-    "trainNo": "06020",
-    "trainName": "CHZ MS SPL"
-  },
-  {
-    "trainNo": "06023",
-    "trainName": "MAS CBE SPECIAL"
-  },
-  {
-    "trainNo": "06024",
-    "trainName": "CBE MAS SPECIAL"
   },
   {
     "trainNo": "06029",
@@ -1584,10 +1276,6 @@
     "trainName": "CAN-CLT UR EXP TOD SPL"
   },
   {
-    "trainNo": "06040",
-    "trainName": "BJU MAS SPL"
-  },
-  {
     "trainNo": "06041",
     "trainName": "MAJN TVCN SPL"
   },
@@ -1596,36 +1284,12 @@
     "trainName": "TVCN MAJN SPL"
   },
   {
-    "trainNo": "06049",
-    "trainName": "TBM-TNM MEMU TOD SPL"
-  },
-  {
-    "trainNo": "06050",
-    "trainName": "TNM-TBM MEMU TOD SPL"
-  },
-  {
-    "trainNo": "06051",
-    "trainName": "MAS TNM MSB SPL"
-  },
-  {
     "trainNo": "06071",
     "trainName": "CLT-PGT UR EXP TOD SPL"
   },
   {
-    "trainNo": "06075",
-    "trainName": "TEN TNM SPECIAL"
-  },
-  {
-    "trainNo": "06076",
-    "trainName": "TNM TEN SPECIAL"
-  },
-  {
     "trainNo": "06079",
     "trainName": "TPTY RMM SPL"
-  },
-  {
-    "trainNo": "06080",
-    "trainName": "RMM TPTY SPECIAL"
   },
   {
     "trainNo": "06083",
@@ -1634,14 +1298,6 @@
   {
     "trainNo": "06084",
     "trainName": "MAO-NCJ TOD SPL"
-  },
-  {
-    "trainNo": "06107",
-    "trainName": "MS TVCN SPECIAL"
-  },
-  {
-    "trainNo": "06108",
-    "trainName": "TVCN MS SPECIAL"
   },
   {
     "trainNo": "06111",
@@ -1684,20 +1340,8 @@
     "trainName": "QLN MAS SPECIAL"
   },
   {
-    "trainNo": "06129",
-    "trainName": "TNM-VM MEMU UR TOD SPL"
-  },
-  {
-    "trainNo": "06130",
-    "trainName": "VM-TNM MEMU UR TOD SPL"
-  },
-  {
-    "trainNo": "06147",
-    "trainName": "ERS YNK SPECIAL"
-  },
-  {
-    "trainNo": "06148",
-    "trainName": "YNK ERS SPL"
+    "trainNo": "06159",
+    "trainName": "TVC NZM AC SPL"
   },
   {
     "trainNo": "06163",
@@ -1706,14 +1350,6 @@
   {
     "trainNo": "06164",
     "trainName": "MAJN-TVCN UR TOD"
-  },
-  {
-    "trainNo": "06167",
-    "trainName": "VLR-VM MEMU TOD SPL"
-  },
-  {
-    "trainNo": "06168",
-    "trainName": "VM-VLR MEMU TOD SPL"
   },
   {
     "trainNo": "06169",
@@ -1725,11 +1361,11 @@
   },
   {
     "trainNo": "06181",
-    "trainName": "CBE-MDJN TOD SPL"
+    "trainName": "CBE MDJN SPECIAL"
   },
   {
     "trainNo": "06182",
-    "trainName": "MDJN-CBE TOD SPL"
+    "trainName": "MDJN CBE SPECIAL"
   },
   {
     "trainNo": "06190",
@@ -1741,7 +1377,7 @@
   },
   {
     "trainNo": "06192",
-    "trainName": "TVC-CDG TOD SPL"
+    "trainName": "TVC CDG SPECIAL"
   },
   {
     "trainNo": "06197",
@@ -1776,44 +1412,8 @@
     "trainName": "AP-SBC UR MEMU SPL"
   },
   {
-    "trainNo": "06255",
-    "trainName": "SBC MS SPL"
-  },
-  {
-    "trainNo": "06256",
-    "trainName": "MS SBC SPECIAL"
-  },
-  {
-    "trainNo": "06257",
-    "trainName": "SBC MAS SPL"
-  },
-  {
-    "trainNo": "06258",
-    "trainName": "MAS SBC SPECIAL"
-  },
-  {
-    "trainNo": "06259",
-    "trainName": "YPR NZM SPL"
-  },
-  {
     "trainNo": "06260",
     "trainName": "NZM BNC SPL"
-  },
-  {
-    "trainNo": "06261",
-    "trainName": "YPR MFP SPL"
-  },
-  {
-    "trainNo": "06262",
-    "trainName": "MFP BNC SPL"
-  },
-  {
-    "trainNo": "06263",
-    "trainName": "SBC PUNE SPL"
-  },
-  {
-    "trainNo": "06264",
-    "trainName": "PUNE BNC SPL"
   },
   {
     "trainNo": "06269",
@@ -1912,14 +1512,6 @@
     "trainName": "BIDR SMVB SPL"
   },
   {
-    "trainNo": "06545",
-    "trainName": "YPR BJP EXP"
-  },
-  {
-    "trainNo": "06546",
-    "trainName": "BJP YPR EXP"
-  },
-  {
     "trainNo": "06547",
     "trainName": "SMVB TVCN SPL"
   },
@@ -1930,10 +1522,6 @@
   {
     "trainNo": "06553",
     "trainName": "YPR-GAYA BHARAT GAURAV"
-  },
-  {
-    "trainNo": "06554",
-    "trainName": "GAYA-SMVB BHARAT GAURAV"
   },
   {
     "trainNo": "06555",
@@ -1965,11 +1553,11 @@
   },
   {
     "trainNo": "06570",
-    "trainName": "NZM-BNC EXP SPL"
+    "trainName": "NZM BNC SPL"
   },
   {
     "trainNo": "06575",
-    "trainName": "YPR-AII OW SPL"
+    "trainName": "YPR AII SF SPL"
   },
   {
     "trainNo": "06581",
@@ -2040,14 +1628,6 @@
     "trainName": "KGQ-TVC FTR SPL"
   },
   {
-    "trainNo": "06909",
-    "trainName": "TEN-BNRS BGT"
-  },
-  {
-    "trainNo": "06910",
-    "trainName": "BNRS-TEN BGT"
-  },
-  {
     "trainNo": "06919",
     "trainName": "UBL-BJP PASS SPL"
   },
@@ -2061,11 +1641,11 @@
   },
   {
     "trainNo": "07001",
-    "trainName": "CHZ TPTY SPL"
+    "trainName": "CHZ-TPTY"
   },
   {
     "trainNo": "07002",
-    "trainName": "TPTY CHZ SPL"
+    "trainName": "TPTY-CHZ"
   },
   {
     "trainNo": "07003",
@@ -2082,10 +1662,6 @@
   {
     "trainNo": "07012",
     "trainName": "TPTY-PVR"
-  },
-  {
-    "trainNo": "07013",
-    "trainName": "PVR-TPTY"
   },
   {
     "trainNo": "07014",
@@ -2124,10 +1700,6 @@
     "trainName": "NZM-CHZ"
   },
   {
-    "trainNo": "07024",
-    "trainName": "CHZ FESTIVALSPL"
-  },
-  {
     "trainNo": "07027",
     "trainName": "CHZ BAM SPL"
   },
@@ -2161,19 +1733,19 @@
   },
   {
     "trainNo": "07035",
-    "trainName": "HYB AKP SPL"
+    "trainName": "CHZ-AKP"
   },
   {
     "trainNo": "07036",
-    "trainName": "AKP CHZ SPL"
+    "trainName": "AKP-CHZ"
   },
   {
     "trainNo": "07041",
-    "trainName": "SC AKP SPL"
+    "trainName": "SC-AKP"
   },
   {
     "trainNo": "07042",
-    "trainName": "AKP SC SPL"
+    "trainName": "AKP-SC"
   },
   {
     "trainNo": "07043",
@@ -2182,10 +1754,6 @@
   {
     "trainNo": "07044",
     "trainName": "BGM HYB SPL"
-  },
-  {
-    "trainNo": "07047",
-    "trainName": "NHLN SC SPECIAL"
   },
   {
     "trainNo": "07053",
@@ -2213,11 +1781,11 @@
   },
   {
     "trainNo": "07059",
-    "trainName": "SC AKP SPL"
+    "trainName": "SC-AKP"
   },
   {
     "trainNo": "07060",
-    "trainName": "AKP SC SPL"
+    "trainName": "AKP-SC"
   },
   {
     "trainNo": "07075",
@@ -2233,7 +1801,7 @@
   },
   {
     "trainNo": "07086",
-    "trainName": "KTYM-HYB"
+    "trainName": "KTYM HYB SPECIAL"
   },
   {
     "trainNo": "07101",
@@ -2277,11 +1845,11 @@
   },
   {
     "trainNo": "07111",
-    "trainName": "NED QLN SPL"
+    "trainName": "NED-QLM"
   },
   {
     "trainNo": "07112",
-    "trainName": "QLN NED SPECIAL"
+    "trainName": "QLM-NED"
   },
   {
     "trainNo": "07113",
@@ -2340,14 +1908,6 @@
     "trainName": "QLN-CHZ"
   },
   {
-    "trainNo": "07129",
-    "trainName": "ADB-DR"
-  },
-  {
-    "trainNo": "07130",
-    "trainName": "DR-ADB"
-  },
-  {
     "trainNo": "07131",
     "trainName": "TPTY NS SPL"
   },
@@ -2376,10 +1936,6 @@
     "trainName": "CHZ-NS EXP"
   },
   {
-    "trainNo": "07141",
-    "trainName": "CHZ TPTY SPL"
-  },
-  {
     "trainNo": "07142",
     "trainName": "NED-CCT"
   },
@@ -2396,28 +1952,8 @@
     "trainName": "NS-CHZ"
   },
   {
-    "trainNo": "07146",
-    "trainName": "SC MS SPECIAL"
-  },
-  {
-    "trainNo": "07147",
-    "trainName": "MS SC SPECIAL"
-  },
-  {
-    "trainNo": "07148",
-    "trainName": "CHZ SHM SPL"
-  },
-  {
     "trainNo": "07149",
     "trainName": "SHM CHZ SPL"
-  },
-  {
-    "trainNo": "07150",
-    "trainName": "HYB LTT SPECIAL"
-  },
-  {
-    "trainNo": "07151",
-    "trainName": "LTT HYB SPL"
   },
   {
     "trainNo": "07153",
@@ -2476,24 +2012,8 @@
     "trainName": "BBSN HYB SPL"
   },
   {
-    "trainNo": "07167",
-    "trainName": "HYB HDP SPL"
-  },
-  {
-    "trainNo": "07168",
-    "trainName": "HDP HYB SPL"
-  },
-  {
-    "trainNo": "07181",
-    "trainName": "CHZ SHM SPL"
-  },
-  {
     "trainNo": "07182",
     "trainName": "SHM CHZ SPL"
-  },
-  {
-    "trainNo": "07187",
-    "trainName": "CHZ YNK SPL"
   },
   {
     "trainNo": "07188",
@@ -2509,11 +2029,11 @@
   },
   {
     "trainNo": "07191",
-    "trainName": "KCG MDU SPL"
+    "trainName": "KCG-MDU"
   },
   {
     "trainNo": "07192",
-    "trainName": "MDU KCG SPL"
+    "trainName": "MDU KCG TOD"
   },
   {
     "trainNo": "07193",
@@ -2532,12 +2052,20 @@
     "trainName": "CHZ-CCT"
   },
   {
+    "trainNo": "07211",
+    "trainName": "VKB-NS"
+  },
+  {
+    "trainNo": "07215",
+    "trainName": "NS-VKB"
+  },
+  {
     "trainNo": "07219",
-    "trainName": "NS TNM SPL"
+    "trainName": "NS-TNM"
   },
   {
     "trainNo": "07220",
-    "trainName": "TNM NS SPL"
+    "trainName": "TNM-NS"
   },
   {
     "trainNo": "07225",
@@ -2549,11 +2077,11 @@
   },
   {
     "trainNo": "07229",
-    "trainName": "CAPE HYB SPL"
+    "trainName": "CAPE-HYB"
   },
   {
     "trainNo": "07230",
-    "trainName": "HYB CAPE SPL"
+    "trainName": "HYB-CAPE"
   },
   {
     "trainNo": "07233",
@@ -2572,6 +2100,50 @@
     "trainName": "AJJ-MASS MEMU"
   },
   {
+    "trainNo": "07239",
+    "trainName": "SC-NS"
+  },
+  {
+    "trainNo": "07241",
+    "trainName": "CCT-VKB"
+  },
+  {
+    "trainNo": "07242",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07243",
+    "trainName": "CCT-VKB"
+  },
+  {
+    "trainNo": "07244",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07245",
+    "trainName": "NS-VKB"
+  },
+  {
+    "trainNo": "07246",
+    "trainName": "NS-SC"
+  },
+  {
+    "trainNo": "07247",
+    "trainName": "SC-NS"
+  },
+  {
+    "trainNo": "07248",
+    "trainName": "NS-VKB"
+  },
+  {
+    "trainNo": "07249",
+    "trainName": "VKB-NS"
+  },
+  {
+    "trainNo": "07250",
+    "trainName": "NS-VKB"
+  },
+  {
     "trainNo": "07251",
     "trainName": "CHZ TPTY SPL"
   },
@@ -2580,12 +2152,60 @@
     "trainName": "TPTY CHZ SPL"
   },
   {
+    "trainNo": "07253",
+    "trainName": "VKB-NS"
+  },
+  {
+    "trainNo": "07254",
+    "trainName": "NS-CHZ"
+  },
+  {
     "trainNo": "07255",
     "trainName": "CHZ PNBE SPL"
   },
   {
     "trainNo": "07256",
     "trainName": "CHZ PNBE SPL"
+  },
+  {
+    "trainNo": "07257",
+    "trainName": "NS-VKB"
+  },
+  {
+    "trainNo": "07258",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07259",
+    "trainName": "NS-VKB"
+  },
+  {
+    "trainNo": "07260",
+    "trainName": "VKB-NS"
+  },
+  {
+    "trainNo": "07261",
+    "trainName": "SC-CCT"
+  },
+  {
+    "trainNo": "07262",
+    "trainName": "CCT-SC"
+  },
+  {
+    "trainNo": "07263",
+    "trainName": "CCT-VKB"
+  },
+  {
+    "trainNo": "07264",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07265",
+    "trainName": "TPTY-VKB"
+  },
+  {
+    "trainNo": "07266",
+    "trainName": "VKB-CCT"
   },
   {
     "trainNo": "07267",
@@ -2604,12 +2224,84 @@
     "trainName": "MAQ-NED"
   },
   {
+    "trainNo": "07271",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07272",
+    "trainName": "CCT-VKB"
+  },
+  {
+    "trainNo": "07273",
+    "trainName": "SC-CCT"
+  },
+  {
+    "trainNo": "07274",
+    "trainName": "MTM-AII"
+  },
+  {
+    "trainNo": "07275",
+    "trainName": "AII-MTM"
+  },
+  {
+    "trainNo": "07279",
+    "trainName": "CCT-SC"
+  },
+  {
+    "trainNo": "07280",
+    "trainName": "SC-CCT"
+  },
+  {
     "trainNo": "07281",
     "trainName": "PAU-J"
   },
   {
     "trainNo": "07282",
     "trainName": "J-NED"
+  },
+  {
+    "trainNo": "07285",
+    "trainName": "CCT-VKB"
+  },
+  {
+    "trainNo": "07286",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07287",
+    "trainName": "VKB-CCT"
+  },
+  {
+    "trainNo": "07288",
+    "trainName": "SC-CHE"
+  },
+  {
+    "trainNo": "07289",
+    "trainName": "CHE-SC"
+  },
+  {
+    "trainNo": "07290",
+    "trainName": "SC-CHE"
+  },
+  {
+    "trainNo": "07291",
+    "trainName": "CHE-SC"
+  },
+  {
+    "trainNo": "07292",
+    "trainName": "SC-CHE"
+  },
+  {
+    "trainNo": "07293",
+    "trainName": "CHE-SC"
+  },
+  {
+    "trainNo": "07294",
+    "trainName": "SC-CHE"
+  },
+  {
+    "trainNo": "07295",
+    "trainName": "CHE-SC"
   },
   {
     "trainNo": "07311",
@@ -2644,14 +2336,6 @@
     "trainName": "BJP-UBL INTERCITY DMU SPL"
   },
   {
-    "trainNo": "07339",
-    "trainName": "UBL SBC SPL"
-  },
-  {
-    "trainNo": "07340",
-    "trainName": "SBC UBL SPL"
-  },
-  {
     "trainNo": "07351",
     "trainName": "UBL-PRYJ OW UR EXP SPL"
   },
@@ -2665,7 +2349,7 @@
   },
   {
     "trainNo": "07360",
-    "trainName": "BGKT UBL SPL"
+    "trainName": "BGKT-UBL TOD SPL"
   },
   {
     "trainNo": "07363",
@@ -2705,7 +2389,7 @@
   },
   {
     "trainNo": "07426",
-    "trainName": "SNSI-TPTY"
+    "trainName": "SNSI TPTY SPL"
   },
   {
     "trainNo": "07445",
@@ -2757,11 +2441,11 @@
   },
   {
     "trainNo": "07615",
-    "trainName": "NED TPJ SPL"
+    "trainName": "NED-TPJ"
   },
   {
     "trainNo": "07616",
-    "trainName": "TPJ NED SPECIAL"
+    "trainName": "TPJ-NED"
   },
   {
     "trainNo": "07637",
@@ -2780,16 +2464,16 @@
     "trainName": "CPR J SPL"
   },
   {
-    "trainNo": "07654",
-    "trainName": "TCNR J SPL"
-  },
-  {
     "trainNo": "07663",
     "trainName": "PBN-J"
   },
   {
     "trainNo": "07664",
     "trainName": "J-PBN"
+  },
+  {
+    "trainNo": "07690",
+    "trainName": "HYB TPTY SPL"
   },
   {
     "trainNo": "07717",
@@ -2800,16 +2484,40 @@
     "trainName": "HSR TPTY SPL"
   },
   {
+    "trainNo": "07731",
+    "trainName": "HYB-AII"
+  },
+  {
+    "trainNo": "07732",
+    "trainName": "AII-HYB"
+  },
+  {
+    "trainNo": "07733",
+    "trainName": "KCG-MDJN"
+  },
+  {
+    "trainNo": "07734",
+    "trainName": "MDJN KCG"
+  },
+  {
+    "trainNo": "07735",
+    "trainName": "TPTY-AII"
+  },
+  {
+    "trainNo": "07736",
+    "trainName": "AII-TPTY"
+  },
+  {
     "trainNo": "07787",
-    "trainName": "KCG TCNR SPL"
+    "trainName": "KCG-TCNR"
   },
   {
     "trainNo": "07788",
-    "trainName": "TCNR KCG SPL"
+    "trainName": "TCNR-KCG"
   },
   {
     "trainNo": "07995",
-    "trainName": "HYB-UBL EXPRESS"
+    "trainName": "HYB UBL SPL"
   },
   {
     "trainNo": "08007",
@@ -2829,11 +2537,11 @@
   },
   {
     "trainNo": "08073",
-    "trainName": "SRC-YNK SPECIAL"
+    "trainName": "SRC YNK SPL"
   },
   {
     "trainNo": "08074",
-    "trainName": "YNK-SRC SPECIAL"
+    "trainName": "YNK SRC SPL"
   },
   {
     "trainNo": "08117",
@@ -2852,12 +2560,28 @@
     "trainName": "DURG HTE SPL"
   },
   {
+    "trainNo": "08241",
+    "trainName": "BSP-MAO SPECIAL"
+  },
+  {
+    "trainNo": "08242",
+    "trainName": "MAO-BSP SPECIAL"
+  },
+  {
+    "trainNo": "08245",
+    "trainName": "BSP LTT TOD SPL"
+  },
+  {
+    "trainNo": "08246",
+    "trainName": "LTT BSP SF SPL"
+  },
+  {
     "trainNo": "08261",
-    "trainName": "BSP YNK FEST SPL"
+    "trainName": "BSP-YNK SPL"
   },
   {
     "trainNo": "08262",
-    "trainName": "YNK BSP SPL"
+    "trainName": "YNK-BSP SPL"
   },
   {
     "trainNo": "08311",
@@ -2866,14 +2590,6 @@
   {
     "trainNo": "08312",
     "trainName": "ED SBP SPL"
-  },
-  {
-    "trainNo": "08319",
-    "trainName": "SBP-RMM BNTYY SPECIAL"
-  },
-  {
-    "trainNo": "08320",
-    "trainName": "RMM-SBP BNTYY SPECIAL"
   },
   {
     "trainNo": "08401",
@@ -2916,6 +2632,14 @@
     "trainName": "TPTY VSKP SPL"
   },
   {
+    "trainNo": "08573",
+    "trainName": "RGDA-RMM BNTYY SPECIAL"
+  },
+  {
+    "trainNo": "08574",
+    "trainName": "MNM-RGDA BNTYY SPECIAL"
+  },
+  {
     "trainNo": "08579",
     "trainName": "VSKP CHZ SPL"
   },
@@ -2948,16 +2672,8 @@
     "trainName": "AII SRC SPL"
   },
   {
-    "trainNo": "08760",
-    "trainName": "DURG NZM TOD SPL"
-  },
-  {
-    "trainNo": "08761",
-    "trainName": "DURG SPL"
-  },
-  {
     "trainNo": "08813",
-    "trainName": "ABKP-MTJ SPECIAL"
+    "trainName": "RIG-NK SPECIAL"
   },
   {
     "trainNo": "08814",
@@ -2965,11 +2681,11 @@
   },
   {
     "trainNo": "08853",
-    "trainName": "ABKP - AYC SPECIAL"
+    "trainName": "RJN-AYC SPECIAL"
   },
   {
     "trainNo": "08854",
-    "trainName": "AYC-ABKP SPECIAL"
+    "trainName": "AYC-RJN SPECIAL"
   },
   {
     "trainNo": "09001",
@@ -2977,15 +2693,7 @@
   },
   {
     "trainNo": "09002",
-    "trainName": "BNW-MMCT SPECIAL TRAIN"
-  },
-  {
-    "trainNo": "09003",
-    "trainName": "MMCT SSB SF SPL"
-  },
-  {
-    "trainNo": "09004",
-    "trainName": "SSB MMCT SPL"
+    "trainName": "BNW MMCT SF SPL"
   },
   {
     "trainNo": "09007",
@@ -3004,6 +2712,14 @@
     "trainName": "DNR BL SPL"
   },
   {
+    "trainNo": "09027",
+    "trainName": "BDTS-AII SUPERFAST SPL"
+  },
+  {
+    "trainNo": "09028",
+    "trainName": "AII-BDTS SUPERFAST SPL"
+  },
+  {
     "trainNo": "09031",
     "trainName": "UDN JYG SPL"
   },
@@ -3017,7 +2733,7 @@
   },
   {
     "trainNo": "09038",
-    "trainName": "BHUJ-BDTS SUPER FAST SPL"
+    "trainName": "BHUJ BDTS SF SPL"
   },
   {
     "trainNo": "09039",
@@ -3084,6 +2800,14 @@
     "trainName": "KUR UDN SPL"
   },
   {
+    "trainNo": "09063",
+    "trainName": "BANDRA T - AJMER URS SPL"
+  },
+  {
+    "trainNo": "09064",
+    "trainName": "AJMER - BANDRA T URS SPL"
+  },
+  {
     "trainNo": "09065",
     "trainName": "ST CPR SPL"
   },
@@ -3101,11 +2825,11 @@
   },
   {
     "trainNo": "09083",
-    "trainName": "MMCT-BHAGAT KI KOTHI SPL"
+    "trainName": "MMCT BGKT SPL"
   },
   {
     "trainNo": "09084",
-    "trainName": "BHAGAT KI KOTHI-MMCT SPL"
+    "trainName": "BGKT MMCT SPL"
   },
   {
     "trainNo": "09085",
@@ -3122,6 +2846,14 @@
   {
     "trainNo": "09118",
     "trainName": "SFG UDN SF SPL"
+  },
+  {
+    "trainNo": "09123",
+    "trainName": "KOTTAYAM-VADODARA SPL"
+  },
+  {
+    "trainNo": "09124",
+    "trainName": "VADODARA - KOTTAYAM SPL"
   },
   {
     "trainNo": "09185",
@@ -3176,6 +2908,14 @@
     "trainName": "SUNR - DHG ONE WAY SPL"
   },
   {
+    "trainNo": "09303",
+    "trainName": "TOK-DADN SPECIAL TRAIN"
+  },
+  {
+    "trainNo": "09304",
+    "trainName": "DADN-TOK SPECIAL TRAIN"
+  },
+  {
     "trainNo": "09343",
     "trainName": "DADN PNBE SPL"
   },
@@ -3201,15 +2941,11 @@
   },
   {
     "trainNo": "09419",
-    "trainName": "ADI TPJ SPECIAL"
+    "trainName": "ADI - TPJ SPL"
   },
   {
     "trainNo": "09420",
     "trainName": "TPJ ADI SPL"
-  },
-  {
-    "trainNo": "09439",
-    "trainName": "KTNA - VDA INAGURAL"
   },
   {
     "trainNo": "09447",
@@ -3234,10 +2970,6 @@
   {
     "trainNo": "09466",
     "trainName": "DBG ADI SPL"
-  },
-  {
-    "trainNo": "09497",
-    "trainName": "SBIB DLI SUP SPL"
   },
   {
     "trainNo": "09498",
@@ -3282,10 +3014,6 @@
   {
     "trainNo": "09576",
     "trainName": "MBNR RJT SPL"
-  },
-  {
-    "trainNo": "09601",
-    "trainName": "AII BNC SF SPL"
   },
   {
     "trainNo": "09603",
@@ -3352,6 +3080,14 @@
     "trainName": "RGS-RE KHATU SHYAM SPL"
   },
   {
+    "trainNo": "09639",
+    "trainName": "MDJN-RE EXPRESS TOD SPL"
+  },
+  {
+    "trainNo": "09640",
+    "trainName": "RE MDJN EXPRESS TOD SPL"
+  },
+  {
     "trainNo": "09653",
     "trainName": "AII BDTS SF SPL"
   },
@@ -3376,28 +3112,12 @@
     "trainName": "BDTS JP SPL"
   },
   {
-    "trainNo": "09729",
-    "trainName": "DPA BDTS SF SPL"
-  },
-  {
-    "trainNo": "09730",
-    "trainName": "BDTS DPA SF SPL"
-  },
-  {
     "trainNo": "09733",
     "trainName": "JP-BNW EXP SPL"
   },
   {
     "trainNo": "09734",
     "trainName": "BNW-JP EXP SPL"
-  },
-  {
-    "trainNo": "09819",
-    "trainName": "SGAC DNR SPL"
-  },
-  {
-    "trainNo": "09820",
-    "trainName": "DNR SGAC SPL"
   },
   {
     "trainNo": "10103",
@@ -3457,7 +3177,7 @@
   },
   {
     "trainNo": "11005",
-    "trainName": "DR-PDY EXP"
+    "trainName": "PUDUCHERRY EXP"
   },
   {
     "trainNo": "11006",
@@ -3497,7 +3217,7 @@
   },
   {
     "trainNo": "11015",
-    "trainName": "LTT-SHC AMRIT BHARAT"
+    "trainName": "SHC AMRIT BHARAT"
   },
   {
     "trainNo": "11016",
@@ -3505,11 +3225,11 @@
   },
   {
     "trainNo": "11017",
-    "trainName": "LTT-KIK WEEKLY EXPRESS"
+    "trainName": "LTT KARAIKAL EXP"
   },
   {
     "trainNo": "11018",
-    "trainName": "KARAIKAL LTT EXP"
+    "trainName": "KIK LTT EXPRESS"
   },
   {
     "trainNo": "11019",
@@ -4125,7 +3845,7 @@
   },
   {
     "trainNo": "12008",
-    "trainName": "MYS-MAS SHATABDI EXP"
+    "trainName": "SHATABDI EXP"
   },
   {
     "trainNo": "12009",
@@ -4632,14 +4352,6 @@
     "trainName": "KOLHAPUR EXPRES"
   },
   {
-    "trainNo": "12149",
-    "trainName": "PUNE SOU EXP"
-  },
-  {
-    "trainNo": "12150",
-    "trainName": "SOU PUNE EXP"
-  },
-  {
     "trainNo": "12151",
     "trainName": "LTT SHM SF EXP"
   },
@@ -4689,7 +4401,7 @@
   },
   {
     "trainNo": "12163",
-    "trainName": "LTT-MAS SF EXP"
+    "trainName": "LTT MAS EXP"
   },
   {
     "trainNo": "12164",
@@ -4713,7 +4425,7 @@
   },
   {
     "trainNo": "12169",
-    "trainName": "PUNE-SUR INTERCITY"
+    "trainName": "SUR INTERCITY"
   },
   {
     "trainNo": "12170",
@@ -4921,7 +4633,7 @@
   },
   {
     "trainNo": "12225",
-    "trainName": "KAIFIYAT EXP"
+    "trainName": "KAIFIAT EXP"
   },
   {
     "trainNo": "12226",
@@ -5145,7 +4857,7 @@
   },
   {
     "trainNo": "12291",
-    "trainName": "YPR-MAS EXPRESS"
+    "trainName": "YPR MAS SF EXP"
   },
   {
     "trainNo": "12292",
@@ -5537,19 +5249,19 @@
   },
   {
     "trainNo": "12401",
-    "trainName": "NANDA DEVI EXP"
+    "trainName": "KOTA DDN AC EXP"
   },
   {
     "trainNo": "12402",
-    "trainName": "NANDA DEVI EXP"
+    "trainName": "DDN KOTA AC EXP"
   },
   {
     "trainNo": "12403",
-    "trainName": "PRYJ-LGH SUPERFAST EXP"
+    "trainName": "PRYJ LGH SF EXP"
   },
   {
     "trainNo": "12404",
-    "trainName": "LGH-PRYJ SUPERFAST EXP"
+    "trainName": "LGH PRYJ SF EXP"
   },
   {
     "trainNo": "12405",
@@ -5801,7 +5513,7 @@
   },
   {
     "trainNo": "12469",
-    "trainName": "CNB-JAT EXPRESS"
+    "trainName": "CNB JAT SF EXP"
   },
   {
     "trainNo": "12470",
@@ -6001,7 +5713,7 @@
   },
   {
     "trainNo": "12523",
-    "trainName": "NJP ANVT EXPRESS"
+    "trainName": "NJP-NDLS S F EXPRESS"
   },
   {
     "trainNo": "12524",
@@ -6062,14 +5774,6 @@
   {
     "trainNo": "12552",
     "trainName": "KYQ SMVB AC EXP"
-  },
-  {
-    "trainNo": "12553",
-    "trainName": "VAISHALI EXP"
-  },
-  {
-    "trainNo": "12554",
-    "trainName": "VAISHALI EXP"
   },
   {
     "trainNo": "12555",
@@ -6321,19 +6025,19 @@
   },
   {
     "trainNo": "12635",
-    "trainName": "MS-MDU VAIGAI SF EXP"
+    "trainName": "VAIGAI SF EXP"
   },
   {
     "trainNo": "12636",
-    "trainName": "MDU-MS VAIGAI SF EXP"
+    "trainName": "VAIGAI SF EXP"
   },
   {
     "trainNo": "12637",
-    "trainName": "MS-MDU PANDIAN EXP"
+    "trainName": "PANDIAN SF EXP"
   },
   {
     "trainNo": "12638",
-    "trainName": "MDU-MS PANDIAN EXP"
+    "trainName": "PANDIAN SF EXP"
   },
   {
     "trainNo": "12639",
@@ -6341,7 +6045,7 @@
   },
   {
     "trainNo": "12640",
-    "trainName": "SBC-MAS BRINDAVAN EXP"
+    "trainName": "BRINDAVAN SF EX"
   },
   {
     "trainNo": "12641",
@@ -6349,7 +6053,7 @@
   },
   {
     "trainNo": "12642",
-    "trainName": "NZM-CAPE BI-WKLY SF EXP"
+    "trainName": "NZM CAPE SF EXP"
   },
   {
     "trainNo": "12643",
@@ -6373,7 +6077,7 @@
   },
   {
     "trainNo": "12648",
-    "trainName": "NZM-CBE SF EXP"
+    "trainName": "KONGU EXPRESS"
   },
   {
     "trainNo": "12649",
@@ -6385,19 +6089,19 @@
   },
   {
     "trainNo": "12651",
-    "trainName": "MDU-NZM SF EXP"
+    "trainName": "NZM S KRNTI EXP"
   },
   {
     "trainNo": "12652",
-    "trainName": "NZM-MDU SF EXP"
+    "trainName": "SMPARK KRNT EXP"
   },
   {
     "trainNo": "12653",
-    "trainName": "MS-TPJ ROCKFORT EXP"
+    "trainName": "ROCKFORT SF EXP"
   },
   {
     "trainNo": "12654",
-    "trainName": "TPJ-MS ROCKFORT EXP"
+    "trainName": "ROCKFORT SF EXP"
   },
   {
     "trainNo": "12655",
@@ -6413,7 +6117,7 @@
   },
   {
     "trainNo": "12658",
-    "trainName": "SBC-MAS MAIL EXPRESS"
+    "trainName": "SBC MAS SF MAIL"
   },
   {
     "trainNo": "12659",
@@ -6425,11 +6129,11 @@
   },
   {
     "trainNo": "12661",
-    "trainName": "MS-SCT POTHIGAI SF EXP"
+    "trainName": "POTHIGAI SF EXP"
   },
   {
     "trainNo": "12662",
-    "trainName": "SCT-MS SF EXP"
+    "trainName": "POTHIGAI SF EXP"
   },
   {
     "trainNo": "12663",
@@ -6509,7 +6213,7 @@
   },
   {
     "trainNo": "12684",
-    "trainName": "SMVB-ERS SF EXP"
+    "trainName": "ERNAKULAM SFEXP"
   },
   {
     "trainNo": "12685",
@@ -6533,7 +6237,7 @@
   },
   {
     "trainNo": "12692",
-    "trainName": "SMET-MAS WKLY EXP"
+    "trainName": "SMET MAS SF EXP"
   },
   {
     "trainNo": "12693",
@@ -7109,7 +6813,7 @@
   },
   {
     "trainNo": "12846",
-    "trainName": "SMVB-BBS WEEKLY EXPRESS"
+    "trainName": "BHUBANESWAR EXP"
   },
   {
     "trainNo": "12849",
@@ -9056,6 +8760,14 @@
     "trainName": "KLK DLI EXP"
   },
   {
+    "trainNo": "14341",
+    "trainName": "MUSSOORIE EXP"
+  },
+  {
+    "trainNo": "14342",
+    "trainName": "MUSSOORIE EXP"
+  },
+  {
     "trainNo": "14503",
     "trainName": "KLK SVDK EXP"
   },
@@ -9205,7 +8917,7 @@
   },
   {
     "trainNo": "14620",
-    "trainName": "TRIPURA SUNDARI"
+    "trainName": "FZR-AGTL EXPRESS"
   },
   {
     "trainNo": "14621",
@@ -9229,7 +8941,7 @@
   },
   {
     "trainNo": "14628",
-    "trainName": "CIA-SHC AMRIT BHARAT EXP"
+    "trainName": "AMRIT BHARAT EXP"
   },
   {
     "trainNo": "14629",
@@ -9441,7 +9153,7 @@
   },
   {
     "trainNo": "14795",
-    "trainName": "BNW KLK EKTA EX"
+    "trainName": "BNW-KLK EKTA EXP"
   },
   {
     "trainNo": "14796",
@@ -9609,7 +9321,7 @@
   },
   {
     "trainNo": "15009",
-    "trainName": "GKP-IZN EXPRESS"
+    "trainName": "GKP IZN EXP"
   },
   {
     "trainNo": "15010",
@@ -9681,7 +9393,7 @@
   },
   {
     "trainNo": "15027",
-    "trainName": "MAURYA EXP"
+    "trainName": "MAURYA EXPRESS"
   },
   {
     "trainNo": "15028",
@@ -9757,7 +9469,7 @@
   },
   {
     "trainNo": "15046",
-    "trainName": "OKHA-GKP EXP"
+    "trainName": "OKHA GKP EXP"
   },
   {
     "trainNo": "15047",
@@ -10025,15 +9737,15 @@
   },
   {
     "trainNo": "15133",
-    "trainName": "AMRIT BHARAT EXP"
+    "trainName": "CPR ANVT AMRIT BHARAT EXP"
   },
   {
     "trainNo": "15134",
-    "trainName": "AMRIT BHARAT EX"
+    "trainName": "ANVT CPR AMRIT BHARAT EXP"
   },
   {
     "trainNo": "15135",
-    "trainName": "CPR ASR EXP"
+    "trainName": "CPR ASR EXPRESS"
   },
   {
     "trainNo": "15136",
@@ -10365,7 +10077,7 @@
   },
   {
     "trainNo": "15590",
-    "trainName": "HDP-MFP EXPRESS"
+    "trainName": "HDP MFP EXPRESS"
   },
   {
     "trainNo": "15601",
@@ -10937,19 +10649,19 @@
   },
   {
     "trainNo": "16101",
-    "trainName": "TBM-QLN EXP"
+    "trainName": "MS QLN EXPRESS"
   },
   {
     "trainNo": "16102",
-    "trainName": "QLN-TBM EXP"
+    "trainName": "QLN MS EXPRESS"
   },
   {
     "trainNo": "16103",
-    "trainName": "TBM-RMM EXP"
+    "trainName": "TBM RMM EXP"
   },
   {
     "trainNo": "16104",
-    "trainName": "RMM-TBM EXP"
+    "trainName": "RMM TBM EXP"
   },
   {
     "trainNo": "16111",
@@ -10989,15 +10701,15 @@
   },
   {
     "trainNo": "16176",
-    "trainName": "KIK-TBM EXP"
+    "trainName": "KIK MS EXPRESS"
   },
   {
     "trainNo": "16179",
-    "trainName": "MS-MQ EXP"
+    "trainName": "MS MQ EXPRESS"
   },
   {
     "trainNo": "16180",
-    "trainName": "MQ-MS EXP"
+    "trainName": "MQ MS EXPRESS"
   },
   {
     "trainNo": "16187",
@@ -11073,7 +10785,7 @@
   },
   {
     "trainNo": "16219",
-    "trainName": "CMNR-TPTY EXPRESS"
+    "trainName": "CMNR TPTY EXP"
   },
   {
     "trainNo": "16220",
@@ -11177,7 +10889,7 @@
   },
   {
     "trainNo": "16315",
-    "trainName": "MYS-TVCN EXP"
+    "trainName": "MYS TVCN EXP"
   },
   {
     "trainNo": "16316",
@@ -11197,7 +10909,7 @@
   },
   {
     "trainNo": "16320",
-    "trainName": "SMVB-TVCN HUMSAFAR EXP"
+    "trainName": "TVCN HUMSAFAR"
   },
   {
     "trainNo": "16321",
@@ -11233,7 +10945,7 @@
   },
   {
     "trainNo": "16331",
-    "trainName": "CSMT-TVC EXPRESS"
+    "trainName": "TRIVANDRAM EXP"
   },
   {
     "trainNo": "16332",
@@ -11381,7 +11093,7 @@
   },
   {
     "trainNo": "16507",
-    "trainName": "JU SBC EXPRESS"
+    "trainName": "JU-SBC EXPRESS"
   },
   {
     "trainNo": "16508",
@@ -11397,7 +11109,7 @@
   },
   {
     "trainNo": "16515",
-    "trainName": "YPR-KAWR EXPRESS"
+    "trainName": "KARWAR EXPRESS"
   },
   {
     "trainNo": "16516",
@@ -11425,7 +11137,7 @@
   },
   {
     "trainNo": "16526",
-    "trainName": "SBC-CAPE EXPRESS"
+    "trainName": "KANYAKUMARI EXP"
   },
   {
     "trainNo": "16527",
@@ -11469,7 +11181,7 @@
   },
   {
     "trainNo": "16539",
-    "trainName": "YPRMAJNEXP"
+    "trainName": "YPR MAJN EXP"
   },
   {
     "trainNo": "16540",
@@ -11877,11 +11589,11 @@
   },
   {
     "trainNo": "16865",
-    "trainName": "MS-TJ UZHAVAN EXP"
+    "trainName": "UZHAVAN EXPRESS"
   },
   {
     "trainNo": "16866",
-    "trainName": "TJ-MS EXP"
+    "trainName": "UZHAVAN EXPRESS"
   },
   {
     "trainNo": "16867",
@@ -12165,11 +11877,11 @@
   },
   {
     "trainNo": "17243",
-    "trainName": "GNT RGDA EXP"
+    "trainName": "GNT-RGDA EXP"
   },
   {
     "trainNo": "17244",
-    "trainName": "RGDA GNT EXP"
+    "trainName": "RGDA-GNT EXP"
   },
   {
     "trainNo": "17247",
@@ -12229,11 +11941,11 @@
   },
   {
     "trainNo": "17261",
-    "trainName": "GNT TPTY EXP"
+    "trainName": "GNT-TPTY"
   },
   {
     "trainNo": "17262",
-    "trainName": "TPTY GNT EXP"
+    "trainName": "TPTY-GNT"
   },
   {
     "trainNo": "17263",
@@ -12325,7 +12037,7 @@
   },
   {
     "trainNo": "17319",
-    "trainName": "UBL-HYB EXPRESS"
+    "trainName": "HYDERABAD EXP"
   },
   {
     "trainNo": "17320",
@@ -12485,11 +12197,11 @@
   },
   {
     "trainNo": "17425",
-    "trainName": "TPTY-SNSI"
+    "trainName": "TPTY SNSI EXP"
   },
   {
     "trainNo": "17426",
-    "trainName": "SNSI-TPTY"
+    "trainName": "SNSI TPTY EXP"
   },
   {
     "trainNo": "17435",
@@ -12501,7 +12213,7 @@
   },
   {
     "trainNo": "17479",
-    "trainName": "PURI-TPTY EXP"
+    "trainName": "PURI TPTY EXP"
   },
   {
     "trainNo": "17480",
@@ -12877,7 +12589,7 @@
   },
   {
     "trainNo": "18103",
-    "trainName": "TATA-ASR JALINWALABAG EXP"
+    "trainName": "JALIANWALABAG EX"
   },
   {
     "trainNo": "18104",
@@ -13053,11 +12765,11 @@
   },
   {
     "trainNo": "18237",
-    "trainName": "CHATTISGARH EXP"
+    "trainName": "KRBA-ASR CHATTISGARH"
   },
   {
     "trainNo": "18238",
-    "trainName": "CHHATISGARH EXP"
+    "trainName": "ASR BSP CHATTISGARH"
   },
   {
     "trainNo": "18239",
@@ -13065,7 +12777,7 @@
   },
   {
     "trainNo": "18240",
-    "trainName": "SHIVNATH EXPRES"
+    "trainName": "NITR KRBA SHIVNATH"
   },
   {
     "trainNo": "18241",
@@ -13557,11 +13269,11 @@
   },
   {
     "trainNo": "19019",
-    "trainName": "DEHRADUN EXP"
+    "trainName": "BDTS HW EXP"
   },
   {
     "trainNo": "19020",
-    "trainName": "HW-BDTS EXP"
+    "trainName": "HW BDTS EXP"
   },
   {
     "trainNo": "19021",
@@ -14005,7 +13717,7 @@
   },
   {
     "trainNo": "19421",
-    "trainName": "ADI - PNBE EXPRESS"
+    "trainName": "ADI PNBE EXP"
   },
   {
     "trainNo": "19422",
@@ -14405,11 +14117,11 @@
   },
   {
     "trainNo": "20403",
-    "trainName": "PRYJ -LGH SUF EXPRESS"
+    "trainName": "PRYJ LGH SF EXP"
   },
   {
     "trainNo": "20404",
-    "trainName": "LGH- PRYJ EXPRESS"
+    "trainName": "LGH PRYJ SF EXP"
   },
   {
     "trainNo": "20407",
@@ -14477,11 +14189,11 @@
   },
   {
     "trainNo": "20471",
-    "trainName": "SGNR PURI SF EXP"
+    "trainName": "SGNR PURI SUF"
   },
   {
     "trainNo": "20472",
-    "trainName": "PURI SGNR S F"
+    "trainName": "PURI SGNR SUF"
   },
   {
     "trainNo": "20473",
@@ -14565,11 +14277,11 @@
   },
   {
     "trainNo": "20497",
-    "trainName": "RMM FZR SF HUMSAFAR EXP"
+    "trainName": "FZR SF HUMSAFAR"
   },
   {
     "trainNo": "20498",
-    "trainName": "FZR RMM SF HUMSAFAR EXP"
+    "trainName": "RMM HUMSAFAR SF"
   },
   {
     "trainNo": "20501",
@@ -14597,11 +14309,11 @@
   },
   {
     "trainNo": "20507",
-    "trainName": "RAJDHANI EXP"
+    "trainName": "RAJDHANI EXPRESS"
   },
   {
     "trainNo": "20508",
-    "trainName": "SANG RAJDHANI"
+    "trainName": "RAJDHANI EXPRESS"
   },
   {
     "trainNo": "20601",
@@ -14625,7 +14337,7 @@
   },
   {
     "trainNo": "20608",
-    "trainName": "MYS-MAS VANDE BHARAT EXP"
+    "trainName": "MAS VANDEBHARAT"
   },
   {
     "trainNo": "20623",
@@ -14825,15 +14537,15 @@
   },
   {
     "trainNo": "20682",
-    "trainName": "SCT-MS SILAMBU SF EXP"
+    "trainName": "SILAMBU SF EXP"
   },
   {
     "trainNo": "20683",
-    "trainName": "TBM-SCT SF EXP"
+    "trainName": "TBM SCT SF EXP"
   },
   {
     "trainNo": "20684",
-    "trainName": "SCT-TBM SF EXP"
+    "trainName": "SCT TBM SF EXP"
   },
   {
     "trainNo": "20687",
@@ -15081,11 +14793,11 @@
   },
   {
     "trainNo": "20850",
-    "trainName": "RMM-BBS WEEKLY EXP"
+    "trainName": "RMM BBS SF EXP"
   },
   {
     "trainNo": "20851",
-    "trainName": "BBS-PDY SF EXP"
+    "trainName": "BBS PDY SF EXP"
   },
   {
     "trainNo": "20852",
@@ -15589,11 +15301,11 @@
   },
   {
     "trainNo": "22115",
-    "trainName": "LTT KRMI EXP"
+    "trainName": "LTT-MAO AC SUPER FAST"
   },
   {
     "trainNo": "22116",
-    "trainName": "KRMI LTT AC EXP"
+    "trainName": "MAO-LTT AC SUPER FAST"
   },
   {
     "trainNo": "22117",
@@ -15725,7 +15437,7 @@
   },
   {
     "trainNo": "22153",
-    "trainName": "MS SA SUPER FAST EXP"
+    "trainName": "MS SALEM SF EXP"
   },
   {
     "trainNo": "22154",
@@ -15889,7 +15601,7 @@
   },
   {
     "trainNo": "22194",
-    "trainName": "GWL-DD SUF"
+    "trainName": "GWL DD SF EXP"
   },
   {
     "trainNo": "22195",
@@ -16093,11 +15805,11 @@
   },
   {
     "trainNo": "22345",
-    "trainName": "PNBE-GTNR VANDE BHARAT"
+    "trainName": "VANDE BHARAT EXP"
   },
   {
     "trainNo": "22346",
-    "trainName": "GTNR-PNBE VANDE BHARAT"
+    "trainName": "VANDE BHARAT EXP"
   },
   {
     "trainNo": "22347",
@@ -16185,7 +15897,7 @@
   },
   {
     "trainNo": "22404",
-    "trainName": "NDLS-PDY WEEKLY EXP"
+    "trainName": "NDLS PDY SF EXP"
   },
   {
     "trainNo": "22405",
@@ -16537,7 +16249,7 @@
   },
   {
     "trainNo": "22498",
-    "trainName": "SGNR HUMSAFAR"
+    "trainName": "TPJ SGNR HUMSAFAR EXP"
   },
   {
     "trainNo": "22499",
@@ -16689,7 +16401,7 @@
   },
   {
     "trainNo": "22602",
-    "trainName": "SNSI-MAS SF EXP"
+    "trainName": "SNSI MAS SF EXP"
   },
   {
     "trainNo": "22603",
@@ -16725,7 +16437,7 @@
   },
   {
     "trainNo": "22613",
-    "trainName": "RMM-AYC SHRADDHASETHU SF"
+    "trainName": "RMM AYC SF EXP"
   },
   {
     "trainNo": "22614",
@@ -16765,7 +16477,7 @@
   },
   {
     "trainNo": "22623",
-    "trainName": "MS MDU SUPERFAST EXP"
+    "trainName": "MS MDU SF EXP"
   },
   {
     "trainNo": "22624",
@@ -16801,7 +16513,7 @@
   },
   {
     "trainNo": "22632",
-    "trainName": "BKN-MDU SF EXP"
+    "trainName": "BKN MDU SF EXP"
   },
   {
     "trainNo": "22633",
@@ -16893,11 +16605,11 @@
   },
   {
     "trainNo": "22657",
-    "trainName": "TBM-NCJ SF TRI WKLY EXP"
+    "trainName": "TBM NCJ SF EXP"
   },
   {
     "trainNo": "22658",
-    "trainName": "NCJ-TBM TRI WKLY SF EXP"
+    "trainName": "NCJ TBM SF EXP"
   },
   {
     "trainNo": "22659",
@@ -16925,7 +16637,7 @@
   },
   {
     "trainNo": "22665",
-    "trainName": "KSRBENGALURU-CBE UDAY EXP"
+    "trainName": "SBC CBE UDAY EXP"
   },
   {
     "trainNo": "22666",
@@ -16961,7 +16673,7 @@
   },
   {
     "trainNo": "22674",
-    "trainName": "MQ-BGKT SF EXP"
+    "trainName": "MQ BGKT SF EXP"
   },
   {
     "trainNo": "22675",
@@ -16981,7 +16693,7 @@
   },
   {
     "trainNo": "22681",
-    "trainName": "MYS-MAS EXPRESS"
+    "trainName": "MYS MAS SF EXP"
   },
   {
     "trainNo": "22682",
@@ -17037,7 +16749,7 @@
   },
   {
     "trainNo": "22705",
-    "trainName": "JAT HUMSAFAR"
+    "trainName": "TPTY-JAT HUMSAFAR"
   },
   {
     "trainNo": "22706",
@@ -17217,7 +16929,7 @@
   },
   {
     "trainNo": "22834",
-    "trainName": "SMVB-BBS WEEKLYHUMSAFAR E"
+    "trainName": "BBS HUMSAFAR"
   },
   {
     "trainNo": "22835",
@@ -17613,11 +17325,11 @@
   },
   {
     "trainNo": "22937",
-    "trainName": "RAJKOT - REWA EXPRESS"
+    "trainName": "RAJKOT REWA SF"
   },
   {
     "trainNo": "22938",
-    "trainName": "REWA - RJT EXPRESS"
+    "trainName": "REWA RJT SUP EXP"
   },
   {
     "trainNo": "22939",
@@ -17917,11 +17629,11 @@
   },
   {
     "trainNo": "26471",
-    "trainName": "DEC VANDE BHARAT"
+    "trainName": "BKN-DEC VANDE BHARAT"
   },
   {
     "trainNo": "26472",
-    "trainName": "VANDE BHARAT EXP"
+    "trainName": "DEC-BKN VANDE BHARAT"
   },
   {
     "trainNo": "26481",
@@ -17929,7 +17641,7 @@
   },
   {
     "trainNo": "26482",
-    "trainName": "VANDE BHARAT EXP"
+    "trainName": "JU-DEC-JU VANDE BHARAT SP"
   },
   {
     "trainNo": "26501",
@@ -17941,11 +17653,11 @@
   },
   {
     "trainNo": "26503",
-    "trainName": "SRE-GTNR VANTE BHARAT"
+    "trainName": "VANDE BHARAT EXP"
   },
   {
     "trainNo": "26504",
-    "trainName": "GTNR-SRE VANADE BHARAT"
+    "trainName": "VANDE BHARAT EXP"
   },
   {
     "trainNo": "26505",
@@ -38845,7 +38557,7 @@
   },
   {
     "trainNo": "75293",
-    "trainName": "DBG-HRGR DMU"
+    "trainName": "DBG -HRGR DMU"
   },
   {
     "trainNo": "75294",

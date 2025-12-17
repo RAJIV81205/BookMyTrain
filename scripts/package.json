@@ -4,6 +4,7 @@
   },
   "scripts": {
     "update_train" : "node fetch_trains.js"
-  }
+  },
+  "type": "module"
 
 }
