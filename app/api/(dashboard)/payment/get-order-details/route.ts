@@ -13,8 +13,7 @@ const cashfree = new Cashfree(
 
 /** Map frontend berth codes to schema strings */
 function mapSeatType(berth: string):
-  "Lower" | "Middle" | "Upper" | "Side Lower" | "Side Upper" | "-" 
-{
+  "Lower" | "Middle" | "Upper" | "Side Lower" | "Side Upper" | "-" {
   switch (berth) {
     case "LB": return "Lower";
     case "MB": return "Middle";
@@ -90,6 +89,7 @@ async function buildBookingDocument(
     trainNumber: bookingdata.trainNo ?? bookingdata.trainNumber ?? "UNKNOWN",
     trainName: bookingdata.trainName ?? bookingdata.train ?? "UNKNOWN",
     dateOfJourney: dateOfJourneyStr, // store as string (no Date conversion)
+    userId: user._id,
     passengers,
     journey,
     fare,
@@ -101,7 +101,6 @@ async function buildBookingDocument(
   return doc;
 }
 
-/** Route handler */
 export async function POST(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
