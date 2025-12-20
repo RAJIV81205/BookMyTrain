@@ -7,6 +7,10 @@ interface SeatClass {
   classCode: string
   availability: string | number
   waitingList?: string
+  canBook?: boolean
+  fare?: number
+  prediction?: string
+  predictionPercentage?: number
 }
 
 interface TrainCardProps {
@@ -28,7 +32,6 @@ interface TrainCardProps {
     train_no: string
     travel_time: string
   }
-  onCheckAvailability?: (trainNo: string) => void
   onBookTicket?: (trainNo: string, trainName: string, fromTime: string, toTime: string, classCode: string, fare: string) => void
   date?: string
   resetAvailability?: boolean
@@ -51,7 +54,6 @@ const PER_KM_RATES: { [key: string]: number } = {
 
 const TrainCard: React.FC<TrainCardProps> = ({
   data,
-  onCheckAvailability,
   onBookTicket,
   date,
   resetAvailability,
@@ -60,8 +62,6 @@ const TrainCard: React.FC<TrainCardProps> = ({
   const [showAvailability, setShowAvailability] = useState(false)
   const [availabilityData, setAvailabilityData] = useState<any>(null)
   const [loadingAvailability, setLoadingAvailability] = useState(false)
-  const [faresData, setFaresData] = useState<any>(null)
-  const [loadingFares, setLoadingFares] = useState(false)
 
   const cardRef = useRef<HTMLDivElement>(null)
   const availabilityRef = useRef<HTMLDivElement>(null)
@@ -70,8 +70,6 @@ const TrainCard: React.FC<TrainCardProps> = ({
     setShowAvailability(false)
     setAvailabilityData(null)
     setLoadingAvailability(false)
-    setFaresData(null)
-    setLoadingFares(false)
   }
 
   useEffect(() => {
@@ -115,39 +113,23 @@ const TrainCard: React.FC<TrainCardProps> = ({
   const convertAvailabilityToArray = (data: any): SeatClass[] => {
     if (!data) return []
 
-    if (data.classes && typeof data.classes === 'object') {
-      return Object.entries(data.classes).map(([classCode, availability]) => ({
-        className: getClassFullName(classCode),
-        classCode,
-        availability: availability as string | number,
-        waitingList: undefined
-      }))
-    }
-
+    // Handle new API response structure
     if (typeof data === 'object' && !Array.isArray(data)) {
-      return Object.entries(data).map(([classCode, availability]) => ({
+      return Object.entries(data).map(([classCode, classData]: [string, any]) => ({
         className: getClassFullName(classCode),
         classCode,
-        availability: availability as string | number,
-        waitingList: undefined
+        availability: classData.availability || 'Not Available',
+        waitingList: undefined,
+        canBook: classData.canBook || false,
+        fare: classData.fare,
+        prediction: classData.prediction,
+        predictionPercentage: classData.predictionPercentage
       }))
     }
 
     return []
   }
 
-  const fetchFares = async () => {
-    setLoadingFares(true)
-    try {
-      const res = await fetch(`https://www.trainman.in/services/fare?origin=${data.from_stn_code}&dest=${data.to_stn_code}&tcode=${data.train_no}&key=012562ae-60a9-4fcd-84d6-f1354ee1ea48`)
-      const fareData = await res.json()
-      setFaresData(fareData)
-    } catch (error) {
-      console.error('Error fetching fares:', error)
-    } finally {
-      setLoadingFares(false)
-    }
-  }
 
   // Parse a distance string like "123 km" or "123 kms" or just "123" to a number (km)
   const parseDistance = (d: string | number | undefined): number => {
@@ -157,18 +139,11 @@ const TrainCard: React.FC<TrainCardProps> = ({
     return m ? Number(m[1]) : 0
   }
 
-  // Get fare from fetched fares; if not available, fall back to per-km rate model
-  const getFareForClass = (classCode: string): number | null => {
-    // 1) try remote fares if present (same logic as before)
-    if (faresData?.fare && faresData.fare[classCode]) {
-      // some APIs return object like { GN: 123, RAC: ... } so keep GN as groundfare
-      if (typeof faresData.fare[classCode] === 'object' && faresData.fare[classCode].GN != null) {
-        const val = Number(faresData.fare[classCode].GN)
-        if (!isNaN(val)) return Math.round(val * 100) / 100
-      }
-      if (typeof faresData.fare[classCode] === 'number') {
-        return Math.round(Number(faresData.fare[classCode]) * 100) / 100
-      }
+  // Get fare from the new API response or fall back to per-km rate model
+  const getFareForClass = (classCode: string, seatClass?: SeatClass): number | null => {
+    // 1) First try to get fare from the seat class data (new API)
+    if (seatClass?.fare && typeof seatClass.fare === 'number') {
+      return Math.round(seatClass.fare * 100) / 100
     }
 
     // 2) fallback: per-km rate × distance (use data.distance if present, else compute from stops dist_km if available)
@@ -183,13 +158,20 @@ const TrainCard: React.FC<TrainCardProps> = ({
   const getAvailabilityBoxColor = (availability: string | number) => {
     if (!availability && availability !== 0) return 'border-gray-200 bg-gray-50'
     const availStr = String(availability).toLowerCase()
+    
+    // Check for available/confirm status first
+    if (availStr.includes('available') || availStr.includes('confirm') || availStr.includes('avl')) {
+      return 'border-green-300 bg-green-50'
+    }
+    
+    // Check for numeric availability
     if (!isNaN(Number(availability))) {
       const numSeats = Number(availability)
-      if (numSeats > 0) return 'border-gray-200 bg-white'
+      if (numSeats > 0) return 'border-green-300 bg-green-50'
       return 'border-red-200 bg-red-50'
     }
-    if (availStr.includes('available') || availStr.includes('confirm')) return 'border-green-200 bg-green-50'
-    if (availStr.includes('waiting') || availStr.includes('wl')) return 'border-orange-200 bg-orange-50'
+    
+    if (availStr.includes('WAITLIST') || availStr.includes('wl')) return 'border-orange-200 bg-orange-50'
     if (availStr.includes('rac')) return 'border-blue-200 bg-blue-50'
     return 'border-red-200 bg-red-50'
   }
@@ -197,32 +179,27 @@ const TrainCard: React.FC<TrainCardProps> = ({
   const getAvailabilityBoxTextColor = (availability: string | number) => {
     if (!availability && availability !== 0) return 'text-gray-600'
     const availStr = String(availability).toLowerCase()
+    
+    // Check for available/confirm status first
+    if (availStr.includes('AVAILABLE') || availStr.includes('confirm') || availStr.includes('avl')) {
+      return 'text-green-700'
+    }
+    
+    // Check for numeric availability
     if (!isNaN(Number(availability))) {
       const numSeats = Number(availability)
       if (numSeats > 0) return 'text-green-700'
       return 'text-red-700'
     }
-    if (availStr.includes('available') || availStr.includes('confirm')) return 'text-green-700'
+    
     if (availStr.includes('waiting') || availStr.includes('wl')) return 'text-orange-700'
     if (availStr.includes('rac')) return 'text-blue-700'
     return 'text-red-700'
   }
 
-  const isBookingAvailable = (availability: string | number) => {
-    if (!availability && availability !== 0) return false
-    const availStr = String(availability).toLowerCase()
-    if (!isNaN(Number(availability))) {
-      return Number(availability) > 0
-    }
-    return availStr.includes('available') || availStr.includes('confirm') ||
-      availStr.includes('waiting') || availStr.includes('wl') || availStr.includes('rac')
-  }
 
-  const handleBookNow = (classCode: string, fare: string) => {
-    if (onBookTicket) {
-      onBookTicket(data.train_no, data.train_name, data.from_time, data.to_time, classCode, fare)
-    }
-  }
+
+
 
   const handleCheckAvailability = async () => {
     if (showAvailability && availabilityData) {
@@ -244,24 +221,81 @@ const TrainCard: React.FC<TrainCardProps> = ({
     setLoadingAvailability(true)
     setShowAvailability(true)
 
+    // Define all possible travel classes to check
+    const travelClasses = ['SL', '3A', '2A', '1A', 'CC', '2S', 'FC', 'EC']
+    const quota = 'GN' // General quota
+    
     try {
-      const res = await fetch("/api/getseat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          trainNo: data.train_no,
-          date,
-        })
+      // Fetch availability for all classes in parallel
+      const availabilityPromises = travelClasses.map(async (travelClass) => {
+        try {
+          const res = await fetch("/api/get-real-availability", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              trainNo: data.train_no,
+              dateOfJourney: date ? (() => {
+                const [year, month, day] = date.split('-')
+                return `${day}-${month}-${year}`
+              })() : '',
+              travelClass: travelClass,
+              quota: quota,
+              source: data.from_stn_code,
+              destination: data.to_stn_code,
+            })
+          })
+
+          const responseData = await res.json()
+          
+          if (res.ok && responseData.success) {
+            return {
+              classCode: travelClass,
+              success: true,
+              data: responseData.data
+            }
+          } else {
+            return {
+              classCode: travelClass,
+              success: false,
+              error: responseData.error || "Failed to fetch"
+            }
+          }
+        } catch (error) {
+          return {
+            classCode: travelClass,
+            success: false,
+            error: "Network error"
+          }
+        }
       })
 
-      const responseData = await res.json()
-      if (!res.ok) throw new Error(responseData.error || "Failed to check availability")
+      const results = await Promise.all(availabilityPromises)
+      
+      // Process results and create availability data
+      const processedData: any = {}
+      
+      results.forEach(result => {
+        if (result.success && result.data) {
+          // Get the first available date's availability status
+          const firstAvailability = result.data.availability?.[0]
+          if (firstAvailability) {
+            processedData[result.classCode] = {
+              availability: firstAvailability.availabilityText || firstAvailability.status,
+              rawStatus: firstAvailability.rawStatus,
+              canBook: firstAvailability.canBook,
+              fare: result.data.fare?.totalFare || null,
+              prediction: firstAvailability.prediction,
+              predictionPercentage: firstAvailability.predictionPercentage
+            }
+          }
+        }
+      })
 
-      setAvailabilityData(responseData)
-      await fetchFares()
+      // Only show classes that have data
+      const filteredData = Object.keys(processedData).length > 0 ? processedData : null
+      setAvailabilityData(filteredData)
 
       // Animate in availability section
       setTimeout(() => {
@@ -296,10 +330,6 @@ const TrainCard: React.FC<TrainCardProps> = ({
       setAvailabilityData(null)
     } finally {
       setLoadingAvailability(false)
-    }
-
-    if (onCheckAvailability) {
-      onCheckAvailability(data.train_no)
     }
   }
 
@@ -399,7 +429,7 @@ const TrainCard: React.FC<TrainCardProps> = ({
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">Seat Availability & Fares</h3>
-            {(loadingAvailability || loadingFares) && (
+            {loadingAvailability && (
               <Clock className="w-4 h-4 animate-spin text-gray-500" />
             )}
           </div>
@@ -412,19 +442,18 @@ const TrainCard: React.FC<TrainCardProps> = ({
                   <div className="w-full h-full bg-blue-200 rounded-full opacity-75"></div>
                 </div>
               </div>
-              <p className="text-gray-600 animate-pulse-custom">Checking seat availability...</p>
+              <p className="text-gray-600 animate-pulse-custom">Checking availability for all classes...</p>
             </div>
           ) : (
             <>
               {/* Desktop: Horizontal scrollable cards */}
               <div className="hidden lg:flex gap-4 overflow-x-auto pb-2">
                 {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
-                  const fare = getFareForClass(seatClass.classCode)
-                  const canBook = isBookingAvailable(seatClass.availability)
+                  const fare = getFareForClass(seatClass.classCode, seatClass)
                   return (
                     <div
                       key={index}
-                      className={`availability-card shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${getAvailabilityBoxColor(seatClass.availability)}`}
+                      className={`availability-card shrink-0 w-48 p-4 rounded-lg border-2 transition-all duration-200 ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-3">
@@ -434,46 +463,28 @@ const TrainCard: React.FC<TrainCardProps> = ({
                         </div>
 
                         <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-gray-900 mb-1">{seatClass.className}</h4>
-                          <div className="p-2 bg-blue-50 rounded-md border border-blue-200 mb-2">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">{seatClass.className}</h4>
+                          
+                          {/* Seat Status */}
+                          <div className="mb-3">
                             <p className={`text-lg font-bold ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
-                              {!isNaN(Number(seatClass.availability))
-                                ? Number(seatClass.availability) > 0
-                                  ? `AVL - ${seatClass.availability}`
-                                  : 'Not Available'
-                                : String(seatClass.availability)}
+                              {String(seatClass.availability)}
                             </p>
+                            {seatClass.prediction && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                Prediction: {seatClass.predictionPercentage}%
+                              </p>
+                            )}
                           </div>
-                        </div>
 
-                        <div className="pt-3 border-t border-gray-200">
-                          {loadingFares ? (
-                            <div className="flex items-center justify-center gap-1">
-                              <Clock className="w-4 h-4 animate-spin text-gray-400" />
-                              <span className="text-xs text-gray-500">Loading...</span>
-                            </div>
-                          ) : fare && canBook ? (
-                            <button
-                              onClick={(e) => {
-                                gsap.to(e.target, {
-                                  scale: 0.9,
-                                  duration: 0.1,
-                                  yoyo: true,
-                                  repeat: 1,
-                                  ease: "power2.out"
-                                })
-                                handleBookNow(seatClass.classCode, String(fare))
-                              }}
-                              className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
-                            >
-
-                              ₹ {fare}
-                            </button>
-                          ) : fare ? (
-                            <p className="text-sm text-center text-gray-600 font-medium">₹{fare}</p>
-                          ) : (
-                            <p className="text-sm text-gray-500 text-center">Fare N/A</p>
-                          )}
+                          {/* Fare */}
+                          <div className="pt-2 border-t border-gray-200">
+                            {fare ? (
+                              <p className="text-lg font-bold text-gray-800">₹{fare}</p>
+                            ) : (
+                              <p className="text-sm text-gray-500">Fare N/A</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -484,57 +495,41 @@ const TrainCard: React.FC<TrainCardProps> = ({
               {/* Mobile: Simple list view */}
               <div className="lg:hidden space-y-3">
                 {convertAvailabilityToArray(availabilityData).map((seatClass, index) => {
-                  const fare = getFareForClass(seatClass.classCode)
-                  const canBook = isBookingAvailable(seatClass.availability)
+                  const fare = getFareForClass(seatClass.classCode, seatClass)
                   return (
                     <div
                       key={index}
-                      className="availability-card flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-all duration-200"
+                      className={`availability-card p-4 rounded-lg border-2 transition-all duration-200 ${getAvailabilityBoxColor(seatClass.availability)}`}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                            {seatClass.classCode}
-                          </span>
-                          <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded">
+                              {seatClass.classCode}
+                            </span>
                             <h4 className="text-sm font-semibold text-gray-900">{seatClass.className}</h4>
-                            <p className={`text-sm font-medium ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
-                              {!isNaN(Number(seatClass.availability))
-                                ? Number(seatClass.availability) > 0
-                                  ? `Available: ${seatClass.availability}`
-                                  : 'Not Available'
-                                : String(seatClass.availability)}
+                          </div>
+                          
+                          {/* Seat Status */}
+                          <p className={`text-lg font-bold mb-1 ${getAvailabilityBoxTextColor(seatClass.availability)}`}>
+                            {String(seatClass.availability)}
+                          </p>
+                          
+                          {seatClass.prediction && (
+                            <p className="text-xs text-gray-500">
+                              Prediction: {seatClass.predictionPercentage}%
                             </p>
-                          </div>
+                          )}
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        {loadingFares ? (
-                          <Clock className="w-4 h-4 animate-spin text-gray-400" />
-                        ) : fare ? (
-                          <div className="text-right">
-                            {canBook && (
-                              <button
-                                onClick={(e) => {
-                                  gsap.to(e.target, {
-                                    scale: 0.9,
-                                    duration: 0.1,
-                                    yoyo: true,
-                                    repeat: 1,
-                                    ease: "power2.out"
-                                  })
-                                  handleBookNow(seatClass.classCode, String(fare))
-                                }}
-                                className="w-full px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-all duration-200"
-                              >
-                                ₹ {fare}
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">Fare N/A</p>
-                        )}
+                        {/* Fare */}
+                        <div className="text-right">
+                          {fare ? (
+                            <p className="text-lg font-bold text-gray-800">₹{fare}</p>
+                          ) : (
+                            <p className="text-sm text-gray-500">Fare N/A</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )
@@ -543,7 +538,8 @@ const TrainCard: React.FC<TrainCardProps> = ({
 
               {(!availabilityData || Object.keys(availabilityData).length === 0) && (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">No seat availability data found.</p>
+                  <p className="text-gray-600">No seat availability data found for this train.</p>
+                  <p className="text-sm text-gray-500 mt-2">This could be due to the train not running on the selected date or temporary API issues.</p>
                 </div>
               )}
             </>

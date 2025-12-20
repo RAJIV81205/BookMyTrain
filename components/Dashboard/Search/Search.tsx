@@ -256,31 +256,6 @@ const Search = () => {
     }
   }
 
-  // Handler for checking seat availability
-  const handleCheckAvailability = async (trainNo: string) => {
-    try {
-      const res = await fetch("/api/getseat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          trainNo: trainNo,
-          date,
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Failed to check availability");
-
-      console.log(data.classes)
-    } catch (err: any) {
-      toast.error(err.message || "Error checking availability");
-    }
-  };
-
   // Handler for booking a ticket
   const handleBookTicket = (trainNo: string, trainName: string, fromTime: string, toTime: string, classCode: string, fare: string) => {
     // Update booking context with selected train
@@ -550,7 +525,7 @@ const Search = () => {
         <div ref={resultsRef}>
           {/* Results */}
           {results.length > 0 && (
-            <div className='mt-15 lg:mt-10 lg:bg-white rounded-xl lg:border lg:border-gray-300 lg:p-5 lg:shadow-sm' >
+            <div className='mt-15 lg:mt-10 lg:bg-white rounded-xl lg:border lg:border-gray-300 lg:p-5 lg:shadow-sm z-9' >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
                 <h2 className="text-2xl font-bold text-center text-gray-800">
                   Available Trains ({results.length})
@@ -566,7 +541,6 @@ const Search = () => {
                   
                     <TrainCard
                       data={train}
-                      onCheckAvailability={handleCheckAvailability}
                       onBookTicket={handleBookTicket}
                       date={date}
                       resetAvailability={resetTrigger}
