@@ -97,7 +97,7 @@ export default function DashboardLayout({
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pt-16">
         {/* <DashboardHeader
           user={user}
           onMenuClick={() => setIsSidebarOpen(true)}
