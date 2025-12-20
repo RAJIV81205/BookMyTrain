@@ -75,7 +75,7 @@ const Hero = () => {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-                        <Link href="/auth/login">
+                        <Link href="/dashboard">
                             <button ref={button1Ref} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group cursor-pointer opacity-0 translate-y-16">
                                 Start Your Journey
                                 <ArrowUpRight className="w-5 h-5 lg:opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out" />
