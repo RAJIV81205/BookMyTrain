@@ -16,7 +16,13 @@ export default function DashboardLayout({
   // const [isLoading, setIsLoading] = useState(true);
   // const [user, setUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const router = useRouter();
+  
+  // Temporary user object for development - replace with actual auth logic
+  const user = {
+    name: "User",
+    email: "user@example.com"
+  };
+  // const router = useRouter();
 
   // useEffect(() => {
   //   const verifyToken = async () => {
