@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio } from 'lucide-react';
+import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio, Building } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
   { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
   { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
-  { label: 'PNR Status', path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
+  { label: 'Station Map', path: '/dashboard/stationmap', icon: Building, title: "Station Map" },
   { label: "Train Map", path: '/dashboard/livemap', icon: Map, title: "Train Map" }
 ];
 
@@ -74,7 +74,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 transition-all duration-300
         ${desktopOpen ? "lg:w-64" : "lg:w-16"}`}
       >
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
+        <div className="flex flex-col grow bg-white border-r border-gray-200">
           {/* Header with Logo + Toggle */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
             {desktopOpen && (
@@ -177,7 +177,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* Desktop Content Spacer */}
-      <div className="hidden lg:block lg:flex-shrink-0" style={{ width: desktopOpen ? '16rem' : '4rem' }} />
+      <div className="hidden lg:block lg:shrink-0" style={{ width: desktopOpen ? '16rem' : '4rem' }} />
     </>
   );
 }
