@@ -121,7 +121,7 @@ const Search = () => {
           (
             s.stnCode.toLowerCase().includes(query.toLowerCase()) ||
             s.stnName.toLowerCase().includes(query.toLowerCase()) ||
-            s.stnCity.toLowerCase().includes(query.toLowerCase())
+            s.district.toLowerCase().includes(query.toLowerCase())
           )
       )
       .slice(0, 3)
@@ -353,7 +353,7 @@ const Search = () => {
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
-                          {station.stnCode} • {station.stnCity}
+                          {station.stnCode} • {station.district}
                         </div>
 
                       </div>
@@ -451,7 +451,7 @@ const Search = () => {
                       >
                         <div className="font-medium text-gray-800">{station.stnName}</div>
                         <div className="text-sm text-gray-600">
-                          {station.stnCode} • {station.stnCity}
+                          {station.stnCode} • {station.district}
                         </div>
                       </div>
                     ))}
