@@ -69,7 +69,13 @@ const StationMap = () => {
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [lng, lat],
-      zoom: zoom
+      zoom: zoom,
+      minZoom: 4, // Minimum zoom level to prevent zooming out too far
+      maxZoom: 18, // Maximum zoom level
+      maxBounds: [
+        [68.0, 6.0], // Southwest coordinates (longitude, latitude)
+        [97.5, 37.5] // Northeast coordinates (longitude, latitude)
+      ] // Restrict map bounds to India
     })
 
     map.current.on('load', () => {
@@ -89,10 +95,10 @@ const StationMap = () => {
         type: 'circle',
         source: 'stations',
         paint: {
-          'circle-color': '#dc2626', // Red color for railway stations
+          'circle-color': '#95d1f0', // Red color for railway stations
           'circle-radius': 3, // Small radius
           'circle-stroke-width': 1,
-          'circle-stroke-color': '#ffffff',
+          'circle-stroke-color': '#276fb3',
           'circle-opacity': 0.8
         }
       })
