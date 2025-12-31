@@ -42,12 +42,10 @@ export interface ApiErrorDetail {
 }
 
 export interface User {
-  id: string;
+
   name: string;
   email: string;
-  mobile: number;
-  dateOfBirth: string;
-  createdAt: string;
+
 }
 
 export interface SignupApiResponse {
