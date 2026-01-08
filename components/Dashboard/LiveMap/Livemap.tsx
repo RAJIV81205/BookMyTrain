@@ -760,7 +760,7 @@ const Livemap = () => {
               <div className="bg-linear-to-r from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Route className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                    <Route className="w-4 h-4 text-purple-600 shrink-0" />
                     <div className="text-sm font-semibold text-purple-900">
                       From Source
                     </div>

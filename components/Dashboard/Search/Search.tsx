@@ -120,11 +120,10 @@ const Search = () => {
           s.stnCode !== excludeCode &&
           (
             s.stnCode.toLowerCase().includes(query.toLowerCase()) ||
-            s.stnName.toLowerCase().includes(query.toLowerCase()) ||
-            s.district.toLowerCase().includes(query.toLowerCase())
+            s.stnName.toLowerCase().includes(query.toLowerCase())
           )
       )
-      .slice(0, 3)
+      
   }
 
   // Handler for tracking individual TrainCard reset completion
@@ -327,7 +326,7 @@ const Search = () => {
                   </div>
                 )}
                 {activeField === "from" && fromQuery && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-50 overflow-y-auto">
                     {filterStations(fromQuery, toCode).map((station, index) => (
                       <div
                         key={station.stnCode}
@@ -425,7 +424,7 @@ const Search = () => {
                   </div>
                 )}
                 {activeField === "to" && toQuery && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-50 overflow-y-auto">
                     {filterStations(toQuery, fromCode).map((station, index) => (
                       <div
                         key={station.stnCode}

@@ -6,9 +6,7 @@ const page = () => {
   return (
     <div className="space-y-6">
       <Search />
-      <div className="w-full h-[600px]">
-        <StationMap />
-      </div>
+     
     </div>
   )
 }
