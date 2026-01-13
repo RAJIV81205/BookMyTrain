@@ -70,44 +70,45 @@ export async function GET(
 
     // Return structured data (kept exactly like you had)
     return NextResponse.json({
-        pnr: data.pnrNo,
-        status: data.overallStatus,
-        train: {
-          number: data.trainNumber,
-          name: data.trainName,
-          class: data.journeyClassName,
+      pnr: data.pnrNo,
+      status: data.overallStatus,
+      train: {
+        number: data.trainNumber,
+        name: data.trainName,
+        class: data.journeyClassName,
+      },
+      journey: {
+        from: {
+          name: data.srcName,
+          code: data.srcCode,
+          platform: data.srcPfNo,
         },
-        journey: {
-          from: {
-            name: data.srcName,
-            code: data.srcCode,
-            platform: data.srcPfNo,
-          },
-          to: {
-            name: data.dstName,
-            code: data.dstCode,
-            platform: data.dstPfNo,
-          },
-          departure: data.departureTime,
-          arrival: data.arrivalTime,
-          duration: data.duration
-            ? `${Math.floor(data.duration / 60)}h ${data.duration % 60}m`
-            : null,
+        to: {
+          name: data.dstName,
+          code: data.dstCode,
+          platform: data.dstPfNo,
         },
-        chart: {
-          status: data.chartStatus,
-          message: data.chartPrepMsg,
-        },
-        passengers: data.passengers
-          ? data.passengers.map((p: any) => ({
-              name: p.name,
-              status: p.currentStatus,
-              seat: p.currentSeatDetails,
-              berthType: p.berthType,
-              confirmationProbability: p.confirmProb,
-            }))
-          : [],
-        lastUpdated: data.pnrLastUpdated,
+        departure: new Date(data.departureTime).toLocaleString(),
+        arrival: new Date(data.arrivalTime).toLocaleString(),
+
+        duration: data.duration
+          ? `${Math.floor(data.duration / 60)}h ${data.duration % 60}m`
+          : null,
+      },
+      chart: {
+        status: data.chartStatus,
+        message: data.chartPrepMsg,
+      },
+      passengers: data.passengers
+        ? data.passengers.map((p: any) => ({
+          name: p.name,
+          status: p.currentStatus,
+          seat: p.currentSeatDetails,
+          berthType: p.berthType,
+          confirmationProbability: p.confirmProb,
+        }))
+        : [],
+      lastUpdated: data.pnrLastUpdated,
     });
   } catch (error: any) {
     if (error.name === "AbortError") {
