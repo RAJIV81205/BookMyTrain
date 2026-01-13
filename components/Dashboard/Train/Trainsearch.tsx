@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getTrainInfo } from 'irctc-connect';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getTrainInfo } from "irctc-connect";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Info,
   Route,
@@ -13,10 +13,10 @@ import {
   Search,
   Train,
   MapPin,
-  AlertCircle
-} from 'lucide-react';
-import trains from "@/lib/constants/trains.json"
-import dynamic from 'next/dynamic'
+  AlertCircle,
+} from "lucide-react";
+import trains from "@/lib/constants/trains.json";
+import dynamic from "next/dynamic";
 
 interface TrainInfo {
   success: boolean;
@@ -53,17 +53,21 @@ interface TrainInfo {
 }
 
 // Train suggestions data from your image
-const trainSuggestions = trains
+const trainSuggestions = trains;
 
-const TrainMap = dynamic(() => import('./TrainMap'), { ssr: false })
+const TrainMap = dynamic(() => import("./TrainMap"), { ssr: false });
 
 const Trainsearch = () => {
-  const [trainNumber, setTrainNumber] = useState('');
+  const [trainNumber, setTrainNumber] = useState("");
   const [trainInfo, setTrainInfo] = useState<TrainInfo | null>(null);
+  const [intermediateStations, setIntermediateStations] = useState<string[]>([
+    "",
+  ]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState(trainSuggestions);
+  const [filteredSuggestions, setFilteredSuggestions] =
+    useState(trainSuggestions);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
@@ -74,7 +78,7 @@ const Trainsearch = () => {
 
   // Handle URL parameters on component mount
   useEffect(() => {
-    const trainNumberFromUrl = searchParams.get('train');
+    const trainNumberFromUrl = searchParams.get("train");
 
     if (trainNumberFromUrl && /^\d{5}$/.test(trainNumberFromUrl)) {
       setTrainNumber(trainNumberFromUrl);
@@ -91,11 +95,12 @@ const Trainsearch = () => {
 
   useEffect(() => {
     setSelectedSuggestionIndex(-1); // Reset selection when train number changes
-    
+
     if (trainNumber.length >= 2) {
-      const filtered = trainSuggestions.filter(train =>
-        train.trainNo.includes(trainNumber) ||
-        train.trainName.toLowerCase().includes(trainNumber.toLowerCase())
+      const filtered = trainSuggestions.filter(
+        (train) =>
+          train.trainNo.includes(trainNumber) ||
+          train.trainName.toLowerCase().includes(trainNumber.toLowerCase())
       );
       setFilteredSuggestions(filtered);
       setShowSuggestions(isInputFocused && filtered.length > 0);
@@ -111,12 +116,12 @@ const Trainsearch = () => {
     const value = e.target.value;
     if (/^\d{0,5}$/.test(value)) {
       setTrainNumber(value);
-      setError('');
+      setError("");
       setTrainInfo(null); // Clear previous results when typing
     }
   };
 
-  const handleSuggestionClick = (suggestion: typeof trainSuggestions[0]) => {
+  const handleSuggestionClick = (suggestion: (typeof trainSuggestions)[0]) => {
     setShowSuggestions(false);
     setIsInputFocused(false);
     setTrainNumber(suggestion.trainNo);
@@ -124,7 +129,7 @@ const Trainsearch = () => {
 
     // Update URL with selected train number
     const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set('train', suggestion.trainNo);
+    newUrl.searchParams.set("train", suggestion.trainNo);
     router.push(newUrl.pathname + newUrl.search, { scroll: false });
 
     // Auto-fetch train data for selected suggestion
@@ -147,17 +152,53 @@ const Trainsearch = () => {
     }, 200);
   };
 
+  const getIntermediateStations = async (
+    trainNumber: string,
+    sourceStationCode: string
+  ) => {
+    try {
+      const response = await fetch("/api/fetch_intermediate_station", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trainNo: trainNumber,
+          jStation: sourceStationCode,
+          jDate: new Date()
+            .toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+            .replace(/ /g, "-"), // "13-Jan-2026"
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch intermediate stations");
+      }
+
+      const data = await response.json();
+      setIntermediateStations(data.data);
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching intermediate stations:", error);
+    }
+  };
+
   const handleSubmitWithNumber = async (number: string) => {
     setLoading(true);
-    setError('');
+    setError("");
     setTrainInfo(null);
     setShowSuggestions(false);
 
     try {
       const result = await getTrainInfo(number);
       setTrainInfo(result);
+      getIntermediateStations(trainNumber, result.data.route[0].stnCode);
     } catch (err) {
-      setError('Failed to fetch train information. Please try again.');
+      setError("Failed to fetch train information. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -165,13 +206,13 @@ const Trainsearch = () => {
 
   const handleSubmit = async () => {
     if (trainNumber.length !== 5) {
-      setError('Please enter exactly 5 digits');
+      setError("Please enter exactly 5 digits");
       return;
     }
 
     // Update URL with train number
     const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set('train', trainNumber);
+    newUrl.searchParams.set("train", trainNumber);
     router.push(newUrl.pathname + newUrl.search, { scroll: false });
 
     // Fetch train data
@@ -180,35 +221,38 @@ const Trainsearch = () => {
 
   const handleKeyDown = (e: any) => {
     if (!showSuggestions) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         handleSubmit();
       }
       return;
     }
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
+        setSelectedSuggestionIndex((prev) =>
           prev < filteredSuggestions.length - 1 ? prev + 1 : prev
         );
         break;
-      
-      case 'ArrowUp':
+
+      case "ArrowUp":
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      
-      case 'Enter':
+
+      case "Enter":
         e.preventDefault();
-        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < filteredSuggestions.length) {
+        if (
+          selectedSuggestionIndex >= 0 &&
+          selectedSuggestionIndex < filteredSuggestions.length
+        ) {
           handleSuggestionClick(filteredSuggestions[selectedSuggestionIndex]);
         } else {
           handleSubmit();
         }
         break;
-      
-      case 'Escape':
+
+      case "Escape":
         setShowSuggestions(false);
         setSelectedSuggestionIndex(-1);
         break;
@@ -216,35 +260,49 @@ const Trainsearch = () => {
   };
 
   const getDayNames = (runningDays: string) => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     return runningDays
-      .split('')
-      .map((day, index) => day === '1' ? days[index] : null)
+      .split("")
+      .map((day, index) => (day === "1" ? days[index] : null))
       .filter(Boolean)
-      .join(', ');
+      .join(", ");
   };
 
-  const openLocationInMap = (latitude: number, longitude: number, stationName: string) => {
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      console.warn('Invalid coordinates detected:', { latitude, longitude });
+  const openLocationInMap = (
+    latitude: number,
+    longitude: number,
+    stationName: string
+  ) => {
+    if (
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      console.warn("Invalid coordinates detected:", { latitude, longitude });
       return;
     }
 
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}&query_place_id=${encodeURIComponent(stationName)}`;
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}&query_place_id=${encodeURIComponent(
+      stationName
+    )}`;
 
     if (/Android/i.test(navigator.userAgent)) {
-      const androidMapsUrl = `geo:${latitude},${longitude}?q=${latitude},${longitude}(${encodeURIComponent(stationName)})`;
-      window.open(androidMapsUrl, '_blank');
+      const androidMapsUrl = `geo:${latitude},${longitude}?q=${latitude},${longitude}(${encodeURIComponent(
+        stationName
+      )})`;
+      window.open(androidMapsUrl, "_blank");
     } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       const appleMapsUrl = `maps://maps.google.com/maps?daddr=${latitude},${longitude}&amp;ll=`;
-      window.open(appleMapsUrl, '_blank');
+      window.open(appleMapsUrl, "_blank");
     } else {
-      window.open(googleMapsUrl, '_blank');
+      window.open(googleMapsUrl, "_blank");
     }
   };
 
   const StationName = ({ station }: { station: any }) => {
-    const hasValidCoordinates = station.coordinates &&
+    const hasValidCoordinates =
+      station.coordinates &&
       station.coordinates.latitude >= -90 &&
       station.coordinates.latitude <= 90 &&
       station.coordinates.longitude >= -180 &&
@@ -253,16 +311,22 @@ const Trainsearch = () => {
     if (hasValidCoordinates) {
       return (
         <button
-          onClick={() => openLocationInMap(
-            station.coordinates.latitude,
-            station.coordinates.longitude,
-            station.stnName
-          )}
+          onClick={() =>
+            openLocationInMap(
+              station.coordinates.latitude,
+              station.coordinates.longitude,
+              station.stnName
+            )
+          }
           className="text-left hover:text-blue-600 transition-colors group cursor-pointer"
           title={`Open ${station.stnName} in maps`}
         >
-          <p className="font-medium text-gray-900 group-hover:text-blue-600">{station.stnName}</p>
-          <p className="text-sm text-gray-500 group-hover:text-blue-500">{station.stnCode}</p>
+          <p className="font-medium text-gray-900 group-hover:text-blue-600">
+            {station.stnName}
+          </p>
+          <p className="text-sm text-gray-500 group-hover:text-blue-500">
+            {station.stnCode}
+          </p>
         </button>
       );
     }
@@ -282,6 +346,8 @@ const Trainsearch = () => {
         isOpen={isMapOpen}
         onClose={() => setIsMapOpen(false)}
         route={(trainInfo as TrainInfo).data.route as any}
+        trainNumber={trainNumber}
+        intermediateStations={intermediateStations}
       />
     );
   }
@@ -297,8 +363,12 @@ const Trainsearch = () => {
                 <Train className="w-8 h-8 text-gray-700" />
               </div>
             </div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">Train Information</h1>
-            <p className="text-gray-600">Enter train number to get detailed information</p>
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+              Train Information
+            </h1>
+            <p className="text-gray-600">
+              Enter train number to get detailed information
+            </p>
           </div>
 
           {/* Search Card with Suggestions */}
@@ -325,7 +395,9 @@ const Trainsearch = () => {
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
                       <div className="p-2">
                         <div className="text-xs font-medium text-gray-500 px-3 py-2 mb-1">
-                          {trainNumber ? `${filteredSuggestions.length} trains found` : 'Popular trains'}
+                          {trainNumber
+                            ? `${filteredSuggestions.length} trains found`
+                            : "Popular trains"}
                         </div>
                         {filteredSuggestions.map((suggestion, index) => (
                           <button
@@ -334,11 +406,13 @@ const Trainsearch = () => {
                               e.preventDefault(); // Prevent blur from firing
                               handleSuggestionClick(suggestion);
                             }}
-                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                            onMouseEnter={() =>
+                              setSelectedSuggestionIndex(index)
+                            }
                             className={`w-full text-left p-3 rounded-md transition-colors ${
-                              selectedSuggestionIndex === index 
-                                ? 'bg-blue-50 border border-blue-200' 
-                                : 'hover:bg-gray-50'
+                              selectedSuggestionIndex === index
+                                ? "bg-blue-50 border border-blue-200"
+                                : "hover:bg-gray-50"
                             }`}
                           >
                             <div className="flex items-center justify-between">
@@ -347,9 +421,13 @@ const Trainsearch = () => {
                                   {suggestion.trainNo} - {suggestion.trainName}
                                 </div>
                               </div>
-                              <ArrowRight className={`w-4 h-4 ${
-                                selectedSuggestionIndex === index ? 'text-blue-600' : 'text-gray-400'
-                              }`} />
+                              <ArrowRight
+                                className={`w-4 h-4 ${
+                                  selectedSuggestionIndex === index
+                                    ? "text-blue-600"
+                                    : "text-gray-400"
+                                }`}
+                              />
                             </div>
                           </button>
                         ))}
@@ -361,19 +439,26 @@ const Trainsearch = () => {
                 <motion.button
                   onClick={handleSubmit}
                   disabled={loading || trainNumber.length !== 5}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${loading || trainNumber.length !== 5
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
-                    }`}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    loading || trainNumber.length !== 5
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md"
+                  }`}
                   whileTap={{ scale: 0.98 }}
-                  whileHover={{ scale: loading || trainNumber.length !== 5 ? 1 : 1.02 }}
+                  whileHover={{
+                    scale: loading || trainNumber.length !== 5 ? 1 : 1.02,
+                  }}
                 >
                   {loading ? (
                     <>
                       <motion.div
                         className="rounded-full h-4 w-4 border-2 border-white border-t-transparent"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       />
                       Searching...
                     </>
@@ -420,7 +505,8 @@ const Trainsearch = () => {
                   </div>
                   <div className="ml-4">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      {trainInfo.data.trainInfo.train_no} - {trainInfo.data.trainInfo.train_name}
+                      {trainInfo.data.trainInfo.train_no} -{" "}
+                      {trainInfo.data.trainInfo.train_name}
                     </h2>
                     <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded mt-1">
                       {trainInfo.data.trainInfo.type}
@@ -516,8 +602,8 @@ const Trainsearch = () => {
                     </span>
                     <button
                       onClick={() => {
-                        console.log(trainInfo)
-                        setIsMapOpen(true)
+                        console.log(trainInfo);
+                        setIsMapOpen(true);
                       }}
                       className="ml-4 px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 cursor-pointer"
                     >
@@ -530,12 +616,24 @@ const Trainsearch = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Station</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-600">Arrival</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-600">Departure</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-600">Halt</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-600">Distance</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-600">Platform</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">
+                          Station
+                        </th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">
+                          Arrival
+                        </th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">
+                          Departure
+                        </th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">
+                          Halt
+                        </th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">
+                          Distance
+                        </th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">
+                          Platform
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -544,11 +642,16 @@ const Trainsearch = () => {
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: 0.3 + (index * 0.05) }}
-                          className={`border-b border-gray-100 ${index === 0 || index === trainInfo.data.route.length - 1
-                            ? 'bg-blue-50'
-                            : 'hover:bg-gray-50'
-                            }`}
+                          transition={{
+                            duration: 0.3,
+                            delay: 0.3 + index * 0.05,
+                          }}
+                          className={`border-b border-gray-100 ${
+                            index === 0 ||
+                            index === trainInfo.data.route.length - 1
+                              ? "bg-blue-50"
+                              : "hover:bg-gray-50"
+                          }`}
                         >
                           <td className="py-3 px-4">
                             <StationName station={station} />
@@ -566,7 +669,7 @@ const Trainsearch = () => {
                             {station.distance} km
                           </td>
                           <td className="text-center py-3 px-4 text-gray-600">
-                            {station.platform || '-'}
+                            {station.platform || "-"}
                           </td>
                         </motion.tr>
                       ))}
@@ -587,8 +690,12 @@ const Trainsearch = () => {
                 <div className="bg-red-50 p-3 rounded-full inline-block mb-4">
                   <AlertCircle className="w-8 h-8 text-red-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Train Found</h3>
-                <p className="text-gray-600">Please check the train number and try again.</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Train Found
+                </h3>
+                <p className="text-gray-600">
+                  Please check the train number and try again.
+                </p>
               </div>
             </motion.div>
           )}

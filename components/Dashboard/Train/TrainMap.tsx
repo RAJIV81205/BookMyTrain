@@ -23,6 +23,8 @@ interface TrainMapProps {
   isOpen: boolean
   onClose: () => void
   route: Station[]
+  trainNumber: string
+  intermediateStations: string[]
 }
 
 const ORANGE = '#f97316' // Tailwind orange-500
