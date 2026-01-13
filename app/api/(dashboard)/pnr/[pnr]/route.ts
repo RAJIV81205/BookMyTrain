@@ -1,5 +1,22 @@
 import { NextResponse } from "next/server";
 
+const formatDate = (iso: any) => {
+  const d = new Date(iso);
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear()).slice(2); // last 2 digits
+
+  const hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  const suffix = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 || 12;
+
+  return `${day}/${month}/${year} ${hour12}:${minutes} ${suffix}`;
+};
+
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ pnr: string }> }
@@ -88,9 +105,8 @@ export async function GET(
           code: data.dstCode,
           platform: data.dstPfNo,
         },
-        departure: new Date(data.departureTime).toLocaleString(),
-        arrival: new Date(data.arrivalTime).toLocaleString(),
-
+        departure: formatDate(data.departureTime),
+        arrival: formatDate(data.arrivalTime),
         duration: data.duration
           ? `${Math.floor(data.duration / 60)}h ${data.duration % 60}m`
           : null,
