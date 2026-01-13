@@ -78,9 +78,15 @@ const TrainMap: React.FC<TrainMapProps> = ({
       /** ------------------------------------------------
        * 2) Build intermediate points (from JSON lookup)
        * ------------------------------------------------*/
+      // Build a Set of all stoppage station codes
+      const stoppageCodes = new Set(route.map((st) => st.stnCode));
+
       const intermediatePoints = intermediateStations
+        .filter((code) => !stoppageCodes.has(code))
         .map((code) => allStations.find((s: any) => s.stnCode === code))
         .filter((s) => s && s.latitude && s.longitude)
+
+        // 4️⃣ Transform to point object
         .map((s: any) => ({
           name: s.stnName,
           code: s.stnCode,
