@@ -1,281 +1,333 @@
-"use client"
+"use client";
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import stnInfo from "@/lib/constants/stations.json";
 
 type Station = {
-  stnName: string
-  stnCode: string
-  arrival: string
-  departure: string
-  halt: string
-  distance: string
-  day: string
-  platform: string
+  stnName: string;
+  stnCode: string;
+  arrival: string;
+  departure: string;
+  halt: string;
+  distance: string;
+  day: string;
+  platform: string;
   coordinates?: {
-    latitude: number
-    longitude: number
-  } | null
-}
+    latitude: number;
+    longitude: number;
+  } | null;
+};
 
 interface TrainMapProps {
-  isOpen: boolean
-  onClose: () => void
-  route: Station[]
-  intermediateStations: string[]
+  isOpen: boolean;
+  onClose: () => void;
+  route: Station[];
+  intermediateStations: string[];
 }
 
-const ORANGE = '#f97316' // Tailwind orange-500
-const BLUE = '#2563eb' // Tailwind blue-600
+const ORANGE = "#f97316";
+const BLUE = "#2563eb";
+const GRAY = "#6b7280";
 
-const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route ,intermediateStations}) => {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<mapboxgl.Marker[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>('')
+const TrainMap: React.FC<TrainMapProps> = ({
+  isOpen,
+  onClose,
+  route,
+  intermediateStations,
+}) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  const accessToken = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '', [])
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showIntermediate, setShowIntermediate] = useState(true);
 
-  // Resolve coordinates from API response
+  const allStations = stnInfo.station;
+  const accessToken = useMemo(
+    () => process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
+    []
+  );
+
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
     if (!accessToken) {
-      setError('Mapbox access token is missing')
-      setLoading(false)
-      return
+      setError("Mapbox access token missing");
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
-    const initialize = async () => {
-      try {
-        setLoading(true)
-        setError('')
+    const init = () => {
+      setLoading(true);
+      setError("");
 
-        // Extract coordinates from stations
-        const points: { name: string; code: string; lat: number; lng: number }[] = []
+      /** ------------------------------------------------
+       * 1) Build stoppage points
+       * ------------------------------------------------*/
+      const stoppagePoints = route
+        .filter((st) => st.coordinates)
+        .map((s) => ({
+          name: s.stnName,
+          code: s.stnCode,
+          lat: s.coordinates!.latitude,
+          lng: s.coordinates!.longitude,
+        }));
 
-        for (const station of route) {
-          if (station.coordinates &&
-              typeof station.coordinates.latitude === 'number' &&
-              typeof station.coordinates.longitude === 'number' &&
-              isFinite(station.coordinates.latitude) &&
-              isFinite(station.coordinates.longitude)) {
-            points.push({
-              name: station.stnName,
-              code: station.stnCode,
-              lat: station.coordinates.latitude,
-              lng: station.coordinates.longitude
-            })
-          }
-        }
+      /** ------------------------------------------------
+       * 2) Build intermediate points (from JSON lookup)
+       * ------------------------------------------------*/
+      const intermediatePoints = intermediateStations
+        .map((code) => allStations.find((s: any) => s.stnCode === code))
+        .filter((s) => s && s.latitude && s.longitude)
+        .map((s: any) => ({
+          name: s.stnName,
+          code: s.stnCode,
+          lat: s.latitude,
+          lng: s.longitude,
+        }));
 
-        if (cancelled) return
+      /** ------------------------------------------------
+       * 3) Build combined points for the polyline
+       * ------------------------------------------------*/
+      let fullPoints =
+        intermediatePoints.length > 0
+          ? [...stoppagePoints, ...intermediatePoints]
+          : [...stoppagePoints];
 
-        // 2) Init map if needed
-        mapboxgl.accessToken = accessToken
-        if (!mapRef.current && containerRef.current) {
-          mapRef.current = new mapboxgl.Map({
-            container: containerRef.current,
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: points.length ? [points[0].lng, points[0].lat] : [78.9629, 20.5937],
-            zoom: points.length ? 6 : 4
-          })
-        }
+      // sort: keep stoppages in order, intermediates in between
+      const orderMap: Record<string, number> = {};
+      route.forEach((st, i) => (orderMap[st.stnCode] = i));
+      intermediateStations.forEach((code, i) => (orderMap[code] = 1000 + i));
 
-        const map = mapRef.current!
+      fullPoints.sort(
+        (a, b) => (orderMap[a.code] ?? 99999) - (orderMap[b.code] ?? 99999)
+      );
 
-        const addDataToMap = () => {
-          // Clear previous layers and sources
-          if (map.getSource('route-line')) {
-            map.removeLayer('route-line')
-            map.removeSource('route-line')
-          }
-          if (map.getSource('stations')) {
-            if (map.getLayer('stations-circle')) map.removeLayer('stations-circle')
-            if (map.getLayer('stations-label')) map.removeLayer('stations-label')
-            map.removeSource('stations')
-          }
+      if (cancelled) return;
 
-          // Create GeoJSON for stations
-          const stationsGeoJSON: GeoJSON.FeatureCollection<GeoJSON.Point> = {
-            type: 'FeatureCollection',
-            features: points.map(p => ({
-              type: 'Feature',
+      /** ------------------------------------------------
+       * 4) Initialize map
+       * ------------------------------------------------*/
+      mapboxgl.accessToken = accessToken;
+
+      if (!mapRef.current && containerRef.current) {
+        mapRef.current = new mapboxgl.Map({
+          container: containerRef.current,
+          style: "mapbox://styles/mapbox/streets-v12",
+          center: fullPoints.length
+            ? [fullPoints[0].lng, fullPoints[0].lat]
+            : [78.9, 20.5],
+          zoom: fullPoints.length ? 5 : 4,
+        });
+      }
+
+      const map = mapRef.current!;
+
+      const drawMap = () => {
+        /** Cleanup old layers */
+        const layers = [
+          "stoppage-circle",
+          "stoppage-label",
+          "intermediate-circle",
+          "route-line",
+        ];
+        layers.forEach((id) => {
+          if (map.getLayer(id)) map.removeLayer(id);
+        });
+
+        const sources = ["stoppage", "intermediate", "route-line"];
+        sources.forEach((id) => {
+          if (map.getSource(id)) map.removeSource(id);
+        });
+
+        /** -----------------------------------------------
+         * STOPPAGE STATIONS (markers)
+         * -----------------------------------------------*/
+        const stoppageGeo: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+          type: "FeatureCollection",
+          features: stoppagePoints.map((p) => ({
+            type: "Feature",
+            properties: {
+              name: p.name,
+              code: p.code,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [p.lng, p.lat],
+            },
+          })),
+        };
+
+        map.addSource("stoppage", { type: "geojson", data: stoppageGeo });
+
+        map.addLayer({
+          id: "stoppage-circle",
+          type: "circle",
+          source: "stoppage",
+          paint: {
+            "circle-radius": 6,
+            "circle-color": ORANGE,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+          },
+        });
+
+        map.addLayer({
+          id: "stoppage-label",
+          type: "symbol",
+          source: "stoppage",
+          layout: {
+            "text-field": ["get", "code"],
+            "text-size": 11,
+            "text-anchor": "top",
+            "text-offset": [0, 1.5],
+          },
+          paint: {
+            "text-color": "#111",
+            "text-halo-color": "#fff",
+            "text-halo-width": 1.2,
+          },
+        });
+
+        /** -----------------------------------------------
+         * INTERMEDIATE STATIONS (gray dots when zoomed in)
+         * -----------------------------------------------*/
+        if (intermediatePoints.length > 0) {
+          const interGeo: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+            type: "FeatureCollection",
+            features: intermediatePoints.map((p) => ({
+              type: "Feature",
               properties: {
                 name: p.name,
-                code: p.code
+                code: p.code,
               },
               geometry: {
-                type: 'Point',
-                coordinates: [p.lng, p.lat]
-              }
-            }))
-          }
+                type: "Point",
+                coordinates: [p.lng, p.lat],
+              },
+            })),
+          };
 
-          // Add stations source and layers
-          map.addSource('stations', {
-            type: 'geojson',
-            data: stationsGeoJSON
-          })
-
-          map.addLayer({
-            id: 'stations-circle',
-            type: 'circle',
-            source: 'stations',
-            paint: {
-              'circle-radius': 6,
-              'circle-color': ORANGE,
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#ffffff'
-            }
-          })
+          map.addSource("intermediate", {
+            type: "geojson",
+            data: interGeo,
+          });
 
           map.addLayer({
-            id: 'stations-label',
-            type: 'symbol',
-            source: 'stations',
+            id: "intermediate-circle",
+            type: "circle",
+            source: "intermediate",
+            minzoom: 8,
             layout: {
-              'text-field': ['get', 'code'],
-              'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-              'text-size': 11,
-              'text-offset': [0, 1.5],
-              'text-anchor': 'top'
+              visibility: showIntermediate ? "visible" : "none",
             },
             paint: {
-              'text-color': '#111827',
-              'text-halo-color': '#ffffff',
-              'text-halo-width': 1.5
-            }
-          })
-
-          // Add line if we have at least two points
-          if (points.length >= 2) {
-            const lineGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: points.map(p => [p.lng, p.lat])
-              }
-            }
-
-            map.addSource('route-line', {
-              type: 'geojson',
-              data: lineGeoJSON
-            })
-
-            map.addLayer({
-              id: 'route-line',
-              type: 'line',
-              source: 'route-line',
-              layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-              },
-              paint: {
-                'line-color': BLUE,
-                'line-width': 3
-              }
-            })
-
-            // Fit bounds to route
-            const bounds = new mapboxgl.LngLatBounds()
-            points.forEach(p => bounds.extend([p.lng, p.lat]))
-            map.fitBounds(bounds, { padding: 60, duration: 800, maxZoom: 10 })
-          }
-
-          // Add popup on click
-          map.on('click', 'stations-circle', (e) => {
-            if (!e.features || !e.features[0]) return
-            const feature = e.features[0]
-            const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice() as [number, number]
-            const { name, code } = feature.properties as { name: string; code: string }
-
-            new mapboxgl.Popup()
-              .setLngLat(coordinates)
-              .setHTML(`
-                <div style="padding: 4px 8px; font-size: 13px;">
-                  <div style="font-weight: 600; color: #111827;">${name}</div>
-                  <div style="font-size: 12px; color: #6b7280;">${code}</div>
-                </div>
-              `)
-              .addTo(map)
-          })
-
-          // Change cursor on hover
-          map.on('mouseenter', 'stations-circle', () => {
-            map.getCanvas().style.cursor = 'pointer'
-          })
-          map.on('mouseleave', 'stations-circle', () => {
-            map.getCanvas().style.cursor = ''
-          })
-
-          setLoading(false)
+              "circle-radius": 4,
+              "circle-color": GRAY,
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#fff",
+            },
+          });
         }
 
-        if (map.isStyleLoaded()) {
-          addDataToMap()
-        } else {
-          map.once('load', addDataToMap)
-        }
-      } catch (e) {
-        setError('Failed to initialize map')
-        setLoading(false)
-      }
-    }
+        /** -----------------------------------------------
+         * ROUTE POLYLINE (full route)
+         * -----------------------------------------------*/
 
-    initialize()
+        const lineGeo: GeoJSON.Feature<GeoJSON.LineString> = {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: fullPoints.map((p) => [p.lng, p.lat]),
+          },
+          properties: {},
+        };
 
+        map.addSource("route-line", {
+          type: "geojson",
+          data: lineGeo,
+        });
+
+        map.addLayer({
+          id: "route-line",
+          type: "line",
+          source: "route-line",
+          paint: {
+            "line-color": BLUE,
+            "line-width": 3,
+          },
+        });
+
+        /** Fit bounds */
+        const bounds = new mapboxgl.LngLatBounds();
+        fullPoints.forEach((p) => bounds.extend([p.lng, p.lat]));
+        map.fitBounds(bounds, { padding: 60, duration: 800, maxZoom: 10 });
+
+        setLoading(false);
+      };
+
+      if (map.isStyleLoaded()) drawMap();
+      else map.once("load", drawMap);
+    };
+
+    init();
     return () => {
-      cancelled = true
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, route, accessToken])
+      cancelled = true;
+    };
+  }, [isOpen, route, intermediateStations, showIntermediate, accessToken]);
 
-  // Cleanup map when modal closes/unmounts
+  /** Cleanup map */
   useEffect(() => {
     if (!isOpen && mapRef.current) {
-      markersRef.current.forEach(m => m.remove())
-      markersRef.current = []
-      mapRef.current.remove()
-      mapRef.current = null
+      mapRef.current.remove();
+      mapRef.current = null;
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="relative bg-white w-[95vw] h-[85vh] max-w-6xl rounded-lg shadow-xl overflow-hidden">
-        <div className="absolute top-3 right-3 z-10 flex gap-2">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 rounded-md bg-gray-800 text-white text-sm hover:bg-gray-700 cursor-pointer"
-            title="Close"
-          >
-            Close
-          </button>
+        {/* Toggle Button */}
+        <div className="absolute top-3 left-3 z-20 bg-white px-3 py-2 rounded shadow text-sm">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showIntermediate}
+              onChange={() => setShowIntermediate(!showIntermediate)}
+            />
+            Show intermediate stations
+          </label>
         </div>
-        {error ? (
-          <div className="w-full h-full flex items-center justify-center text-red-600 text-sm px-6">
-            {error}
-          </div>
-        ) : (
-          <div className="w-full h-full">
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white/90 px-4 py-2 rounded shadow">Loading map…</div>
-              </div>
-            )}
-            <div ref={containerRef} className="w-full h-full" />
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-20 px-3 py-1.5 bg-gray-800 text-white rounded hover:bg-gray-700"
+        >
+          Close
+        </button>
+
+        {/* Map */}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+            Loading map…
           </div>
         )}
+
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center text-red-600 z-10">
+            {error}
+          </div>
+        )}
+
+        <div ref={containerRef} className="w-full h-full" />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TrainMap
+export default TrainMap;
