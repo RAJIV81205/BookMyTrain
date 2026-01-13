@@ -180,8 +180,7 @@ const Trainsearch = () => {
       }
 
       const data = await response.json();
-      setIntermediateStations(data.data);
-      console.log(data);
+      setIntermediateStations(data.myStnsF);
     } catch (error) {
       console.error("Error fetching intermediate stations:", error);
     }
@@ -346,7 +345,6 @@ const Trainsearch = () => {
         isOpen={isMapOpen}
         onClose={() => setIsMapOpen(false)}
         route={(trainInfo as TrainInfo).data.route as any}
-        trainNumber={trainNumber}
         intermediateStations={intermediateStations}
       />
     );

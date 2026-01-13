@@ -23,14 +23,13 @@ interface TrainMapProps {
   isOpen: boolean
   onClose: () => void
   route: Station[]
-  trainNumber: string
   intermediateStations: string[]
 }
 
 const ORANGE = '#f97316' // Tailwind orange-500
 const BLUE = '#2563eb' // Tailwind blue-600
 
-const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route }) => {
+const TrainMap: React.FC<TrainMapProps> = ({ isOpen, onClose, route ,intermediateStations}) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
