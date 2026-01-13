@@ -195,7 +195,7 @@ const Trainsearch = () => {
     try {
       const result = await getTrainInfo(number);
       setTrainInfo(result);
-      getIntermediateStations(trainNumber, result.data.route[0].stnCode);
+      getIntermediateStations(number, result.data.route[0].stnCode);
     } catch (err) {
       setError("Failed to fetch train information. Please try again.");
     } finally {
