@@ -154,9 +154,28 @@ const Trainsearch = () => {
 
   const getIntermediateStations = async (
     trainNumber: string,
-    sourceStationCode: string
+    sourceStationCode: string,
+    jDate?: string,
+    attempts: number = 0
   ) => {
     try {
+      // ---- Prevent infinite loops (max 7 retries) ----
+      if (attempts >= 7) {
+        console.warn("Max retry limit reached. No data found for past 7 days.");
+        return;
+      }
+
+      // ---- If no jDate passed, use today's date ----
+      const currentDate = jDate ? new Date(jDate) : new Date();
+
+      const formattedDate = currentDate
+        .toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+        .replace(/ /g, "-"); // "13-Jan-2026"
+
       const response = await fetch("/api/fetch_intermediate_station", {
         method: "POST",
         headers: {
@@ -165,13 +184,7 @@ const Trainsearch = () => {
         body: JSON.stringify({
           trainNo: trainNumber,
           jStation: sourceStationCode,
-          jDate: new Date()
-            .toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
-            .replace(/ /g, "-"), // "13-Jan-2026"
+          jDate: formattedDate,
         }),
       });
 
@@ -180,7 +193,22 @@ const Trainsearch = () => {
       }
 
       const data = await response.json();
-      setIntermediateStations(data.myStnsF);
+
+      if (data.myStnsF.length > 0) {
+        setIntermediateStations(data.myStnsF);
+        return;
+      } else {
+        // ---- Decrease date by 1 day ----
+        const newDate = new Date(currentDate);
+        newDate.setDate(currentDate.getDate() - 1);
+
+        return getIntermediateStations(
+          trainNumber,
+          sourceStationCode,
+          newDate.toISOString(),
+          attempts + 1
+        );
+      }
     } catch (error) {
       console.error("Error fetching intermediate stations:", error);
     }

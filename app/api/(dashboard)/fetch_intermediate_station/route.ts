@@ -20,8 +20,8 @@ function extractMyStnsF(html: string): string[] {
 // ----------------------------------------------------
 // Main NTES route fetcher
 // ----------------------------------------------------
-async function fetchNtesRoute(trainNo:string, jStation:string) {
-  const url = `https://enquiry.indianrail.gov.in/mntes/TrnMap?opt=map&subOpt=spot&trainNo=${trainNo}&jStation=${jStation}&arrDepFlag=D&from=N`;
+async function fetchNtesRoute(trainNo:string, jStation:string,jDate:string) {
+  const url = `https://enquiry.indianrail.gov.in/mntes/TrnMap?opt=map&subOpt=spot&trainNo=${trainNo}&jStation=${jStation}&jDate=${jDate}&arrDepFlag=D&from=N`;
 
   const headers = {
     "Cookie": "SERVERID=ccsrww87sfs1; TS012f81d3=01ee28b44494e0766c840b581580a5d4c35121d0d267b86b0af1019c9770a42ad8656fd76523245b91d8d17ee4de89797936135df7",
@@ -49,7 +49,7 @@ async function fetchNtesRoute(trainNo:string, jStation:string) {
 
   const body = new URLSearchParams({
     lan: "en",
-    jDate: "13-Jan-2026",
+    jDate: jDate,
     trainNo: trainNo,
     "-tfoh8rd6i2571768284550": "-71qm7iqhy5sn29471409"
   }).toString();
@@ -69,16 +69,16 @@ async function fetchNtesRoute(trainNo:string, jStation:string) {
 // ----------------------------------------------------
 export async function POST(req: Request) {
   try {
-    const { trainNo, jStation } = await req.json();
+    const { trainNo, jStation , jDate } = await req.json();
 
-    if (!trainNo || !jStation || trainNo.length !== 5) {
+    if (!trainNo || !jStation || trainNo.length !== 5 || !jDate) {
       return NextResponse.json(
         { error: "Missing or invalid trainNo / jStation" },
         { status: 400 }
       );
     }
 
-    const result = await fetchNtesRoute(trainNo, jStation);
+    const result = await fetchNtesRoute(trainNo, jStation , jDate);
     const myStnsF = extractMyStnsF(result);
 
     return NextResponse.json(
