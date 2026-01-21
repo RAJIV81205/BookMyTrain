@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio, Building } from 'lucide-react';
+import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio, Building , Locate} from 'lucide-react';
 
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
   { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
   { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
+  { label: "PNR Status", path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
+  { label: "At Station", path: '/dashboard/at-station', icon: Locate, title: "At Station" },
   { label: 'Station Map', path: '/dashboard/stationmap', icon: Building, title: "Station Map" },
   { label: "Train Map", path: '/dashboard/livemap', icon: Map, title: "Train Map" }
+  
 ];
 
 interface SidebarProps {
