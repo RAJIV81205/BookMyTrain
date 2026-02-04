@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { MapPin, Calendar, Search as SearchIcon, ArrowRight, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import stninfo from '@/lib/constants/stations.json'
 import { searchTrainBetweenStations } from 'irctc-connect'
@@ -36,6 +36,50 @@ const Search = () => {
   const trainCardsRef = useRef<HTMLDivElement[]>([])
 
   const stations = stninfo.station || []
+
+  // Debounced search state
+  const [debouncedFromQuery, setDebouncedFromQuery] = useState("")
+  const [debouncedToQuery, setDebouncedToQuery] = useState("")
+  
+  // Debounce the search queries
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFromQuery(fromQuery)
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [fromQuery])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedToQuery(toQuery)
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [toQuery])
+
+  // Memoized filtered stations with limited results
+  const filteredFromStations = useMemo(() => {
+    if (!debouncedFromQuery || debouncedFromQuery.length < 2) return []
+    
+    return stations
+      .filter((s: any) => 
+        s.stnCode !== toCode &&
+        (s.stnCode.toLowerCase().includes(debouncedFromQuery.toLowerCase()) ||
+         s.stnName.toLowerCase().includes(debouncedFromQuery.toLowerCase()))
+      )
+      .slice(0, 8) // Limit to 8 results for better performance
+  }, [debouncedFromQuery, toCode, stations])
+
+  const filteredToStations = useMemo(() => {
+    if (!debouncedToQuery || debouncedToQuery.length < 2) return []
+    
+    return stations
+      .filter((s: any) => 
+        s.stnCode !== fromCode &&
+        (s.stnCode.toLowerCase().includes(debouncedToQuery.toLowerCase()) ||
+         s.stnName.toLowerCase().includes(debouncedToQuery.toLowerCase()))
+      )
+      .slice(0, 8) // Limit to 8 results for better performance
+  }, [debouncedToQuery, fromCode, stations])
 
 
   useEffect(() => {
@@ -94,37 +138,25 @@ const Search = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [activeField])
 
-  const handleSelectFrom = (station: any) => {
+  const handleSelectFrom = useCallback((station: any) => {
     setFromQuery(station.stnName)
     setFromCode(station.stnCode)
     setActiveField(null)
-  }
+  }, [])
 
-  const handleSelectTo = (station: any) => {
+  const handleSelectTo = useCallback((station: any) => {
     setToQuery(station.stnName)
     setToCode(station.stnCode)
     setActiveField(null)
-  }
+  }, [])
 
-  const swapStations = () => {
+  const swapStations = useCallback(() => {
     setFromQuery(toQuery)
     setToQuery(fromQuery)
     setFromCode(toCode)
     setToCode(fromCode)
-  }
+  }, [fromQuery, toQuery, fromCode, toCode])
 
-  const filterStations = (query: string, excludeCode?: string) => {
-    return stations
-      .filter(
-        (s: any) =>
-          s.stnCode !== excludeCode &&
-          (
-            s.stnCode.toLowerCase().includes(query.toLowerCase()) ||
-            s.stnName.toLowerCase().includes(query.toLowerCase())
-          )
-      )
-      
-  }
 
   // Handler for tracking individual TrainCard reset completion
   const resetCompletionRef = useRef<{
@@ -325,39 +357,43 @@ const Search = () => {
                     Station Code: {fromCode}
                   </div>
                 )}
-                {activeField === "from" && fromQuery && (
+                {activeField === "from" && fromQuery.length >= 2 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-50 overflow-y-auto">
-                    {filterStations(fromQuery, toCode).map((station, index) => (
-                      <div
-                        key={station.stnCode}
-                        onClick={() => handleSelectFrom(station)}
-                        onMouseEnter={(e) => {
-                          gsap.to(e.target, {
-                            x: 5,
-                            duration: 0.2,
-                            ease: "power2.out"
-                          })
-                        }}
-                        onMouseLeave={(e) => {
-                          gsap.to(e.target, {
-                            x: 0,
-                            duration: 0.2,
-                            ease: "power2.out"
-                          })
-                        }}
-                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0  border-gray-200 transition-colors duration-150"
-                        style={{
-                          animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
-                        }}
-                      >
-                        <div className="font-medium text-gray-800">{station.stnName}</div>
-                        <div className="text-sm text-gray-600">
-                          {station.stnCode} • {station.district}
+                    {filteredFromStations.length > 0 ? (
+                      filteredFromStations.map((station, index) => (
+                        <div
+                          key={station.stnCode}
+                          onClick={() => handleSelectFrom(station)}
+                          onMouseEnter={(e) => {
+                            gsap.to(e.target, {
+                              x: 5,
+                              duration: 0.2,
+                              ease: "power2.out"
+                            })
+                          }}
+                          onMouseLeave={(e) => {
+                            gsap.to(e.target, {
+                              x: 0,
+                              duration: 0.2,
+                              ease: "power2.out"
+                            })
+                          }}
+                          className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0  border-gray-200 transition-colors duration-150"
+                          style={{
+                            animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
+                          }}
+                        >
+                          <div className="font-medium text-gray-800">{station.stnName}</div>
+                          <div className="text-sm text-gray-600">
+                            {station.stnCode} • {station.district}
+                          </div>
                         </div>
-
+                      ))
+                    ) : (
+                      <div className="p-3 text-gray-500 text-center">
+                        {debouncedFromQuery.length < 2 ? "Type at least 2 characters" : "No stations found"}
                       </div>
-
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
@@ -423,37 +459,43 @@ const Search = () => {
                     Station Code: {toCode}
                   </div>
                 )}
-                {activeField === "to" && toQuery && (
+                {activeField === "to" && toQuery.length >= 2 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-50 overflow-y-auto">
-                    {filterStations(toQuery, fromCode).map((station, index) => (
-                      <div
-                        key={station.stnCode}
-                        onClick={() => handleSelectTo(station)}
-                        onMouseEnter={(e) => {
-                          gsap.to(e.target, {
-                            x: 5,
-                            duration: 0.2,
-                            ease: "power2.out"
-                          })
-                        }}
-                        onMouseLeave={(e) => {
-                          gsap.to(e.target, {
-                            x: 0,
-                            duration: 0.2,
-                            ease: "power2.out"
-                          })
-                        }}
-                        className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors border-gray-200 duration-150"
-                        style={{
-                          animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
-                        }}
-                      >
-                        <div className="font-medium text-gray-800">{station.stnName}</div>
-                        <div className="text-sm text-gray-600">
-                          {station.stnCode} • {station.district}
+                    {filteredToStations.length > 0 ? (
+                      filteredToStations.map((station, index) => (
+                        <div
+                          key={station.stnCode}
+                          onClick={() => handleSelectTo(station)}
+                          onMouseEnter={(e) => {
+                            gsap.to(e.target, {
+                              x: 5,
+                              duration: 0.2,
+                              ease: "power2.out"
+                            })
+                          }}
+                          onMouseLeave={(e) => {
+                            gsap.to(e.target, {
+                              x: 0,
+                              duration: 0.2,
+                              ease: "power2.out"
+                            })
+                          }}
+                          className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors border-gray-200 duration-150"
+                          style={{
+                            animation: `slideInDown 0.3s ease-out ${index * 0.05}s both`
+                          }}
+                        >
+                          <div className="font-medium text-gray-800">{station.stnName}</div>
+                          <div className="text-sm text-gray-600">
+                            {station.stnCode} • {station.district}
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-gray-500 text-center">
+                        {debouncedToQuery.length < 2 ? "Type at least 2 characters" : "No stations found"}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>

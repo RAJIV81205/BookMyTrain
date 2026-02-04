@@ -5,10 +5,11 @@ export const runtime = "nodejs";
 export async function GET() {
   try {
     const response = await fetch(
-      "https://railradar.in/api/v1/trains/live-map",
+      "https://api.railradar.in/api/v1/trains/live-map",
       {
         method: "GET",
-        // headers: {
+        headers: {
+          "X-API-KEY": "rr_prod_3cf4ebe1abdf49338c02f37a11f135d6",
         //   "accept": "*/*",
         //   "accept-language": "en-IN,en;q=0.7",
         //   "content-type": "application/json",
@@ -32,7 +33,7 @@ export async function GET() {
 
         //   // Optional but helps bypass heuristics
         //   "x-trace-id": `${Date.now()}.${Math.floor(Math.random() * 1000000)}`,
-        // },
+         },
         // cache: "no-store",
       }
     );
