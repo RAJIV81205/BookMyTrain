@@ -7,7 +7,7 @@ import { Home, Tickets, Info, X, Map, PanelLeftOpen, PanelRightOpen, Radio, Buil
 const navItems = [
   { label: 'Home', path: '/dashboard', icon: Home, title: "Home" },
   { label: 'Train Info', path: '/dashboard/train', icon: Info, title: "Train Info" },
-  { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
+  // { label: "Live Status", path: '/dashboard/live-status', icon: Radio, title: "Live Status" },
   { label: "PNR Status", path: '/dashboard/pnr', icon: Tickets, title: "PNR Status" },
   { label: "At Station", path: '/dashboard/at-station', icon: Locate, title: "At Station" },
   { label: 'Station Map', path: '/dashboard/stationmap', icon: Building, title: "Station Map" },
